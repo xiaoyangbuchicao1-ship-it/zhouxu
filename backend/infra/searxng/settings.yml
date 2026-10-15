@@ -1,0 +1,21 @@
+use_default_settings: true
+
+general:
+  instance_name: "舟序本地资料检索"
+
+search:
+  safe_search: 1
+  autocomplete: ""
+  formats:
+    - html
+    - json
+
+server:
+  bind_address: "0.0.0.0"
+  port: 8080
+  limiter: false
+  image_proxy: false
+
+ui:
+  static_use_hash: true
+

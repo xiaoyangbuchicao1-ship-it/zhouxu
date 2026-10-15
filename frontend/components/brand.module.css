@@ -1,0 +1,60 @@
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  color: #072c38;
+  text-decoration: none;
+}
+
+.mark {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 17px;
+  background: var(--color-action);
+}
+
+.mark img {
+  width: 54px;
+  height: 54px;
+  object-fit: cover;
+  /* Rule 18: recolor the existing transparent mark without redrawing its silhouette. */
+  filter: brightness(0) invert(1);
+}
+
+.silver img { filter: grayscale(1) brightness(.08) invert(1); }
+
+.words {
+  display: grid;
+  line-height: 1;
+}
+
+.words strong {
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.words small {
+  margin-top: 8px;
+  color: #536f79;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+}
+
+.inverse { color: white; }
+.inverse .words small { color: rgba(255, 255, 255, 0.7); }
+
+.compact { gap: 10px; }
+.compact .mark, .compact .mark img { width: 42px; height: 42px; border-radius: 13px; }
+.compact .words strong { font-size: 21px; }
+.compact .words small { margin-top: 6px; font-size: 10px; }
+
+@media (max-width: 640px) {
+  .words strong { font-size: 22px; }
+  .words small { font-size: 9px; }
+  .mark, .mark img { width: 48px; height: 48px; border-radius: 15px; }
+}

@@ -1,0 +1,27 @@
+[project]
+name = "zhouxu-backend"
+version = "0.1.0"
+description = "Zhouxu maritime dispute assistant backend"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115,<1.0",
+  "uvicorn>=0.32,<1.0",
+  "pydantic>=2.10,<3.0",
+  "pypdf>=5,<7",
+  "openpyxl>=3.1,<4",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "httpx>=0.28,<1"]
+media = [
+  "paddleocr==3.7.0",
+  "paddlepaddle==3.3.1",
+]
+perception = [
+    "fastembed>=0.7,<1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"

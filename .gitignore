@@ -1,0 +1,53 @@
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Private product data
+runtime/
+artifacts/
+data/
+真实案件资料/
+交接私密/
+*.sqlite
+*.sqlite3
+*.db
+*.log
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Node and Next.js
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+npm-debug.log*
+
+# Task process files and local previews
+.ai-tmp/
+临时文件/
+.preview/
+*.zip
+*.7z
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+

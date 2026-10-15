@@ -1,0 +1,45 @@
+.page { min-height: 100svh; background: var(--color-surface); color: var(--color-text); }
+.header { display: flex; width: min(1120px, calc(100% - 64px)); height: 88px; margin: 0 auto; align-items: center; justify-content: space-between; }
+.header > a:last-child { display: inline-flex; min-height: 44px; align-items: center; gap: 8px; color: var(--color-text-secondary); font-size: 14px; text-decoration: none; }
+.header > a:last-child:hover { color: var(--color-action); }
+.main { display: grid; min-height: calc(100svh - 158px); grid-template-columns: minmax(0, 1fr) 440px; align-items: center; gap: 96px; width: min(1040px, calc(100% - 64px)); margin: 0 auto; padding: 36px 0 64px; }
+.context { max-width: 450px; }
+.kicker { margin: 0 0 24px; color: var(--color-action); font-size: 15px; font-weight: 600; letter-spacing: .04em; }
+.context h1 { margin: 0; font-size: clamp(34px, 3vw, 44px); font-weight: 600; line-height: 1.4; letter-spacing: .025em; }
+.context > p:not(.kicker) { margin: 24px 0 0; color: var(--color-text-secondary); font-size: 17px; line-height: 1.85; }
+.card { padding: 30px 34px; border: 1px solid var(--color-border); border-radius: 20px; background: #fff; box-shadow: 0 12px 36px rgba(8, 42, 53, .045); }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 11px; background: #f2f7f8; }
+.tabs button { min-height: 44px; border: 0; border-radius: 8px; background: transparent; color: var(--color-text-secondary); font-size: 15px; font-weight: 500; }
+.tabs button[aria-pressed="true"] { background: #fff; color: var(--color-text); box-shadow: 0 1px 4px rgba(8, 42, 53, .06); }
+.cardHead { margin: 28px 0 24px; }
+.cardHead h2 { margin: 0; font-size: 27px; font-weight: 600; line-height: 1.4; letter-spacing: .015em; }
+.cardHead p { margin: 8px 0 0; color: var(--color-text-muted); font-size: 15px; }
+.card form { display: grid; gap: 20px; }
+.card label { display: grid; gap: 8px; }
+.card label > span { color: var(--color-text-secondary); font-size: 15px; font-weight: 500; }
+.card input { width: 100%; height: 50px; padding: 0 14px; border: 1px solid var(--color-border-strong); border-radius: 10px; background: #fff; color: var(--color-text); font-size: 16px; outline: none; transition: border-color 160ms ease, box-shadow 160ms ease; }
+.card input::placeholder { color: var(--color-text-muted); }
+.card input:focus { border-color: var(--color-action); box-shadow: 0 0 0 3px rgba(0, 127, 158, .1); }
+.card input[aria-invalid="true"] { border-color: var(--color-confirmation); }
+.fieldError, .error { color: var(--color-confirmation); font-size: 14px; line-height: 1.6; }
+.fieldError { margin: 0; }
+.error { display: flex; align-items: flex-start; gap: 8px; margin: -4px 0 0; }
+.error svg { flex: 0 0 auto; margin-top: 2px; }
+.submit { display: inline-flex; width: 100%; min-height: 50px; margin-top: 4px; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 10px; background: var(--color-action); color: #fff; font-size: 16px; font-weight: 600; transition: background 160ms ease; }
+.submit:hover:not(:disabled) { background: var(--color-action-hover); }
+.card button:disabled, .card input:disabled { opacity: .65; cursor: default; }
+.spin { animation: spin .9s linear infinite; }
+.legal { margin: 24px 0 0; color: var(--color-text-muted); font-size: 14px; line-height: 1.7; text-align: center; }
+.page > footer { display: flex; min-height: 70px; padding: 14px 18px; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 16px; color: var(--color-text-muted); font-size: 14px; }
+.page > footer a { color: inherit; text-underline-offset: 3px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 940px) {
+  .main { grid-template-columns: minmax(0, 440px); justify-content: center; min-height: calc(100svh - 158px); gap: 0; }
+  .context { display: none; }
+}
+@media (max-width: 620px) {
+  .header { width: calc(100% - 36px); height: 76px; }
+  .main { width: calc(100% - 36px); min-height: calc(100svh - 146px); align-items: start; padding: 24px 0 28px; }
+  .card { padding: 24px 20px; border-radius: 16px; box-shadow: none; }
+  .cardHead h2 { font-size: 25px; }
+}

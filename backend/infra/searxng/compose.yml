@@ -1,0 +1,19 @@
+services:
+  searxng:
+    image: docker.io/searxng/searxng@sha256:76b0bf285aca014c7191fc4d9234c4bfb358624ac33d8883833d496c059ec072
+    container_name: zhouxu-searxng
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${SEARXNG_PORT:-18080}:8080"
+    environment:
+      SEARXNG_BASE_URL: http://127.0.0.1:${SEARXNG_PORT:-18080}/
+      SEARXNG_SECRET: ${SEARXNG_SECRET:?SEARXNG_SECRET is required}
+    volumes:
+      - ./settings.yml:/etc/searxng/settings.yml:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/config"]
+      interval: 10s
+      timeout: 4s
+      retries: 6
+      start_period: 20s
+
