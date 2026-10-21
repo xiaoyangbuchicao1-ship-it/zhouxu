@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, CircleAlert, LoaderCircle } from "lucide-react";
 import { Brand } from "@/components/brand";
@@ -20,10 +21,20 @@ export function AuthPanel({ initialMode }: { initialMode: Mode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<"name" | "email" | "password", string>>>({});
+  const panelRef = useRef<HTMLElement>(null);
+  const modeAnimationRef = useRef<Animation | null>(null);
+  useEffect(() => () => modeAnimationRef.current?.cancel(), []);
 
-  const switchMode = (next: Mode) => { setMode(next); setError(""); setFieldErrors({}); };
+  const switchMode = (next: Mode, pointer: boolean) => {
+    if (next === mode) return;
+    modeAnimationRef.current?.cancel();
+    setMode(next); setError(""); setFieldErrors({});
+    router.replace(next === "register" ? "/login?mode=register" : "/login", { scroll: false });
+    if (pointer && !matchMedia("(prefers-reduced-motion: reduce)").matches) modeAnimationRef.current = panelRef.current?.animate([{opacity:.7},{opacity:1}], {duration:200,easing:"cubic-bezier(.23,1,.32,1)"}) ?? null;
+  };
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (loading) return;
     setError("");
     const invalid: typeof fieldErrors = {};
     if (mode === "register" && !name.trim()) invalid.name = "请输入你的称呼。";
@@ -45,7 +56,10 @@ export function AuthPanel({ initialMode }: { initialMode: Mode }) {
       saveSession({ account: response.account, token: response.session.token });
       router.push("/app");
     } catch (reason) {
-      setError(explainError(reason));
+      const code = reason instanceof Error ? reason.message : "";
+      if (["account_email_exists", "email_invalid"].includes(code)) setFieldErrors({ email: explainError(reason) });
+      else if (["authentication_failed", "password_length_invalid"].includes(code)) setFieldErrors({ password: explainError(reason) });
+      else setError(explainError(reason));
     } finally {
       setLoading(false);
     }
@@ -53,19 +67,19 @@ export function AuthPanel({ initialMode }: { initialMode: Mode }) {
 
   return (
     <div className={styles.page}>
+      <div className={styles.backdrop}><Image src="/images/deepsea-cargo.webp" alt="" fill sizes="100vw" preload /></div>
       <a className="skip-link" href="#auth-form">跳到账户表单</a>
       <header className={styles.header}><Brand /><Link href="/"><ArrowLeft size={17} />返回首页</Link></header>
       <main className={styles.main}>
         <section className={styles.context}>
-          <p className={styles.kicker}>海事争议工作台</p>
-          <h1>从一个问题，<br />理清一件事情。</h1>
-          <p>提问、添加材料、接着追问。<br />你的工作，可以从一次对话开始。</p>
+          <h1>把分歧展开。<br />把依据留下。</h1>
+          <p>从一个问题，进入材料与事实。<br />每一次追问，都可以接着上一次继续。</p>
         </section>
 
-        <section className={styles.card} aria-labelledby="auth-title">
+        <section ref={panelRef} className={styles.card} aria-labelledby="auth-title" aria-busy={loading}>
           <div className={styles.tabs} role="group" aria-label="账户操作">
-            <button aria-pressed={mode === "login"} disabled={loading} type="button" onClick={() => switchMode("login")}>登录</button>
-            <button aria-pressed={mode === "register"} disabled={loading} type="button" onClick={() => switchMode("register")}>创建账户</button>
+            <button aria-pressed={mode === "login"} disabled={loading} type="button" onClick={(event) => switchMode("login", event.detail > 0)}>登录</button>
+            <button aria-pressed={mode === "register"} disabled={loading} type="button" onClick={(event) => switchMode("register", event.detail > 0)}>创建账户</button>
           </div>
           <div className={styles.cardHead}>
             <h2 id="auth-title">{mode === "login" ? "欢迎回来" : "开始使用舟序"}</h2>
@@ -81,7 +95,7 @@ export function AuthPanel({ initialMode }: { initialMode: Mode }) {
           <p className={styles.legal}>舟序辅助分析与研究，关键判断由你确认。</p>
         </section>
       </main>
-      <footer><span>本软件使用 MiSans 字体</span><a href="/fonts/MiSans-License.pdf">查看字体许可</a></footer>
+      <footer><a href="https://commons.wikimedia.org/wiki/File:Aerial_photograph_of_a_cargo_ship.jpg" target="_blank" rel="noreferrer">摄影 Wilfredor / CC BY-SA 3.0</a><a href="/fonts/MiSans-License.pdf">MiSans 字体许可</a></footer>
     </div>
   );
 }

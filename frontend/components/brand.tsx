@@ -17,7 +17,7 @@ export function Brand({ href = "/", inverse = false, compact = false, markTone =
       aria-label="舟序首页"
     >
       <span className={`${styles.mark} ${markTone === "silver" ? styles.silver : ""}`}>
-        <Image src="/zhou-xu-mark.png" width={56} height={56} sizes="56px" alt="" priority />
+        <Image src="/zhou-xu-mark.png" width={56} height={56} sizes="44px" alt="" />
       </span>
       <span className={styles.words}>
         <strong>舟序</strong>

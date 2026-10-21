@@ -4,7 +4,7 @@ import { ChangeEvent, DragEvent, FormEvent, useEffect, useRef, useState } from "
 import { useRouter } from "next/navigation";
 import {
   ArrowDown, ArrowUp, BookOpen, Check, ChevronDown, CircleAlert, FileText, LoaderCircle, LogOut, Menu, Square,
-  Folder, Home, MessageSquare, MoreHorizontal, Paperclip, Pin, Plus, Search, Trash2, Upload, X,
+  Folder, Home, MessageSquare, MoreHorizontal, Paperclip, Pin, Plus, Search, Trash2, Upload, X, ArrowLeft, ArrowUpRight,
 } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { MessageMarkdown } from "@/components/message-markdown";
@@ -52,7 +52,7 @@ type ConversationDetail = {
 type ResourceList = { resources: LibraryResource[] };
 type MessageResponse = { user_message: ChatMessage; assistant_message: ChatMessage };
 type Attempt = { content: string; files: File[]; pendingMaterials: Material[] };
-type FailedAttempt = Attempt & { reason: string; answer?: string };
+type FailedAttempt = Attempt & { reason: string; answer?: string; activity?: WorkActivity[] };
 type Stage = "idle" | "opening" | "creating" | "uploading" | "answering";
 
 const ACTIVE_KEY = "zhouxu-active-conversation";
@@ -73,6 +73,7 @@ function mergeActivity(items: WorkActivity[], incoming: WorkActivity) {
   if (index < 0) return [...items, incoming];
   return items.map((item, itemIndex) => itemIndex === index ? incoming : item);
 }
+const exampleQuestions = ["租船合同里的通知要求，应先核对什么？", "装卸延误产生的费用，可以怎样梳理？", "双方对货损原因有分歧，我该从哪里开始？"];
 
 function WorkProcess({ activities, running, fallback }: {
   activities: WorkActivity[];
@@ -112,12 +113,21 @@ function WorkProcess({ activities, running, fallback }: {
 export function ConversationWorkspace() {
   const router = useRouter();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const composerRef = useRef<HTMLFormElement>(null);
+  const composerAnimationRef = useRef<Animation | null>(null);
+  const historyRequestRef = useRef(0);
+  const detailBackRef = useRef<HTMLButtonElement>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
+  const conversationScrollRef = useRef(0);
+  const resourceTriggerRef = useRef<HTMLButtonElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resourceInputRef = useRef<HTMLInputElement>(null);
   const conversationRef = useRef<HTMLElement>(null);
   const stickToBottomRef = useRef(true);
   const turnControllerRef = useRef<AbortController | null>(null);
   const answerBufferRef = useRef("");
+  const activitiesRef = useRef<WorkActivity[]>([]);
   const busyRef = useRef(false);
   const [session, setSession] = useState<StoredSession | null>(null);
   const [ready, setReady] = useState(false);
@@ -155,11 +165,60 @@ export function ConversationWorkspace() {
   const [chatToDelete, setChatToDelete] = useState<Conversation | null>(null);
   const [deletingChat, setDeletingChat] = useState(false);
   const [deleteChatError, setDeleteChatError] = useState("");
+  const [boundariesOpen, setBoundariesOpen] = useState(false);
   const cancelDeleteRef = useRef<HTMLButtonElement>(null);
   const chatMenuTriggerRef = useRef<HTMLButtonElement | null>(null);
   const deletedChatRef = useRef(false);
 
-  useEffect(() => () => turnControllerRef.current?.abort(), []);
+  useEffect(() => () => { turnControllerRef.current?.abort(); composerAnimationRef.current?.cancel(); historyRequestRef.current += 1; }, []);
+
+  useEffect(() => {
+    const draft = window.sessionStorage.getItem("zhouxu-start-question");
+    if (draft && ready) { setInput(draft); window.sessionStorage.removeItem("zhouxu-start-question"); }
+  }, [ready]);
+
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    const update = () => shellRef.current?.style.setProperty("--viewport-height", `${viewport?.height ?? window.innerHeight}px`);
+    update();
+    viewport?.addEventListener("resize", update);
+    return () => viewport?.removeEventListener("resize", update);
+  }, [ready]);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
+    }
+  }, [input, libraryOpen, ready]);
+
+  useEffect(() => {
+    if (!libraryOpen && conversationRef.current) conversationRef.current.scrollTop = conversationScrollRef.current;
+  }, [libraryOpen]);
+
+  useEffect(() => {
+    if (!sidebarOpen || !compactNavigation) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const panel = sidebarRef.current;
+    const controls = () => Array.from(panel?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled)') ?? []).filter((element) => element.getClientRects().length);
+    controls()[0]?.focus();
+    const trap = (event: KeyboardEvent) => {
+      if (document.querySelector('[data-slot="dialog-content"], [role="menu"]')) return;
+      if (event.key === "Escape") { event.preventDefault(); setSidebarOpen(false); }
+      if (event.key !== "Tab") return;
+      const items = controls();
+      if (event.shiftKey && document.activeElement === items[0]) { event.preventDefault(); items.at(-1)?.focus(); }
+      else if (!event.shiftKey && document.activeElement === items.at(-1)) { event.preventDefault(); items[0]?.focus(); }
+    };
+    document.addEventListener("keydown", trap);
+    return () => { document.removeEventListener("keydown", trap); if (previous?.isConnected) previous.focus(); };
+  }, [sidebarOpen, compactNavigation]);
+
+  const openLibrary = () => {
+    conversationScrollRef.current = conversationRef.current?.scrollTop ?? conversationScrollRef.current;
+    setLibraryOpen(true); setLibraryError(""); setSidebarOpen(false);
+  };
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 900px)");
@@ -226,6 +285,7 @@ export function ConversationWorkspace() {
   const onConversationScroll = () => {
     const view = conversationRef.current;
     if (view) {
+      conversationScrollRef.current = view.scrollTop;
       stickToBottomRef.current = view.scrollHeight - view.scrollTop - view.clientHeight < 100;
       setShowLatest(!stickToBottomRef.current);
     }
@@ -267,11 +327,13 @@ export function ConversationWorkspace() {
   };
 
   const openConversation = async (item: Conversation) => {
-    if (!session || busy) return;
+    if (!session || (busy && stage !== "opening")) return;
+    const request = ++historyRequestRef.current;
     setStage("opening");
     setError("");
     try {
       const detail = await gateway<ConversationDetail>(`conversations/${item.id}`, {}, session.token);
+      if (request !== historyRequestRef.current) return;
       stickToBottomRef.current = true;
       setActiveId(item.id);
       window.sessionStorage.setItem(ACTIVE_KEY, item.id);
@@ -286,9 +348,10 @@ export function ConversationWorkspace() {
       setLibraryOpen(false);
       setSidebarOpen(false);
     } catch (reason) {
+      if (request !== historyRequestRef.current) return;
       setError(explainError(reason, "这段对话暂时无法打开，请重试。"));
     } finally {
-      setStage("idle");
+      if (request === historyRequestRef.current) setStage("idle");
     }
   };
 
@@ -439,7 +502,7 @@ export function ConversationWorkspace() {
         return next;
       });
     } catch (reason) {
-      setLibraryError(explainError(reason, "这份资料暂时无法删除。"));
+      setLibraryError(`资料尚未删除。${explainError(reason, "删除没有完成，请稍后重试。")}`);
     } finally {
       setLibraryBusy(false);
     }
@@ -457,6 +520,7 @@ export function ConversationWorkspace() {
     setStreamingAnswer("");
     answerBufferRef.current = "";
     setLiveActivities([]);
+    activitiesRef.current = [];
     setFiles([]);
     setPendingMaterials([]);
     let conversationId = activeId;
@@ -501,7 +565,7 @@ export function ConversationWorkspace() {
       const result = await streamGateway<MessageResponse>(
         `conversations/${conversationId}/messages/stream`, content, session.token,
         (delta) => { answerBufferRef.current += delta; setStreamingAnswer(answerBufferRef.current); },
-        (activity) => setLiveActivities((current) => mergeActivity(current, activity)),
+        (activity) => { activitiesRef.current = mergeActivity(activitiesRef.current, activity); setLiveActivities(activitiesRef.current); },
         controller.signal,
       );
       const userMessage: ChatMessage = {
@@ -538,6 +602,7 @@ export function ConversationWorkspace() {
         setFailedAttempt({
           ...attempt,
           answer: answerBufferRef.current,
+          activity: activitiesRef.current,
           reason: turnControllerRef.current?.signal.aborted
             ? "已停止接收。本页保留已生成的内容，尚未形成完整回答。"
             : explainError(reason, "回答中断。已生成内容保留在本页，可以重试。"),
@@ -565,9 +630,18 @@ export function ConversationWorkspace() {
       return;
     }
     const attempt = { content, files: [...files], pendingMaterials: [...pendingMaterials] };
+    const previous = composerRef.current?.getBoundingClientRect();
+    const pointerInitiated = event && "nativeEvent" in event && (event.nativeEvent as SubmitEvent).submitter?.matches(":focus-visible") === false;
     setInput("");
     void runTurn(attempt);
-    window.requestAnimationFrame(() => textareaRef.current?.focus());
+    window.requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+      const next = composerRef.current?.getBoundingClientRect();
+      if (!messages.length && pointerInitiated && previous && next && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        composerAnimationRef.current?.cancel();
+        composerAnimationRef.current = composerRef.current?.animate([{transform:`translateY(${previous.top - next.top}px)`},{transform:"translateY(0)"}], {duration:260,easing:"cubic-bezier(.23,1,.32,1)"}) ?? null;
+      }
+    });
   };
 
   const logout = async () => {
@@ -606,7 +680,7 @@ export function ConversationWorkspace() {
 
   const conversationRow = (item: Conversation) => (
     <div className={`${styles.conversationRow} ${item.id === activeId ? styles.activeCase : ""}`} key={item.id}>
-      <button type="button" disabled={busy} aria-current={item.id === activeId ? "page" : undefined} onClick={() => void openConversation(item)} title={item.title}>
+      <button type="button" disabled={busy && stage !== "opening"} aria-current={item.id === activeId ? "page" : undefined} onClick={() => void openConversation(item)} title={item.title}>
         <MessageSquare /><span>{item.title}</span>
       </button>
       <DropdownMenu>
@@ -643,7 +717,7 @@ export function ConversationWorkspace() {
     return !normalizedSearch || resource.filename.toLocaleLowerCase("zh-CN").includes(normalizedSearch);
   });
   const activeResource = visibleResources.find((resource) => resource.id === activeResourceId)
-    ?? visibleResources[0]
+    ?? (compactNavigation ? null : visibleResources[0])
     ?? null;
   const isEmptyConversation = messages.length === 0 && !sendingText && !failedAttempt;
   const resourceToDelete = resources.find((resource) => resource.id === deleteResourceId);
@@ -652,8 +726,14 @@ export function ConversationWorkspace() {
     !normalizedPickerSearch || resource.filename.toLocaleLowerCase("zh-CN").includes(normalizedPickerSearch));
 
   return (
-    <div className={`${styles.shell} ${libraryOpen ? styles.libraryMode : ""}`}>
+    <div ref={shellRef} className={`${styles.shell} ${sidebarOpen ? styles.directoryOpen : ""} ${libraryOpen ? styles.libraryMode : ""}`}>
       <a className="skip-link" href="#main-content">跳到主要内容</a>
+      <header className={styles.globalBar} inert={compactNavigation && sidebarOpen}>
+        <Brand compact />
+        <nav aria-label="主要功能"><button type="button" aria-label="对话工作台" aria-current={!libraryOpen ? "page" : undefined} onClick={() => { setLibraryOpen(false); setSidebarOpen(false); }}><MessageSquare /><span>对话工作台</span></button><button type="button" aria-label="资源库" aria-current={libraryOpen ? "page" : undefined} onClick={openLibrary}><BookOpen /><span>资源库</span></button></nav>
+        <div className={styles.globalActions}><button type="button" aria-label="打开或关闭会话与项目" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(value => !value)}><Menu /><span>会话与项目</span></button><button type="button" disabled={busy} onClick={() => newChat()} aria-label="新对话"><Plus /><span>新对话</span></button><button type="button" onClick={() => void logout()} aria-label={`退出登录：${displayName}`}><LogOut /></button></div>
+      </header>
+      <Dialog open={boundariesOpen} onOpenChange={setBoundariesOpen}><DialogContent className={styles.boundariesDialog}><DialogTitle>分析与判断的边界</DialogTitle><DialogDescription>舟序辅助你分析，由你作出判断。</DialogDescription><dl><div><dt>合同约定</dt><dd>以合同原文及适用条款为依据。</dd></div><div><dt>材料记录</dt><dd>文件记载的内容，不自动等于已确认的事实。</dd></div><div><dt>双方主张</dt><dd>各方陈述须与材料及反方意见分别核对。</dd></div><div><dt>模型分析</dt><dd>根据现有信息形成的分析，可能不完整或有误。</dd></div><div><dt>人工确认</dt><dd>通知效力、责任认定与最终金额等关键判断，由你结合原件及适用规则确认。</dd></div></dl></DialogContent></Dialog>
       <Dialog open={Boolean(chatToDelete)} onOpenChange={(open) => {
         if (!open && !deletingChat) { setChatToDelete(null); setDeleteChatError(""); }
       }}>
@@ -679,21 +759,21 @@ export function ConversationWorkspace() {
         <DialogContent className={styles.resourcePicker} showCloseButton>
           <header className={styles.pickerHeader}>
             <div><DialogTitle>选择参考资料</DialogTitle></div>
-            <DialogDescription>可以多选。回答时查找相关内容，具体引用以回答中的来源为准。</DialogDescription>
+            <DialogDescription>可以多选。已选择仅表示可供本轮参考，不表示已经引用；是否使用，以实际回答为准。</DialogDescription>
           </header>
           {resources.length ? <label className={styles.pickerSearch}><Search /><span className="sr-only">搜索资源库</span><input value={resourcePickerSearch} onChange={(event) => setResourcePickerSearch(event.target.value)} placeholder="搜索文件名" /></label> : null}
           {libraryError ? <p className={styles.pickerError} role="alert"><CircleAlert />{libraryError}</p> : null}
           <div className={styles.pickerList} role="group" aria-label="选择参考资料">
             {pickerResources.length ? pickerResources.map((resource) => {
               const selected = linkedResourceIds.has(resource.id);
-              return <button key={resource.id} type="button" disabled={busy || libraryBusy || resource.status !== "indexed"} aria-pressed={selected} onClick={() => void toggleResource(resource.id)}>
+              return <button key={resource.id} type="button" disabled={busy || libraryBusy || resource.status !== "indexed"} aria-label={`${selected ? "取消选择" : "选择"}：${resource.filename}`} aria-pressed={selected} onClick={() => void toggleResource(resource.id)}>
                 <span className={styles.pickerCheck}>{selected ? <Check /> : null}</span>
                 <span><b title={resource.filename}>{resource.filename}</b><small>{resource.status === "indexed" ? selected ? "已选择 · 可供本轮参考" : "可供参考" : resource.issue || "文字尚未读取"}</small></span>
               </button>;
             }) : <div className={styles.pickerEmpty}><BookOpen /><b>{resources.length ? "没有找到对应资料" : "资源库还是空的"}</b><span>{resources.length ? "换一个文件名试试。" : "先上传资料，再把需要的内容加入本轮对话。"}</span></div>}
           </div>
           <footer className={styles.pickerFooter}>
-            <button type="button" className={styles.manageLibrary} onClick={() => { setResourcePickerOpen(false); setLibraryOpen(true); }}>{resources.length ? "管理资源库" : "去上传资料"}</button>
+            <button type="button" className={styles.manageLibrary} onClick={() => { setResourcePickerOpen(false); openLibrary(); }}>{resources.length ? "管理资源库" : "去上传资料"}</button>
             <span>{linkedResourceIds.size ? `已选择 ${linkedResourceIds.size} 份资料` : "尚未选择资料"}</span>
             <button type="button" className={styles.finishPicker} onClick={() => setResourcePickerOpen(false)}>返回对话</button>
           </footer>
@@ -711,14 +791,8 @@ export function ConversationWorkspace() {
         </DialogContent>
       </Dialog>
       {sidebarOpen ? <button className={styles.scrim} type="button" aria-label="关闭导航" onClick={() => setSidebarOpen(false)} /> : null}
-      <aside className={styles.iconRail} aria-label="主要功能">
-        <div className={styles.railNav}>
-          <button className={!libraryOpen ? styles.railActive : ""} type="button" aria-label="工作台" aria-current={!libraryOpen ? "page" : undefined} title="工作台" onClick={() => setLibraryOpen(false)}><Home /></button>
-          <button className={libraryOpen ? styles.railActive : ""} type="button" aria-label="资源库" aria-current={libraryOpen ? "page" : undefined} title="资源库" onClick={() => { setLibraryOpen(true); setLibraryError(""); setSidebarOpen(false); }}><BookOpen /></button>
-        </div>
-      </aside>
-      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ""}`} inert={compactNavigation && !sidebarOpen} onKeyDown={(event) => { if (event.key === "Escape" && sidebarOpen) { setSidebarOpen(false); textareaRef.current?.focus(); } }}>
-        <div className={styles.sideHead}><Brand compact /><button type="button" aria-label="关闭导航" onClick={() => setSidebarOpen(false)}><X /></button></div>
+      <aside ref={sidebarRef} className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ""}`} inert={!sidebarOpen} role={compactNavigation && sidebarOpen ? "dialog" : undefined} aria-modal={compactNavigation && sidebarOpen ? true : undefined} aria-label="工作导航">
+        <div className={styles.sideHead}><strong>会话与项目</strong><button type="button" aria-label="关闭导航" onClick={() => setSidebarOpen(false)}><X /></button></div>
         {libraryOpen ? <>
           <div className={styles.sideContext}>资源库</div>
           <nav className={styles.libraryNavigation} aria-label="资源库筛选">
@@ -762,7 +836,7 @@ export function ConversationWorkspace() {
       </aside>
 
       {libraryOpen ? (
-        <main id="main-content" className={styles.libraryWorkspace} tabIndex={-1}>
+        <main id="main-content" className={styles.libraryWorkspace} tabIndex={-1} inert={compactNavigation && sidebarOpen}>
           <header className={styles.libraryHeader}>
             <div><button className={styles.mobileMenu} type="button" onClick={() => setSidebarOpen(true)} aria-label="打开导航"><Menu /></button><h1>资源库</h1><p>存放可在不同对话中反复使用的资料。</p></div>
             <button className={styles.backToWork} type="button" aria-label="返回工作台" onClick={() => setLibraryOpen(false)}><Home />返回工作台</button>
@@ -778,7 +852,7 @@ export function ConversationWorkspace() {
             <BookOpen /><h2>把常用资料放在这里</h2>
             <p>上传书籍、规则或参考文件，聊天时可以选择多份一起使用。</p>
             <button type="button" disabled={libraryBusy} onClick={() => resourceInputRef.current?.click()}>{libraryBusy ? <LoaderCircle /> : <Upload />}{libraryBusy ? "正在上传" : "上传资料"}</button>
-          </section> : <div className={`${styles.libraryGrid} ${!activeResource ? styles.libraryGridSingle : ""}`}>
+          </section> : <div className={`${styles.libraryGrid} ${!activeResource ? styles.libraryGridSingle : ""}`} data-mobile-detail={Boolean(activeResource)}>
             <section className={styles.resourceTable} aria-label="资料列表">
               <header><span>资料</span><span>状态</span><span>最近更新</span><span className="sr-only">操作</span></header>
               <div className={styles.resourceRows}>
@@ -786,46 +860,49 @@ export function ConversationWorkspace() {
                   const linked = linkedResourceIds.has(resource.id);
                   const active = activeResource?.id === resource.id;
                   return <article className={`${active ? styles.resourceActive : ""} ${linked ? styles.resourceLinked : ""}`} key={resource.id}>
-                    <button className={styles.resourceIdentity} type="button" onClick={() => setActiveResourceId(resource.id)}>
+                    <button className={styles.resourceIdentity} type="button" aria-pressed={active} onClick={(event) => { resourceTriggerRef.current = event.currentTarget; setActiveResourceId(resource.id); if (compactNavigation) window.requestAnimationFrame(() => detailBackRef.current?.focus()); }}>
                       <span className={styles.fileIcon}><FileText /></span>
                       <span><b title={resource.filename}>{resource.filename}</b><small>{resource.status === "indexed" ? linked ? "已选入当前对话" : "可供参考" : resource.issue || "等待读取文字"}</small></span>
                     </button>
                     <span className={resource.status === "indexed" ? styles.statusReady : styles.statusIssue}>{resource.status === "indexed" ? <><Check />可使用</> : <><CircleAlert />需处理</>}</span>
-                    <time>{formatDate(resource.updated_at)}</time>
-                    <button className={styles.quickLink} type="button" disabled={busy || libraryBusy || resource.status !== "indexed"} aria-pressed={linked} onClick={() => void toggleResource(resource.id)}>{linked ? <><Check />已选择</> : "用于对话"}</button>
+                    <time dateTime={resource.updated_at}>{formatDate(resource.updated_at)}</time>
+                    <button className={styles.quickLink} type="button" disabled={busy || libraryBusy || resource.status !== "indexed"} aria-label={`${linked ? "取消选择" : "用于对话"}：${resource.filename}`} aria-pressed={linked} onClick={() => void toggleResource(resource.id)}>{linked ? <><Check />已选择</> : "用于对话"}</button>
                   </article>;
-                }) : <div className={styles.libraryEmpty}><BookOpen /><b>{resources.length ? "没有找到对应资料" : "资源库还是空的"}</b><span>{resources.length ? "换一个文件名试试。" : "上传后，这些资料可以在不同对话中重复使用。"}</span></div>}
+                }) : <div className={styles.libraryEmpty}><BookOpen /><b>{normalizedSearch ? "没有找到对应资料" : "当前对话还未选择资料"}</b><span>{normalizedSearch ? "换一个文件名，或清空搜索后查看。" : "查看全部资料，再选择需要参考的文件。"}</span><button type="button" onClick={() => { setLibrarySearch(""); setLibraryFilter("all"); }}>{normalizedSearch ? "清空搜索并查看全部" : "查看全部资料"}</button></div>}
               </div>
             </section>
             {activeResource ? <aside className={styles.resourceDetail} aria-label="资料详情">
               <>
-                <div className={styles.detailTitle}><span><FileText /></span><div><small>资料详情</small><h2>{activeResource.filename}</h2></div></div>
+                <button ref={detailBackRef} className={styles.detailBack} type="button" onClick={() => { setActiveResourceId(null); window.requestAnimationFrame(() => resourceTriggerRef.current?.focus()); }}><ArrowLeft />返回资料列表</button>
+                <div className={styles.detailTitle}><span><FileText /></span><div><h2>{activeResource.filename}</h2></div></div>
                 <dl>
                   <div><dt>处理状态</dt><dd>{activeResource.status === "indexed" ? "文字已读取，可供对话参考" : activeResource.issue || "文字尚未读取"}</dd></div>
                   <div><dt>对话使用</dt><dd>{activeResource.conversation_count ?? 0} 次</dd></div>
                   <div><dt>最近更新</dt><dd>{formatDate(activeResource.updated_at)}</dd></div>
                 </dl>
                 <div className={styles.detailActions}>
-                  <button className={styles.detailPrimary} type="button" disabled={busy || libraryBusy || activeResource.status !== "indexed"} onClick={() => void toggleResource(activeResource.id)}>{linkedResourceIds.has(activeResource.id) ? <><Check />已选入当前对话</> : "用于当前对话"}</button>
+                  <button className={styles.detailPrimary} type="button" disabled={busy || libraryBusy || activeResource.status !== "indexed"} onClick={() => void toggleResource(activeResource.id)}>{linkedResourceIds.has(activeResource.id) ? <><Check />取消选入当前对话</> : "用于当前对话"}</button>
                   <button className={styles.detailDelete} type="button" disabled={libraryBusy} onClick={() => { setLibraryError(""); setDeleteResourceId(activeResource.id); }}><Trash2 />删除资料</button>
                 </div>
-                <p className={styles.detailNote}>提问时，舟序只会取回与问题相关的段落，并在回答中保留材料来源。</p>
+                <p className={styles.detailNote}>这里显示资料的处理状态与元信息，不是原文预览。选入对话仅表示可供参考，是否使用以实际回答为准。</p>
               </>
             </aside> : null}
           </div>}
         </main>
       ) : null}
 
-      {!libraryOpen ? <div className={`${styles.workspace} ${isEmptyConversation ? styles.homeState : ""}`}>
+      <div className={`${styles.workspace} ${libraryOpen ? styles.workspaceHidden : ""} ${isEmptyConversation ? styles.homeState : ""}`} inert={compactNavigation && sidebarOpen}>
         <header className={styles.topbar}>
-          <div><button type="button" className={styles.menu} onClick={() => setSidebarOpen(true)} aria-label="打开导航"><Menu /></button>{currentProject ? <span>{currentProject.name}</span> : null}<strong>{currentConversation?.title ?? "新对话"}</strong></div>
+          <div>{currentProject ? <span>{currentProject.name}</span> : null}<strong>{currentConversation?.title ?? "新对话"}</strong></div>
           <button className={styles.activeResources} type="button" aria-label="选择参考资料" onClick={() => { setLibraryError(""); setResourcePickerOpen(true); }}><BookOpen />{linkedResourceIds.size ? `已选 ${linkedResourceIds.size} 份资料` : "选择资料"}</button>
         </header>
 
-        <main id="main-content" className={styles.conversation} tabIndex={-1} ref={conversationRef} onScroll={onConversationScroll}>
+        <main id={libraryOpen ? "conversation-content" : "main-content"} className={styles.conversation} tabIndex={-1} ref={conversationRef} onScroll={onConversationScroll}>
           {isEmptyConversation ? (
             <section className={styles.welcome}>
-              <h1>今天想了解什么？</h1>
+              <div className={styles.welcomeHorizon} aria-hidden="true" />
+              <h1>让分歧，回到依据。</h1>
+              <p>可以先提问，材料分次补充。</p>
             </section>
           ) : (
             <div className={styles.thread}>
@@ -852,14 +929,15 @@ export function ConversationWorkspace() {
               {failedAttempt && !sendingText ? <article className={styles.failedAttempt} aria-label="未完成的消息">
                 <p>{failedAttempt.content}</p>
                 <div><span>{failedAttempt.reason}</span><button type="button" disabled={busy} onClick={() => void runTurn(failedAttempt)}>重试</button></div>
+                {failedAttempt.activity?.length ? <WorkProcess activities={failedAttempt.activity} /> : null}
                 {failedAttempt.answer ? <div className={styles.answer}><MessageMarkdown content={failedAttempt.answer} /></div> : null}
               </article> : null}
             </div>
           )}
         </main>
 
-        <form className={styles.composerWrap} onSubmit={(event) => void send(event)} aria-label="发送消息">
-          {showLatest && !isEmptyConversation ? <button className={styles.returnLatest} type="button" onClick={returnToLatest}><ArrowDown />返回最新消息</button> : null}
+        <form ref={composerRef} className={styles.composerWrap} onSubmit={(event) => void send(event)} aria-label="发送消息">
+          {showLatest && !isEmptyConversation ? <button className={styles.returnLatest} type="button" onClick={returnToLatest}><ArrowDown />查看最新</button> : null}
           <div className={`${styles.composer} ${error ? styles.composerError : ""}`} onDragOver={(event) => event.preventDefault()} onDrop={onDrop}>
             {pendingMaterials.length || files.length ? <div className={styles.fileTray}>
               {pendingMaterials.map((item) => <span className={styles.fileChip} key={item.id} title={item.issue ?? undefined}><FileText /><b>{item.filename}</b>{item.status === "unread" ? <small className={styles.unreadNote}>文字未读取</small> : null}<button type="button" disabled={busy} aria-label={`移除 ${item.filename}`} onClick={() => void removePendingMaterial(item.id)}><X /></button></span>)}
@@ -879,15 +957,18 @@ export function ConversationWorkspace() {
             </div>
           </div>
           {error ? <p className={styles.inlineError} role="alert"><CircleAlert />{error}</p> : null}
+          {linkedResourceIds.size ? <p className={styles.selectionNote}>已选择 {linkedResourceIds.size} 份资料，可供本轮参考；不代表已引用。</p> : null}
+          {isEmptyConversation ? <div className={styles.exampleQuestions}><p>也可以从一个示例问题开始</p>{exampleQuestions.map((question) => <button type="button" key={question} onClick={() => { setInput(question); textareaRef.current?.focus(); }}>{question}<ArrowUpRight /></button>)}</div> : null}
+          <p className={styles.composerNote}>舟序辅助分析，关键判断由你确认。<button type="button" onClick={() => setBoundariesOpen(true)}>了解边界</button></p>
         </form>
-      </div> : null}
+      </div>
     </div>
   );
 }
 
 function formatDate(value: string) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
+  if (Number.isNaN(date.getTime())) return "暂无日期";
   return new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric" }).format(date);
 }
 
