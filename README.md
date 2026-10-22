@@ -6,7 +6,7 @@
 
 | 目录 | 内容 |
 | --- | --- |
-| `frontend/` | Next.js / React 前端：介绍页、登录注册、聊天、历史与资源库 |
+| `frontend/` | Vite / React 前端：介绍页、登录注册、工作台、历史与资源库 |
 | `backend/` | FastAPI 后端：账户、材料解析、OCR、检索、ACT 工具编排与流式回答 |
 | `docs/` | 团队交接说明和 UI/UX 第一性原理 |
 
@@ -51,7 +51,7 @@ cd backend
 .\.venv\Scripts\python.exe -m pytest tests -q
 
 cd ..\frontend
-npm run typecheck
+npx tsc -p tsconfig.app.json --noEmit
 npm run build
 ```
 

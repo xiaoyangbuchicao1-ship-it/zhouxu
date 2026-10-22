@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>舟序 · 字体试排</title>
+  <style>
+    @font-face { font-family: "Trial Instrument"; src: url("fonts/instrument-serif-italic.ttf") format("truetype"); font-style: italic; font-weight: 400; font-display: swap; }
+    @font-face { font-family: "Trial Noto Serif"; src: url("fonts/noto-serif-sc.ttf") format("truetype"); font-weight: 500; font-display: swap; }
+    @font-face { font-family: "Trial Noto Sans"; src: url("fonts/noto-sans-sc.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+    :root { color-scheme: dark; --bg: #0a0a0a; --surface: #141414; --text: #f5f5f5; --muted: #a0a0a0; --stroke: #292929; --serif: "Trial Noto Serif", "Noto Serif SC", "Source Han Serif SC", serif; --sans: "Trial Noto Sans", "Noto Sans SC", "Microsoft YaHei", sans-serif; }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 30px; }
+    body { margin: 0; color: var(--text); background: var(--bg); font-family: var(--sans); font-synthesis: none; -webkit-font-smoothing: antialiased; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+    a:focus-visible, button:focus-visible { outline: 2px solid #89aacc; outline-offset: 6px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 28px 5vw; }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-name { font-family: var(--serif); font-size: 23px; letter-spacing: .14em; }
+    .brand-en { border-left: 1px solid var(--stroke); padding-left: 14px; font-family: Arial, sans-serif; font-size: 10px; letter-spacing: .17em; color: var(--muted); }
+    .preview-label { color: var(--muted); font-size: 12px; }
+    .hero { min-height: min(750px, calc(100svh - 84px)); padding: 46px 24px 68px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+    .eyebrow { font-family: Arial, sans-serif; color: var(--muted); font-size: 10px; letter-spacing: .3em; margin: 0 0 24px; }
+    .wordmark { font-family: "Trial Instrument", serif; font-style: italic; font-weight: 400; font-size: clamp(108px, 13vw, 180px); line-height: 1.08; letter-spacing: -.045em; margin: 0 0 28px; padding: 0 .13em; }
+    .wordmark.is-chinese { font-family: var(--serif); font-style: normal; font-weight: 500; font-size: clamp(80px, 10.5vw, 142px); letter-spacing: .08em; padding: .12em 0; }
+    .statement { font-family: var(--serif); font-weight: 500; font-size: clamp(22px, 2.55vw, 33px); line-height: 1.7; letter-spacing: .1em; margin: 0 0 20px; }
+    .statement span { display: inline-block; }
+    .intro { max-width: 480px; color: var(--muted); font-size: 14px; line-height: 1.95; margin: 0 0 30px; text-wrap: pretty; }
+    .cta { display: inline-flex; align-items: center; justify-content: center; gap: 20px; min-height: 48px; padding: 0 27px; border: 1px solid #d6d6d6; border-radius: 999px; background: #f5f5f5; color: #111; font-size: 13px; transition: box-shadow .2s; }
+    .cta:hover { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px #89aacc; }
+    .hero-note { font-size: 11px; color: var(--muted); margin: 24px 0 0; }
+    .content { max-width: 1120px; margin: auto; padding: 70px 48px 0; border-top: 1px solid var(--stroke); }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 46px; }
+    .section-label { display: block; font-family: Arial, sans-serif; font-size: 10px; letter-spacing: .24em; color: var(--muted); margin-bottom: 14px; }
+    h2 { font-family: var(--serif); font-size: clamp(25px, 3vw, 36px); line-height: 1.5; font-weight: 500; margin: 0; letter-spacing: .04em; }
+    .switches { display: inline-flex; flex-shrink: 0; gap: 4px; padding: 4px; border: 1px solid var(--stroke); border-radius: 999px; }
+    .switches button { cursor: pointer; border: 0; border-radius: 999px; padding: 10px 15px; font-size: 12px; color: var(--muted); background: transparent; min-height: 40px; }
+    .switches button[aria-pressed="true"] { color: var(--text); background: #282828; }
+    .specimen { display: grid; grid-template-columns: 150px 1fr; column-gap: 42px; padding: 32px 0; border-top: 1px solid var(--stroke); }
+    .role { color: var(--muted); font-size: 12px; line-height: 1.9; }
+    .role small { display: block; font-family: Arial, sans-serif; font-size: 10px; }
+    .english-sample { font-family: "Trial Instrument", serif; font-style: italic; font-weight: 400; font-size: clamp(56px, 7.5vw, 88px); line-height: 1.2; margin: 0; }
+    .chinese-sample { font-family: var(--serif); font-size: clamp(27px, 3.5vw, 40px); line-height: 1.6; font-weight: 500; margin: 0 0 12px; }
+    .small-note { font-size: 12px; line-height: 1.9; color: var(--muted); margin: 12px 0 0; }
+    .body-sample { max-width: 660px; font-size: 16px; line-height: 1.95; margin: 0; color: #c9c9c9; }
+    .module-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; }
+    .module { border-top: 1px solid var(--stroke); padding: 22px 0 26px; }
+    .module h3 { font-size: 15px; font-weight: 400; margin: 0 0 9px; }
+    .module p { font-family: Arial, sans-serif; color: var(--muted); font-size: 10px; letter-spacing: .15em; margin: 0; }
+    .status { padding: 25px 28px; background: var(--surface); margin: 28px 0 0; font-size: 12px; line-height: 2; color: #b7b7b7; }
+    .status strong { color: var(--text); font-weight: 400; }
+    .status p { margin: 0; }
+    .status a { text-decoration: underline; text-underline-offset: 4px; }
+    footer { max-width: 1120px; margin: auto; padding: 42px 48px; display: flex; justify-content: space-between; gap: 24px; font-size: 11px; line-height: 1.9; color: var(--muted); }
+    footer a { white-space: nowrap; }
+    @media (max-width: 600px) {
+      .topbar { padding: 22px 24px; gap: 16px; }
+      .brand-en { display: none; }
+      .preview-label { font-size: 10px; }
+      .hero { min-height: calc(100svh - 78px); padding: 40px 25px 60px; }
+      .eyebrow { font-size: 9px; letter-spacing: .2em; }
+      .wordmark { font-size: clamp(96px, 25vw, 146px); margin-bottom: 29px; }
+      .statement { font-size: 23px; line-height: 1.85; letter-spacing: .06em; }
+      .intro { max-width: 330px; font-size: 13px; }
+      .content { padding: 50px 24px 0; }
+      .section-head { flex-direction: column; align-items: start; margin-bottom: 34px; }
+      .specimen { grid-template-columns: 1fr; gap: 18px; padding: 28px 0; }
+      .role small { display: inline; margin-left: 10px; }
+      .body-sample { font-size: 15px; }
+      .module-list { grid-template-columns: 1fr; }
+      .module { padding: 20px 0; }
+      .status { padding: 22px; }
+      footer { padding: 32px 24px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+  </style>
+</head>
+<body id="top">
+  <header class="topbar">
+    <a href="#top" class="brand" aria-label="舟序字体样稿首页"><span class="brand-name">舟序</span><span class="brand-en" lang="en">MARITIME INTELLIGENCE</span></a>
+    <span class="preview-label">字体试排 · 非正式页面</span>
+  </header>
+  <main>
+    <section class="hero" aria-label="首屏字体试排">
+      <p class="eyebrow" lang="en">ZHOUXU · MARITIME INTELLIGENCE</p>
+      <h1 class="wordmark" id="wordmark" lang="en">Zhouxu</h1>
+      <p class="statement"><span>让事实有序，</span><span>让判断有据。</span></p>
+      <p class="intro">面向海事争议与仲裁工作，连接法律研究、材料梳理与分析起草，让复杂问题有清晰的处理脉络。</p>
+      <a class="cta" href="#specimens">查看字体与排版 <span aria-hidden="true">↓</span></a>
+      <p class="hero-note">中文展示使用开放字体备选，非清刻本悦宋。</p>
+    </section>
+    <section class="content" id="specimens" aria-labelledby="specimen-heading">
+      <div class="section-head">
+        <div><span class="section-label" lang="en">TYPE &amp; CHARACTER</span><h2 id="specimen-heading">英文有流动，中文有分寸。</h2></div>
+        <div class="switches" role="group" aria-label="首屏字标切换">
+          <button type="button" id="english-mode" aria-pressed="true">英文字标</button>
+          <button type="button" id="chinese-mode" aria-pressed="false">中文字标</button>
+        </div>
+      </div>
+      <div class="specimen"><div class="role">英文展示<small>Instrument Serif Italic</small></div><div><p class="english-sample" lang="en">Zhouxu</p><p class="small-note">保留原模板的真实斜体字形，不对中文机械倾斜。</p></div></div>
+      <div class="specimen"><div class="role">中文展示 · 备选<small>Noto Serif SC · 500</small></div><div><p class="chinese-sample">循据而行，理清争议。</p><p class="small-note">主选：方正清刻本悦宋，待取得网页授权文件后再试排。当前为开放字体对照，不代表主选字体效果。</p></div></div>
+      <div class="specimen"><div class="role">正文与界面<small>Noto Sans SC · 400</small></div><p class="body-sample">对照合同、提单与往来邮件，梳理事实、争议及计算前提。区分文件记载、各方主张与分析判断，让每一步推导都有清楚的依据。</p></div>
+      <div class="specimen"><div class="role">模块名称<small>规划内容 · 非上线声明</small></div><div class="module-list">
+        <div class="module"><h3>法律检索与问答</h3><p lang="en">LEGAL RESEARCH</p></div>
+        <div class="module"><h3>案例检索与分析</h3><p lang="en">CASE LAW</p></div>
+        <div class="module"><h3>合同与提单审查</h3><p lang="en">CONTRACT REVIEW</p></div>
+        <div class="module"><h3>案件初步研判</h3><p lang="en">CASE ASSESSMENT</p></div>
+        <div class="module"><h3>证据整理</h3><p lang="en">EVIDENCE</p></div>
+        <div class="module"><h3>索赔辅助</h3><p lang="en">CLAIMS</p></div>
+        <div class="module"><h3>文书起草</h3><p lang="en">LEGAL DRAFTING</p></div>
+        <div class="module"><h3>案件管理与协同</h3><p lang="en">CASE MANAGEMENT</p></div>
+      </div></div>
+      <aside class="status" aria-label="字体与样稿说明">
+        <p><strong>本页只用于字体与文字层级确认。</strong>黑色背景用于观察字形，不替代正式页面的视频背景。现有落地页、图片、视频与应用路由均未修改。</p>
+        <p id="font-status" role="status">正在核对字体加载……</p>
+        <p>字体来源与许可见 <a href="FONT-NOTICE.md">FONT-NOTICE.md</a>。新增文字时需重新生成子集，不能直接用于完整工作台。</p>
+      </aside>
+    </section>
+  </main>
+  <footer><span>舟序 · 字体样稿<br>中文主选待授权，当前展示开放字体备选。</span><a href="#top">返回首屏 ↑</a></footer>
+  <script>
+    const mark = document.getElementById('wordmark');
+    const english = document.getElementById('english-mode');
+    const chinese = document.getElementById('chinese-mode');
+    function setMode(isChinese) {
+      mark.textContent = isChinese ? '舟序' : 'Zhouxu';
+      mark.lang = isChinese ? 'zh-CN' : 'en';
+      mark.classList.toggle('is-chinese', isChinese);
+      english.setAttribute('aria-pressed', String(!isChinese));
+      chinese.setAttribute('aria-pressed', String(isChinese));
+      document.getElementById('top').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    }
+    english.addEventListener('click', () => setMode(false));
+    chinese.addEventListener('click', () => setMode(true));
+    Promise.allSettled([
+      document.fonts.load('italic 400 40px "Trial Instrument"', 'Zhouxu'),
+      document.fonts.load('500 32px "Trial Noto Serif"', '舟序'),
+      document.fonts.load('400 16px "Trial Noto Sans"', '舟序')
+    ]).then(results => {
+      const ok = results.every(result => result.status === 'fulfilled' && result.value.length > 0);
+      document.getElementById('font-status').textContent = ok ? '三款本地网页字体均已加载：英文斜体、中文展示备选、中文正文备选。' : '部分网页字体未能加载，当前可能显示系统回退字体；请勿据此判断最终字形。';
+      document.documentElement.dataset.fontsReady = ok ? 'true' : 'false';
+    });
+  </script>
+</body>
+</html>
