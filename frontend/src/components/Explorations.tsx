@@ -6,12 +6,12 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 const explorations = [
-  { id: 1, title: "文件记载", category: "FACTS · 视觉配图", alt: "星体主题的抽象视觉配图", image: "/explorations/planet.jpeg" },
-  { id: 2, title: "合同约定", category: "TERMS · 视觉配图", alt: "字符构成的抽象视觉配图", image: "/explorations/ascii.jpeg" },
-  { id: 3, title: "时间脉络", category: "TIMELINE · 视觉配图", alt: "烟雾主题的抽象视觉配图", image: "/explorations/smoke.jpeg" },
-  { id: 4, title: "各方主张", category: "POSITIONS · 视觉配图", alt: "圆柱主题的抽象视觉配图", image: "/explorations/cylinder.jpeg" },
-  { id: 5, title: "计算前提", category: "ASSUMPTIONS · 视觉配图", alt: "波纹主题的抽象视觉配图", image: "/explorations/wave.jpeg" },
-  { id: 6, title: "参考依据", category: "SOURCES · 视觉配图", alt: "几何方块主题的抽象视觉配图", image: "/explorations/cubes.jpeg" },
+  { id: 1, title: "文件记载", category: "FACTS · 视觉配图", alt: "航海图与材料夹的海事研究配图", image: "/explorations/planet.jpeg" },
+  { id: 2, title: "合同约定", category: "TERMS · 视觉配图", alt: "提单文件与罗盘的合同审查配图", image: "/explorations/ascii.jpeg" },
+  { id: 3, title: "时间脉络", category: "TIMELINE · 视觉配图", alt: "夜间海面航线的争议时间线配图", image: "/explorations/smoke.jpeg" },
+  { id: 4, title: "各方主张", category: "POSITIONS · 视觉配图", alt: "相对而立的玻璃形体与海面倒影配图", image: "/explorations/cylinder.jpeg" },
+  { id: 5, title: "计算前提", category: "ASSUMPTIONS · 视觉配图", alt: "海面涟漪与测量弧线的索赔计算配图", image: "/explorations/wave.jpeg" },
+  { id: 6, title: "参考依据", category: "SOURCES · 视觉配图", alt: "档案文件与航海星标的法律依据配图", image: "/explorations/cubes.jpeg" },
 ];
 
 const leftItems = explorations.filter((_, i) => i % 2 === 0);
