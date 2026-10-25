@@ -1,6 +1,6 @@
 r"""舟序聊天后端。
 
-保存会话与原件，通过独立感知层装配受控上下文，再交给 Pro 模型回答。
+保存会话与原件，通过独立感知层装配受控上下文，再交给 DeepSeek Flash 模型回答。
 运行：
     cd backend
     .\.venv\Scripts\python.exe -m uvicorn app:app --host 127.0.0.1 --port 8010
@@ -60,6 +60,7 @@ HERE = Path(__file__).resolve().parent
 DEFAULT_RUNTIME = HERE / "runtime"
 DEFAULT_KEY_FILE = HERE / ".env"
 MAX_FILE_BYTES = 30 * 1024 * 1024
+DEEPSEEK_FLASH_MODEL = "deepseek-flash"
 
 SYSTEM_PROMPT = """你是“舟序”，一个面向海事争议与海事仲裁工作的专业助手。
 
@@ -155,8 +156,8 @@ class DeepSeekProResponder:
         self.key_file = key_file
         self.endpoint = os.getenv(
             "ZHOUXU_MODEL_ENDPOINT", "https://api.deepseek.com/chat/completions")
-        self.model = os.getenv("ZHOUXU_MODEL", "deepseek-v4-pro")
-        self.action_model = os.getenv("ZHOUXU_ACT_MODEL", "deepseek-flash")
+        self.model = os.getenv("ZHOUXU_MODEL", DEEPSEEK_FLASH_MODEL)
+        self.action_model = os.getenv("ZHOUXU_ACT_MODEL", DEEPSEEK_FLASH_MODEL)
 
     def _request(
         self,
@@ -624,7 +625,7 @@ def create_app(
                 endpoint=os.getenv(
                     "ZHOUXU_MODEL_ENDPOINT", "https://api.deepseek.com/chat/completions"
                 ),
-                model=os.getenv("ZHOUXU_PLANNER_MODEL", "deepseek-flash"),
+                model=os.getenv("ZHOUXU_PLANNER_MODEL", DEEPSEEK_FLASH_MODEL),
             )
             encoder = (
                 FastEmbedEncoder(model_cache / "fastembed")
@@ -673,7 +674,7 @@ def create_app(
         return {
             "status": "ok",
             "backend": "simple-chat",
-            "model": "pro",
+            "model": DEEPSEEK_FLASH_MODEL,
             "perception": "adaptive-v1",
             "agent": "act-v1" if agent.supported else "direct-compatible",
             "code_runtime": getattr(code_runner, "runtime_name", "custom"),

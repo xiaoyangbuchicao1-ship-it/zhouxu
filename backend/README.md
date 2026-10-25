@@ -29,9 +29,9 @@ Copy-Item .env.example .env
 
 | 变量 | 默认 / 用途 |
 | --- | --- |
-| `ZHOUXU_MODEL` | `deepseek-v4-pro`，最终回答 |
-| `ZHOUXU_ACT_MODEL` | `deepseek-flash`，工具决策 |
-| `ZHOUXU_PLANNER_MODEL` | `deepseek-flash`，检索规划 |
+| `ZHOUXU_MODEL` | `deepseek-flash`（DeepSeek-V4.1-Flash-1017），最终回答 |
+| `ZHOUXU_ACT_MODEL` | `deepseek-flash`（DeepSeek-V4.1-Flash-1017），工具决策 |
+| `ZHOUXU_PLANNER_MODEL` | `deepseek-flash`（DeepSeek-V4.1-Flash-1017），检索规划 |
 | `ZHOUXU_MODEL_ENDPOINT` | DeepSeek 兼容聊天接口 |
 | `ZHOUXU_MODEL_CACHE` | 本地语义与 OCR 模型缓存目录 |
 | `ZHOUXU_SEMANTIC_SEARCH` | `1`；设为 `0` 关闭语义召回 |
