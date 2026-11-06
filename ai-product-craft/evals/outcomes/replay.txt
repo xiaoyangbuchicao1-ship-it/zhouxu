@@ -1,0 +1,100 @@
+Reproduced: existing tests pass while business acceptance fails. Product remains NOT READY.
+
+test_denies_unrelated_user (test_service.LedgerTests.test_denies_unrelated_user) ... ok
+test_local_admin_debit (test_service.LedgerTests.test_local_admin_debit) ... ok
+test_owner_debit (test_service.LedgerTests.test_owner_debit) ... ok
+test_persists (test_service.LedgerTests.test_persists) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.093s
+
+OK
+test_debit_persists_after_reopen (test_acceptance.AcceptanceTests.test_debit_persists_after_reopen) ... ok
+test_fractional_cents_do_not_break_integer_balance (test_acceptance.AcceptanceTests.test_fractional_cents_do_not_break_integer_balance) ... FAIL
+test_full_balance_debit (test_acceptance.AcceptanceTests.test_full_balance_debit) ... ok
+test_full_balance_retry_is_idempotent (test_acceptance.AcceptanceTests.test_full_balance_retry_is_idempotent) ... ERROR
+test_large_retry_is_idempotent (test_acceptance.AcceptanceTests.test_large_retry_is_idempotent) ... ERROR
+test_negative_rejected_without_mutation (test_acceptance.AcceptanceTests.test_negative_rejected_without_mutation) ... ok
+test_other_tenant_admin_denied (test_acceptance.AcceptanceTests.test_other_tenant_admin_denied) ... FAIL
+test_other_tenant_admin_does_not_change_balance (test_acceptance.AcceptanceTests.test_other_tenant_admin_does_not_change_balance) ... FAIL
+test_overdraft_rejected_without_mutation (test_acceptance.AcceptanceTests.test_overdraft_rejected_without_mutation) ... ok
+test_owner_can_debit (test_acceptance.AcceptanceTests.test_owner_can_debit) ... ok
+test_retry_after_reopen_is_idempotent (test_acceptance.AcceptanceTests.test_retry_after_reopen_is_idempotent) ... ERROR
+test_same_tenant_admin_can_debit (test_acceptance.AcceptanceTests.test_same_tenant_admin_can_debit) ... ok
+test_small_retry_is_idempotent (test_acceptance.AcceptanceTests.test_small_retry_is_idempotent) ... ok
+test_unrelated_user_denied_without_mutation (test_acceptance.AcceptanceTests.test_unrelated_user_denied_without_mutation) ... ok
+test_zero_rejected_without_mutation (test_acceptance.AcceptanceTests.test_zero_rejected_without_mutation) ... ok
+
+======================================================================
+ERROR: test_full_balance_retry_is_idempotent (test_acceptance.AcceptanceTests.test_full_balance_retry_is_idempotent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\projects\codex\真真正正的舟序\ai-product-craft\evals\outcomes\with-skill\snapshot\test_acceptance.py", line 72, in test_full_balance_retry_is_idempotent
+    self.assertEqual(self.debit(1000), 0)
+                     ~~~~~~~~~~^^^^^^
+  File "D:\projects\codex\真真正正的舟序\ai-product-craft\evals\outcomes\with-skill\snapshot\test_acceptance.py", line 20, in debit
+    return self.ledger.debit('acc', actor, tenant, role, amount, request)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\projects\codex\真真正正的舟序\ai-product-craft\evals\outcomes\with-skill\snapshot\service.py", line 29, in debit
+    raise ValueError('Invalid amount')
+ValueError: Invalid amount
+
+======================================================================
+ERROR: test_large_retry_is_idempotent (test_acceptance.AcceptanceTests.test_large_retry_is_idempotent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\projects\codex\真真正正的舟序\ai-product-craft\evals\outcomes\with-skill\snapshot\test_acceptance.py", line 68, in test_large_retry_is_idempotent
+    self.assertEqual(self.debit(700), 300)
+                     ~~~~~~~~~~^^^^^
+  File "D:\projects\codex\真真正正的舟序\ai-product-craft\evals\outcomes\with-skill\snapshot\test_acceptance.py", line 20, in debit
+    return self.ledger.debit('acc', actor, tenant, role, amount, request)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\projects\codex\真真正正的舟序\ai-product-craft\evals\outcomes\with-skill\snapshot\service.py", line 29, in debit
+    raise ValueError('Invalid amount')
+ValueError: Invalid amount
+
+======================================================================
+ERROR: test_retry_after_reopen_is_idempotent (test_acceptance.AcceptanceTests.test_retry_after_reopen_is_idempotent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\projects\codex\真真正正的舟序\ai-product-craft\evals\outcomes\with-skill\snapshot\test_acceptance.py", line 84, in test_retry_after_reopen_is_idempotent
+    self.assertEqual(self.debit(700), 300)
+                     ~~~~~~~~~~^^^^^
+  File "D:\projects\codex\真真正正的舟序\ai-product-craft\evals\outcomes\with-skill\snapshot\test_acceptance.py", line 20, in debit
+    return self.ledger.debit('acc', actor, tenant, role, amount, request)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\projects\codex\真真正正的舟序\ai-product-craft\evals\outcomes\with-skill\snapshot\service.py", line 29, in debit
+    raise ValueError('Invalid amount')
+ValueError: Invalid amount
+
+======================================================================
+FAIL: test_fractional_cents_do_not_break_integer_balance (test_acceptance.AcceptanceTests.test_fractional_cents_do_not_break_integer_balance)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\projects\codex\真真正正的舟序\ai-product-craft\evals\outcomes\with-skill\snapshot\test_acceptance.py", line 91, in test_fractional_cents_do_not_break_integer_balance
+    self.assertIs(type(self.ledger.balance('acc')), int)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: <class 'float'> is not <class 'int'>
+
+======================================================================
+FAIL: test_other_tenant_admin_denied (test_acceptance.AcceptanceTests.test_other_tenant_admin_denied)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\projects\codex\真真正正的舟序\ai-product-craft\evals\outcomes\with-skill\snapshot\test_acceptance.py", line 34, in test_other_tenant_admin_denied
+    with self.assertRaises(PermissionError):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: PermissionError not raised
+
+======================================================================
+FAIL: test_other_tenant_admin_does_not_change_balance (test_acceptance.AcceptanceTests.test_other_tenant_admin_does_not_change_balance)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\projects\codex\真真正正的舟序\ai-product-craft\evals\outcomes\with-skill\snapshot\test_acceptance.py", line 42, in test_other_tenant_admin_does_not_change_balance
+    self.assertEqual(self.ledger.balance('acc'), 1000)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 900 != 1000
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.287s
+
+FAILED (failures=3, errors=3)

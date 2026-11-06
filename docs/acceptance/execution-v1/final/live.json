@@ -1,0 +1,16 @@
+{
+  "notice": "Synthetic live execution/provenance acceptance, not professional legal approval or visual document acceptance.",
+  "run_id": "cd7e99fde9c54dfca44f85df4b04bd46",
+  "conversation_id": "2e479344aca7a07735a629f22db9abe0",
+  "status": "failed",
+  "answer": null,
+  "error": {
+    "code": "round_limit",
+    "message": "已到达本次运行的循环上限。",
+    "retryable": false,
+    "category": "unknown"
+  },
+  "elapsed": 167.17,
+  "files": [],
+  "passed": false
+}

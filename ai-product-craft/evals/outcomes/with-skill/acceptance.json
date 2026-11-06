@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "goal": "Read-only tenant ledger contract acceptance",
+  "inputs": [
+    "snapshot"
+  ],
+  "criteria": [
+    {
+      "id": "existing-suite",
+      "promise": "Existing source tests pass",
+      "required": true,
+      "argv": [
+        "C:\\Users\\\u8054\u60f3\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "snapshot",
+        "-p",
+        "test_service.py",
+        "-v"
+      ],
+      "success_regex": "(?s)Ran [1-9][0-9]* tests.*\\bOK\\b",
+      "failure_regex": "FAILED|ERROR:|FAIL:"
+    },
+    {
+      "id": "acceptance-contract",
+      "promise": "All business promises in SPEC hold",
+      "required": true,
+      "argv": [
+        "C:\\Users\\\u8054\u60f3\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "snapshot",
+        "-p",
+        "test_acceptance.py",
+        "-v"
+      ],
+      "success_regex": "(?s)Ran [1-9][0-9]* tests.*\\bOK\\b",
+      "failure_regex": "FAILED|ERROR:|FAIL:"
+    }
+  ]
+}

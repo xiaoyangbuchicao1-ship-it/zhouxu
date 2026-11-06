@@ -1,0 +1,15 @@
+Independent maritime product review — current workspace, 2026-11-05
+
+CONFIRMED 1 (high): Publishing a sanitized skill exposes earlier private versions.
+Location: backend/application/maritime/service.py:68-78; GET /maritime/skills/{id}?version=1.
+Reproduction: Alice creates private v1 with confidential instructions. Bob fetching v1 gets 404. Alice saves sanitized community v2 with expected_version=1. Bob fetching current receives sanitized text; Bob fetching version=1 now receives confidential private v1. Demonstrated with review.sqlite3 in this directory.
+Cause: Authorization checks current skill visibility, then returns historical snapshot without checking its own visibility. Fix: restrict history to owner, or explicitly authorize visibility of each historical snapshot. Regression: private-to-community publication must not publish prior private draft versions.
+
+CONFIRMED 2 (medium): Successful OpenSearch citations may be impossible to open.
+Location: backend/infrastructure/search/maritime_corpus.py:81-88,110-148; source endpoint maps LookupError to 404.
+Reproduction: Instantiate MaritimeCorpus with a nonexistent derived index. Mock only httpx.AsyncClient to return the first actual cases corpus JSONL row. search returns engine=opensearch-bm25 and source_url for HH0001:片段:001; source('cases',that_id) raises corpus_index_unavailable. No network or external service used. Also applies when local index lacks a record present online.
+Boundary: returned text is real corpus content, not fabrication; the broken promise is inspectable original-source access. Fix: resolve citations through the same online backend or persist/ensure every returned source is locally resolvable before generating the link.
+
+Additional isolated probes passed: outsider denied case access; collaborator denied membership grants and reviewed status; reviewer may sign; collaborator edit resets reviewed document to draft; stale expected_version returns 409 without losing either stored version; decimal round-half-up and currency grouping produce USD 1.03 / CNY 6.00 for 0.1*0.2 + 1.005*1 USD and 2*3 CNY; negative, NaN, Infinity and >8-decimal-place inputs rejected.
+
+Read: requested service/calculator/catalog/API/corpus/bootstrap/app integration, and tool registrations. Selected skills are resolved into facts, and registration stays fixed to read/search/calculation tools. No code execution or permission-expansion bug demonstrated. No paid models, installed skills, production configuration, runtime user databases or source corpora modified. Production imports were run with sys.dont_write_bytecode=True. No end-to-end authenticated HTTP/model run or concurrency test performed.

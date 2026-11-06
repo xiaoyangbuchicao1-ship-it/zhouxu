@@ -1,0 +1,9 @@
+test_denies_unrelated_user (test_service.LedgerTests.test_denies_unrelated_user) ... ok
+test_local_admin_debit (test_service.LedgerTests.test_local_admin_debit) ... ok
+test_owner_debit (test_service.LedgerTests.test_owner_debit) ... ok
+test_persists (test_service.LedgerTests.test_persists) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.076s
+
+OK

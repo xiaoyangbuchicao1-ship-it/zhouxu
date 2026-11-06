@@ -1,0 +1,350 @@
+"""Read-only corpus search with an explicit OpenSearch/local-text provenance boundary."""
+
+import asyncio
+import hashlib
+import json
+import re
+import sqlite3
+import ssl
+from contextlib import contextmanager
+from pathlib import Path
+from urllib.parse import quote
+
+import httpx
+from dotenv import dotenv_values
+
+ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_INDEX = ROOT / "backend/.runtime/maritime-corpus.sqlite3"
+CORPORA = {
+    "laws": ROOT / "opensearch/corpus/manifest/chunks.jsonl",
+    "cases": ROOT / "opensearch_1/海事案例库/maritime_case_rag/corpus/chunk.jsonl",
+}
+
+
+@contextmanager
+def connection(*args, **kwargs):
+    db = sqlite3.connect(*args, **kwargs)
+    try:
+        with db:
+            yield db
+    finally:
+        db.close()
+
+
+def normalize(kind, row):
+    if kind == "laws":
+        return dict(
+            id=row["chunk_id"],
+            kind=kind,
+            title=row["document_name"],
+            text=row["chunk_text"],
+            locator=row.get("article_no") or row.get("section_path"),
+            current=row.get("is_current"),
+            version=row.get("version_date"),
+            legal_status=row.get("legal_status"),
+            document_id=row.get("document_id"),
+            source_path=row.get("canonical_text_path"),
+            version_relation=row.get("version_relation"),
+            version_target_document_id=row.get("version_target_document_id"),
+        )
+    if "chunk_id" in row:
+        return dict(
+            id=row["chunk_id"],
+            kind=kind,
+            title=row["title"],
+            text=row["text"],
+            locator=f"原文位置 {row['start']}–{row['end']}"
+            if row.get("start") is not None and row.get("end") is not None
+            else None,
+            case_id=row["case_id"],
+            snapshot_id=row.get("snapshot_id"),
+            source_path=row.get("source_path"),
+            current=None,
+            version=None,
+        )
+    return dict(
+        id=row["片段编号"],
+        kind=kind,
+        title=row["案例标题"],
+        text=row["文本"],
+        locator=row.get("原文位置"),
+        case_id=row["案例编号"],
+        source_path=row.get("原文相对路径"),
+        category=row.get("案件类型"),
+        section=row.get("片段类型"),
+        current=None,
+        version=None,
+    )
+
+
+def build_index(path=DEFAULT_INDEX, corpora=None):
+    """Build only derived local data, atomically; never modify either source corpus."""
+    corpora = corpora or CORPORA
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    counts = {}
+    with connection(path, timeout=60) as db:
+        db.execute("PRAGMA journal_mode=WAL")
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS metadata(kind TEXT PRIMARY KEY,signature TEXT,count INTEGER)"
+        )
+        db.execute(
+            "CREATE TABLE IF NOT EXISTS sources(id TEXT PRIMARY KEY,kind TEXT,title TEXT,content TEXT,is_current INTEGER,metadata TEXT)"
+        )
+        db.execute(
+            "CREATE VIRTUAL TABLE IF NOT EXISTS source_fts USING fts5(id UNINDEXED,title,content,tokenize='trigram')"
+        )
+        for kind, source in corpora.items():
+            source = Path(source)
+            stat = source.stat()
+            signature = f"v1:{stat.st_size}:{stat.st_mtime_ns}"
+            previous = db.execute(
+                "SELECT signature,count FROM metadata WHERE kind=?", (kind,)
+            ).fetchone()
+            if previous and previous[0] == signature:
+                counts[kind] = previous[1]
+                continue
+            db.execute(
+                "DELETE FROM source_fts WHERE id IN (SELECT id FROM sources WHERE kind=?)",
+                (kind,),
+            )
+            db.execute("DELETE FROM sources WHERE kind=?", (kind,))
+            count = 0
+            with source.open(encoding="utf-8-sig") as stream:
+                for line in stream:
+                    value = normalize(kind, json.loads(line))
+                    db.execute(
+                        "INSERT INTO sources VALUES (?,?,?,?,?,?)",
+                        (
+                            value["id"],
+                            kind,
+                            value["title"],
+                            value["text"],
+                            value["current"],
+                            json.dumps(value, ensure_ascii=False),
+                        ),
+                    )
+                    db.execute(
+                        "INSERT INTO source_fts VALUES (?,?,?)",
+                        (value["id"], value["title"], value["text"]),
+                    )
+                    count += 1
+            db.execute(
+                "INSERT OR REPLACE INTO metadata VALUES (?,?,?)",
+                (kind, signature, count),
+            )
+            counts[kind] = count
+    return counts
+
+
+class MaritimeCorpus:
+    def __init__(self, path=DEFAULT_INDEX):
+        self.path = Path(path).resolve()
+        self.citation_path = self.path.with_name(self.path.stem + "-citations.sqlite3")
+
+    def remember_source(self, item):
+        payload = json.dumps(item, ensure_ascii=False, sort_keys=True)
+        key = hashlib.sha256(payload.encode()).hexdigest()
+        self.citation_path.parent.mkdir(parents=True, exist_ok=True)
+        with connection(self.citation_path, timeout=15) as db:
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS citations(snapshot TEXT PRIMARY KEY, kind TEXT, source_id TEXT, payload TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)"
+            )
+            db.execute(
+                "INSERT OR IGNORE INTO citations(snapshot,kind,source_id,payload) VALUES (?,?,?,?)",
+                (key, item["kind"], item["id"], payload),
+            )
+        return key
+
+    def citation(self, token):
+        if (
+            not re.fullmatch(r"ZX:[0-9a-f]{16}", token)
+            or not self.citation_path.is_file()
+        ):
+            raise LookupError("citation_not_found")
+        with connection(f"{self.citation_path.as_uri()}?mode=ro", uri=True) as db:
+            rows = db.execute(
+                "SELECT snapshot,payload FROM citations WHERE snapshot LIKE ? LIMIT 2",
+                (token[3:] + "%",),
+            ).fetchall()
+        if len(rows) != 1:
+            raise LookupError("citation_not_unique")
+        snapshot, payload = rows[0]
+        item = json.loads(payload)
+        return f"/api/maritime/sources/{item['kind']}/{quote(item['id'], safe='')}?snapshot={snapshot}"
+
+    def status(self):
+        if not self.path.is_file():
+            return {"indexed": False, "counts": {}, "notice": "本地语料索引尚未构建"}
+        with connection(f"{self.path.as_uri()}?mode=ro", uri=True) as db:
+            counts = dict(db.execute("SELECT kind,count FROM metadata"))
+        return {
+            "indexed": True,
+            "counts": counts,
+            "notice": "库内资料不等于当前法律效力已联网核验",
+        }
+
+    def source(self, kind, source_id, snapshot=None):
+        if self.citation_path.is_file():
+            with connection(f"{self.citation_path.as_uri()}?mode=ro", uri=True) as db:
+                if snapshot:
+                    cached = db.execute(
+                        "SELECT payload FROM citations WHERE snapshot=? AND kind=? AND source_id=?",
+                        (snapshot, kind, source_id),
+                    ).fetchone()
+                else:
+                    cached = db.execute(
+                        "SELECT payload FROM citations WHERE kind=? AND source_id=? ORDER BY rowid DESC LIMIT 1",
+                        (kind, source_id),
+                    ).fetchone()
+            if cached:
+                return json.loads(cached[0])
+        if snapshot:
+            raise LookupError("citation_snapshot_not_found")
+        if not self.path.is_file():
+            raise LookupError("corpus_index_unavailable")
+        with connection(f"{self.path.as_uri()}?mode=ro", uri=True) as db:
+            row = db.execute(
+                "SELECT metadata FROM sources WHERE kind=? AND id=?", (kind, source_id)
+            ).fetchone()
+        if not row:
+            raise LookupError("source_not_found")
+        return json.loads(row[0])
+
+    def local_search(self, query, kind, current_only=True, limit=8):
+        if not self.path.is_file():
+            raise LookupError("corpus_index_unavailable")
+        clauses, params = ["s.kind=?"], [kind]
+        if kind == "laws" and current_only:
+            clauses.append("s.is_current=1")
+        # Query grammar is built from plain terms, never passed through from a caller.
+        terms = re.findall(r"[\w\u4e00-\u9fff]+", query, flags=re.UNICODE)[:12]
+        tokens = [t[:40] for t in terms if len(t) >= 3]
+        with connection(f"{self.path.as_uri()}?mode=ro", uri=True, timeout=10) as db:
+            if tokens:
+                match = " OR ".join(
+                    '"' + token.replace('"', '""') + '"' for token in tokens
+                )
+                sql = (
+                    "SELECT s.metadata FROM source_fts JOIN sources s ON s.id=source_fts.id WHERE source_fts MATCH ? AND "
+                    + " AND ".join(clauses)
+                    + " ORDER BY bm25(source_fts,0,4,1) LIMIT ?"
+                )
+                rows = db.execute(sql, [match, *params, limit]).fetchall()
+            else:
+                sql = (
+                    "SELECT s.metadata FROM sources s WHERE "
+                    + " AND ".join(clauses)
+                    + ' AND (s.title LIKE ? ESCAPE "\\" OR s.content LIKE ? ESCAPE "\\") LIMIT ?'
+                )
+                escaped = (
+                    query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+                )
+                rows = db.execute(
+                    sql, [*params, f"%{escaped}%", f"%{escaped}%", limit]
+                ).fetchall()
+        return [json.loads(row[0]) for row in rows]
+
+    async def search(self, query, kind="laws", current_only=True, limit=8):
+        if (
+            kind not in CORPORA
+            or not isinstance(query, str)
+            or not 2 <= len(query.strip()) <= 500
+            or not 1 <= limit <= 10
+        ):
+            raise ValueError("请输入 2 至 500 字查询，并选择法规或案例库")
+        query = query.strip()
+        notice = []
+        online_error = None
+        try:
+            # Fixed loopback addresses only; caller content cannot choose a host or index.
+            values = dotenv_values(
+                ROOT / "opensearch/opensearch_delivery/dev/.env", interpolate=False
+            )
+            password = values.get("OPENSEARCH_INITIAL_ADMIN_PASSWORD")
+            if not password:
+                raise LookupError("search_credentials_unconfigured")
+            context = ssl.create_default_context()
+            context.check_hostname, context.verify_mode = False, ssl.CERT_NONE
+            endpoint = "https://127.0.0.1:19200"
+            options = {"auth": ("admin", password), "verify": context}
+            if kind == "laws":
+                alias = "maritime_law_chunks_read"
+                fields = ["document_name^4", "chunk_text"]
+                filters = [{"term": {"is_current": True}}] if current_only else []
+            else:
+                alias = "maritime_cases_read"
+                fields, filters = ["title^4", "text"], []
+            async with httpx.AsyncClient(
+                timeout=4, trust_env=False, follow_redirects=False, **options
+            ) as client:
+                result = await client.post(
+                    f"{endpoint}/{alias}/_search",
+                    json={
+                        "size": limit,
+                        "_source": {"excludes": ["embedding", "vector", "embed_text"]},
+                        "query": {
+                            "bool": {
+                                "must": [
+                                    {"multi_match": {"query": query, "fields": fields}}
+                                ],
+                                "filter": filters,
+                            }
+                        },
+                    },
+                )
+                result.raise_for_status()
+                data = result.json()
+                if data.get("timed_out") or data.get("_shards", {}).get("failed", 0):
+                    raise ValueError("incomplete_search")
+                items = [
+                    normalize(kind, hit["_source"]) for hit in data["hits"]["hits"]
+                ]
+                engine = "opensearch-bm25"
+        except (httpx.HTTPError, KeyError, ValueError, LookupError, OSError) as exc:
+            if isinstance(exc, LookupError):
+                online_error = (
+                    "credentials_missing"
+                    if str(exc) == "search_credentials_unconfigured"
+                    else "schema_mismatch"
+                )
+            elif isinstance(exc, httpx.HTTPStatusError):
+                online_error = {
+                    401: "authentication_failed",
+                    403: "access_denied",
+                    404: "index_missing",
+                }.get(exc.response.status_code, "service_error")
+            else:
+                online_error = (
+                    "connection_failed"
+                    if isinstance(exc, (httpx.ConnectError, httpx.TimeoutException))
+                    else "invalid_response"
+                )
+            notice.append(
+                "在线检索不可用，已使用同源语料本地全文检索；未执行向量检索或在线效力核验。"
+            )
+            items = await asyncio.to_thread(
+                self.local_search, query, kind, current_only, limit
+            )
+            engine = "local-corpus-fulltext"
+        for item in items:
+            snapshot = await asyncio.to_thread(self.remember_source, item)
+            item["citation"] = f"[[ZX:{snapshot[:16]}]]"
+            item["source_url"] = (
+                f"/api/maritime/sources/{kind}/{quote(item['id'], safe='')}?snapshot={snapshot}"
+            )
+        return {
+            "query": query,
+            "kind": kind,
+            "engine": engine,
+            "online_error": online_error,
+            "items": items,
+            "notices": notice
+            + [
+                "结果来自自研语料库；版本日期含义以原文为准，法规效力与类案适用性需专业核对。"
+            ],
+        }
+
+
+if __name__ == "__main__":
+    print(json.dumps(build_index(), ensure_ascii=False))

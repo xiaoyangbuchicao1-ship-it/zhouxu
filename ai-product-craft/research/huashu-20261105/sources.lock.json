@@ -1,0 +1,694 @@
+{
+  "accessed_at": "2026-11-05",
+  "scope": "alchaincyf skill-related repositories, including the skill collection; excluding books, apps, MCP-only tools and forks. Seven highest-star skill repositories among the author's public search results.",
+  "ranking": [
+    {
+      "name": "nuwa-skill",
+      "stars": 37510,
+      "license": "MIT",
+      "sha": "5bb9b659b7750e2ae775308bf2af706e37cbae30",
+      "url": "https://github.com/alchaincyf/nuwa-skill",
+      "created_at": "2026-04-05T04:33:04Z",
+      "latest_commits": [
+        {
+          "sha": "5bb9b659b7750e2ae775308bf2af706e37cbae30",
+          "date": "2026-11-03T08:44:48Z",
+          "message": "v1.1.0：DSH 插件图标、各语言 README 同步、版本号\n\n- 插件图标 assets/icon.png（取自头图动画的女娲形象，代码绘制），package.json 加 icon\n- README 徽章与运行环境列表加入 DeepSeek Harness；英日韩西 README 同步 DSH 安装说明\n- metadata.version 与 package.json 升到 1.1.0；作者页按发布规范同步\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "fa46c28167b3feac174883df63a5e6f5e241d249",
+          "date": "2026-11-03T08:36:02Z",
+          "message": "支持 DeepSeek Harness：插件入口 + DSH 的 skill 目录说明\n\n- package.json + cordis.patch.yml：让仓库本身成为 DSH 插件包，\n  `dsh plugin --profile web add github:alchaincyf/nuwa-skill` 一行安装。\n  复用 DSH 自带的 dsh-skill-filesystem 提供方，不写 JS；files 白名单把安装体积压到约 2.4MB。\n- SKILL.md：注明在 DSH 里把 `.claude/skills/` 换成 `.dsh/skills/`，\n  否则蒸馏出的人物 Skill 落在 DSH 不扫描的目录（真机对照已复现）。\n- README：手动安装表加 DSH 路径，新增「DeepSeek Harness 插件」安装/卸载段，英文段补一行。\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "7c7edfeb9d90a28b1f79e7847e1ba27a698cdc24",
+          "date": "2026-10-24T16:12:03Z",
+          "message": "docs: retire October McStomach promotion"
+        },
+        {
+          "sha": "7812110bf7e5a2b01b6aa5a738568044121bbfa2",
+          "date": "2026-10-17T09:03:37Z",
+          "message": "docs: 头图换成新版宣传动画（huashu-motion 制作，女娲形象与画风全由代码绘制）\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "7fa1f60cfe3cf495e38c93626f239e06ecc2ee8e",
+          "date": "2026-10-15T03:28:58Z",
+          "message": "docs: promote McStomach with scheduled banner retirement"
+        },
+        {
+          "sha": "8755b2d2bc7ad2a35e055640cca78d50c3211a15",
+          "date": "2026-10-13T06:54:22Z",
+          "message": "加入版本号、作者信息与版本检查（起点 v1.0.0）\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "fe0374687037c4cc51a65c1e0c145afe2981dc69",
+          "date": "2026-08-25T03:02:23Z",
+          "message": "docs: 版本自检机制——30天静默自查一次，仅确认有新版本时任务后提示\n\nCo-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "27642f5bfed2dc1bbf8ee59a2c1ee602a626bbd7",
+          "date": "2026-07-27T04:38:18Z",
+          "message": "optimize 模板输出规范: 未表态主题标推断 + 关键引用可分辨两条output-discipline — 采纳自Issue #65的9-skill双盲实测建议, credit @5219rayhsu"
+        },
+        {
+          "sha": "b8a9b1b295ae461731a2a53f16697c4a9549ce98",
+          "date": "2026-07-27T04:37:22Z",
+          "message": "Add George Hotz skill to community index (#69)\n\nCo-authored-by: alchain <alchaincyf@gmail.com>"
+        },
+        {
+          "sha": "937de4d47e5bd188d08ed7a573b26873556aac09",
+          "date": "2026-07-27T04:36:13Z",
+          "message": "docs: add gefei perspective skill to community index (#64)"
+        }
+      ]
+    },
+    {
+      "name": "huashu-design",
+      "stars": 28687,
+      "license": "MIT",
+      "sha": "b2460b031c33ff32d2bf3b97263527daa231e4de",
+      "url": "https://github.com/alchaincyf/huashu-design",
+      "created_at": "2026-04-19T14:42:06Z",
+      "latest_commits": [
+        {
+          "sha": "b2460b031c33ff32d2bf3b97263527daa231e4de",
+          "date": "2026-11-04T03:28:45Z",
+          "message": "docs: DSH 命令行安装前要先打开过一次桌面端\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "62c936f1f15d27f67cd820be43879bf5e98e8e34",
+          "date": "2026-11-04T03:26:44Z",
+          "message": "release: v3.2.0，README 加 DeepSeek Harness 安装说明\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "3fd5a07628cab3e0f7aa667770087dd786af36fa",
+          "date": "2026-11-04T02:49:26Z",
+          "message": "fix: 插件依赖去掉 sharp（pnpm 11 拦构建脚本会让插件安装失败），缩略图改为可选用 sharp\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "a35fa18babdc914b04c26d48cfe18e8e8866a8b6",
+          "date": "2026-11-04T02:25:53Z",
+          "message": "feat: 支持 DeepSeek Harness 桌面端（插件清单＋自带 Python 环境说明）\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "9b01ee8751679724dd43d855a532944aaa2c2b59",
+          "date": "2026-10-30T17:50:57Z",
+          "message": "feat: 小红书图文方向（v3.1.0）\n\n- 新模块 references/modules/xiaohongshu.md：1242×1660 规格、字号底线、平台限制、范式选择与三方向做法\n- 风格库新增「小红书图文」8 种范式，每个样张同时是模板（assets/style-specimens/xhs/）\n- scripts/xhs_render.py：切 3:4 成图并查字号、出界、长卷跨缝、字压字、遮挡\n- SKILL.md 加一行路由；README 中英文同步\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "d99ff6a06447f5bc6159e15bf2f221821b4b83ba",
+          "date": "2026-10-30T15:39:42Z",
+          "message": "Merge pull request #60 from Aliciawque/fix/compare-incomplete-inspection\n\nfix: reject incomplete design comparisons"
+        },
+        {
+          "sha": "1cc9c40969c3815f7033935a9d39b0834cc3487c",
+          "date": "2026-10-30T15:39:36Z",
+          "message": "Merge pull request #59 from dajiaohuang/fix-pptx-missing-slide-verification-20261023\n\nFix text verification when PPTX slides are missing"
+        },
+        {
+          "sha": "9851331fd051e2ac41ca8b98ba4edeaa03c02ff2",
+          "date": "2026-10-26T17:34:41Z",
+          "message": "fix: reject incomplete design comparisons"
+        },
+        {
+          "sha": "33df0c0831482270b7649fdb259c4b5972d1deb3",
+          "date": "2026-10-23T15:52:01Z",
+          "message": "Fix text verification when PPTX slides are missing"
+        },
+        {
+          "sha": "4fc7bfdbd5ec3fa2d43ce7a6433de60976a5e4b1",
+          "date": "2026-10-23T15:31:58Z",
+          "message": "README：头图换成 3.0 发布片，新增 3.0 案例一节（北斋线上展、鸣迹、今晚吃啥、千里江山图、黑洞、绿拇指、旅居档案）\n\n- 案例图与发布片挂在 v3.0.0 Release 附件，不进仓库\n- 2.0 时期的 Showcase 标题加限定，女娲 star 数更新，结尾补关注二维码\n- 同步作者页\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        }
+      ]
+    },
+    {
+      "name": "zhangxuefeng-skill",
+      "stars": 10706,
+      "license": "MIT",
+      "sha": "38bbd944e2ecbd7ec0232a7448fcb27ab4710da0",
+      "url": "https://github.com/alchaincyf/zhangxuefeng-skill",
+      "created_at": "2026-04-05T11:37:18Z",
+      "latest_commits": [
+        {
+          "sha": "38bbd944e2ecbd7ec0232a7448fcb27ab4710da0",
+          "date": "2026-10-13T06:56:31Z",
+          "message": "加入版本号、作者信息与版本检查（起点 v1.0.0）\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "3501b1e679cf595a6af800619af757aba46d7574",
+          "date": "2026-08-25T03:03:18Z",
+          "message": "docs: 版本自检机制——30天静默自查一次，仅确认有新版本时任务后提示\n\nCo-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "a9a71563a39f1ba8e5421d1b9b44e318c691f37b",
+          "date": "2026-05-28T00:10:18Z",
+          "message": "optimize SKILL.md: darwin round1 (+dim3 fallback +dim4 checkpoint +dim9 blacklist)"
+        },
+        {
+          "sha": "817f14d2b86b12137d4b7a982ab325b7e101c71c",
+          "date": "2026-05-22T11:11:18Z",
+          "message": "docs: make README runtime-neutral (Agent Skills standard)\n\nReplace Claude-Code-specific framing with cross-runtime language so\nthe skill is recognized as installable by any skills-compatible agent\n(Claude Code, Codex, Cursor, OpenClaw, Hermes, CodeBuddy, Workbuddy,\nGemini CLI, OpenCode, etc.).\n\n- Swap Claude Code badge for Agent Skills + skills.sh + Multi-Runtime\n- Rewrite Install section: one-line (npx skills add auto-detects),\n  manual per-runtime paths, and use-as-reference fallback\n- Replace 'Then in Claude Code' with runtime-agnostic phrasing"
+        },
+        {
+          "sha": "b4cd3de744011b2386d826d6abc2474419cfdffe",
+          "date": "2026-04-21T05:24:47Z",
+          "message": "docs: add hero animation to README\n\nAnimation created with huashu-design skill.\nhttps://github.com/alchaincyf/huashu-design\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
+        },
+        {
+          "sha": "7ec998830f11dce3af75b45fa619f77bebc1a510",
+          "date": "2026-04-10T02:29:21Z",
+          "message": "fix: update 小红书 display name from 花生 to 花叔"
+        },
+        {
+          "sha": "9821ba4806d47f5800f4ba43516d176f41343bc7",
+          "date": "2026-04-09T15:44:05Z",
+          "message": "chore: rename brand from AI进化论-花生 to 花叔"
+        },
+        {
+          "sha": "104f652aff125a3259874d0bc5966952981c5123",
+          "date": "2026-04-07T15:03:06Z",
+          "message": "feat: 升级Agentic Protocol — 遇到事实型问题先WebSearch做功课再回答\n\n新增「回答工作流（Agentic Protocol）」：\n- Step 1: 问题分类（事实型→先研究 / 框架型→直接答）\n- Step 2: 定制化研究（反映此人物的分析习惯）\n- Step 3: 基于真实数据 + 心智模型输出回答\n\nCo-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
+        },
+        {
+          "sha": "b1490bca6b2f1dfad0b37a663806cbc224af92fe",
+          "date": "2026-04-06T16:51:58Z",
+          "message": "添加公众号二维码和社交媒体信息，增加bookai.top/huasheng.ai反链"
+        },
+        {
+          "sha": "afa165554a0be9aaeacd1dd135c9ae0362ff9e74",
+          "date": "2026-04-05T11:51:46Z",
+          "message": "add cross-linking section\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+        }
+      ]
+    },
+    {
+      "name": "darwin-skill",
+      "stars": 6804,
+      "license": "MIT",
+      "sha": "8a8b66258e3c45d6ae4aea39719468c6428fcb0a",
+      "url": "https://github.com/alchaincyf/darwin-skill",
+      "created_at": "2026-04-13T08:57:49Z",
+      "latest_commits": [
+        {
+          "sha": "8a8b66258e3c45d6ae4aea39719468c6428fcb0a",
+          "date": "2026-09-18T13:16:41Z",
+          "message": "Merge pull request #26 from jupiterx0910/fix/runtime-scan-self-reference-false-positive\n\n验证记录（值班室 2026-09-18 夜班，独立实跑，非复述 PR 描述）：\n\n用仓库**真正的门禁命令**（SKILL.md:98 与 references/runtime-neutrality.md:65 两处一致的那条）实跑，\n构造真红灯样本撞新增的判别表，确认新规则按「出现位置」分栏后**不会把真红灯误判成假阳性**——\n这是合并前最需要排除的风险，已排除。\n\n两点如实记录，供后续参考：\n1. PR 描述里「实测复现」用的 grep 命令与仓库门禁命令不是同一条（前者少扫了 README.md），\n   所以「8 处全部是假阳性」这个数字复核不上；实跑命中 5 处。\n2. 「3 个 judge 3-0」无法复核，未作为合并依据。\n\n合并依据是 diff 本身经得起对抗测试，与作者给出的证据无关。"
+        },
+        {
+          "sha": "73dc1150d687f85ab1fdf46d4bd03406c10aa4e5",
+          "date": "2026-09-12T17:31:47Z",
+          "message": "fix(runtime-scan): 红灯扫描自指假阳性——讲解规则的 skill 会永判自己 P0\n\n红灯 grep 把『引用/演示该 pattern 本身』的行也命中：darwin-skill 自己讲解\nruntime 中立性规则时必然字面写出『Claude Code skill』等措辞，对它跑那条\ngrep 命中 8 处，按『输出非空=强制 P0』会把 darwin 自己（及任何讲 runtime\n中立性的 skill）永远判成红灯、陷入自审死循环。\n\n- references/runtime-neutrality.md 例外清单补第5类『引用/演示 pattern 本身』\n  + 真红灯 vs 假阳性判别表 + 命中后须读上下文再定性\n- SKILL.md 扫描段同步：输出非空须先排除假阳性，确认指令性用法才进 P0\n\n实测复现：用本仓库自带 grep 命令扫本仓库，命中自身 8 行（全为元陈述/反例/命令）。"
+        },
+        {
+          "sha": "5539516444cff4eed7865daf61a707590acda485",
+          "date": "2026-08-25T03:01:07Z",
+          "message": "docs: 版本自检机制——30天静默自查一次，仅确认有新版本时任务后提示\n\nCo-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "e550fd615499e524b934fdbf609c389eb03ae2b2",
+          "date": "2026-08-06T00:40:17Z",
+          "message": "docs: README「新分 > 旧分」改为「新分高于旧分」\n\n中文版这一行用了裸 `>`，而英文版同一条本来就写作「Score up → keep」。\n本次改动只是让中文版与之对齐，语义无变化。\n\n注：本次改动未做任何扫描器验证，也不声称能消除任何静态扫描告警。"
+        },
+        {
+          "sha": "2fbaf4171e453d5c66fc8109a296ae89c4772bc3",
+          "date": "2026-07-27T04:35:51Z",
+          "message": "docs: 中文 README 镜像 #14 的安全提示段"
+        },
+        {
+          "sha": "da25288e5a139c8b5055e085ac474faa24f24695",
+          "date": "2026-07-27T04:35:22Z",
+          "message": "docs: add safety notes (#14)\n\nCo-authored-by: jiezeng2004-design <258769292+jiezeng2004-design@users.noreply.github.com>"
+        },
+        {
+          "sha": "99dfa8339f7c2cb478a98b4b2878b4dfe32875b5",
+          "date": "2026-07-27T04:35:15Z",
+          "message": "Phase 2 keep/revert: paired within-judge comparison instead of absolute-score delta (#13)\n\n* feat: paired-comparison ratchet replacing absolute-score delta (v2.1)\n\nAbsolute-score keep/revert is unreliable: the same unchanged SKILL.md scores +/-8 across judges (LLM judge = sampling not measurement; each judge resamples its own scoring standard per call). Phase 2 keep/revert now uses paired within-judge comparison (one judge reads before+after in one call so its idiosyncratic ruler cancels) + odd-N majority vote; absolute total demoted to triage-only. Aligns the workflow with the skill's own reflex #1, which the old absolute-delta workflow contradicted.\n\nCo-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>\n\n* refactor: genericize the judge-noise example (drop personal skill name)\n\nReplace the concrete '<personal-skill> swung -8.5 from +3 emoji chars' example with a generic 'a skill that only added markers swung -8.5' phrasing in the triage rule, reflex 1b, and the results.tsv sample row. Keeps the vivid evidence (the magnitude + mechanism) while dropping a dangling skill-name reference (cold-reader / no-stale-pointer hygiene). Side effect: SKILL.md is now upstream-clean if ever PR'd.\n\nCo-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
+        },
+        {
+          "sha": "b310a407ed8f7c99612b85612442be3b142b3608",
+          "date": "2026-07-27T04:35:09Z",
+          "message": "fix(screenshot): cross-platform playwright-core resolution + open cmd + file:// url (fixes #19) (#20)"
+        },
+        {
+          "sha": "eaebbc756a4a885313cae6fa276d5d418be323dc",
+          "date": "2026-07-27T02:56:05Z",
+          "message": "九维 rubric 权重修正与对外同步 + 补 MIT LICENSE\n\n- fix #22: dim5 权重 17→18，九维加和 99→100\n- 两张 rubric 图表从 v1 八维更新为九维并重导出 PNG\n- docs/index.html 与 showcase.html 同步九维口径（外网页面此前仍展示八维）\n- 采纳 issue #18: Phase 2 诊断改为加权短板优先排序 weight×(10-score)/10\n- 补上 README 徽章早已声明的 MIT LICENSE（此前链接 404）\n\nCo-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "c7619d030588138f896b1a4f7b46a754297009de",
+          "date": "2026-07-27T02:10:26Z",
+          "message": "merge: 收敛 night-shift/20260726-license 进 20260726 验收包"
+        }
+      ]
+    },
+    {
+      "name": "huashu-art-motion",
+      "stars": 6251,
+      "license": "MIT",
+      "sha": "8a0d7d72ca65fcce6f8ba82c4a6c8dfe35b8422c",
+      "url": "https://github.com/alchaincyf/huashu-art-motion",
+      "created_at": "2026-10-06T04:49:37Z",
+      "latest_commits": [
+        {
+          "sha": "8a0d7d72ca65fcce6f8ba82c4a6c8dfe35b8422c",
+          "date": "2026-10-16T17:02:46Z",
+          "message": "docs: README 增加动态，致谢 Open Design 收录\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "8f0a349a18b4bdf802b8d58715a2259c3e1ce709",
+          "date": "2026-10-16T12:36:39Z",
+          "message": "v1.2.0：新增敦煌壁画，风格演示重做，解说动画语法更稳\n\n- 新增 55 敦煌壁画（北朝）；38–52 九个风格演示按 16 号协议重做（原作锚定、媒介通道、并排对照）\n- 动画语法：spec.finish 成片质感层；TY.fitFloor、MD.label maxW 让长文字截断而不出界；t2 全屏高亮标签随镜头放大反算；y1 景深光斑与轨道；y5 竖屏重排\n- 新增工具：render.py --audit 版面审计、clip_lint.py、stress_clip.py、regress_clips.py、fetch_reference.py\n- 同步此前未提交的 15 号跨场景提炼、语音模型检查与 37/52 号平面卡通例外说明\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "2571ee0a9a0467c4d99e935ea9e0fadda19210b0",
+          "date": "2026-10-14T11:37:51Z",
+          "message": "feat: add reusable Rick and Morty SVG style as style 36"
+        },
+        {
+          "sha": "64cb27271ee0ad3375298e2890b33cbec36d4051",
+          "date": "2026-10-13T08:40:58Z",
+          "message": "fix: refresh release manifest after skill metadata update"
+        },
+        {
+          "sha": "2d1584f9b7421278ba08f6269399c24c17977c94",
+          "date": "2026-10-13T06:51:17Z",
+          "message": "加入版本号、作者信息与版本检查（沿用 v1.0.0）\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "e47f792252030f6b3b25f26b2857ae48395e626b",
+          "date": "2026-10-13T02:19:23Z",
+          "message": "docs: add English README and language navigation"
+        },
+        {
+          "sha": "7a03be825af32da242ef0afe5017c164a5419088",
+          "date": "2026-10-12T14:07:03Z",
+          "message": "feat: 镜头规则重写——镜头是标点，不再每个口播节点快推\n\n- SKILL.md 新增「导演的要求：镜头怎么用／画风怎么选」，窄桥去掉 0.28s 脉冲条目\n- 新增 references/镜头语言.md：动作表、每个数的生效条件、次数什么时候管、满幅素材的坑\n- CAM.track 新增 push/glide/pull，不写 kind 默认缓推 0.9s；t2/y1/y2 highlight 默认缓推，spec 顶层 data.camera:\"snap\" 才快推\n- storyboard_lint ⑮连续三镜往里推、⑯重音过多；film_gate「推近次数」黄灯；qa 认 2s 内平滑推拉\n- 修 t2 满幅横移时模糊底越界、出场屏被提前裁掉\n- 同题 A/B（同一模型、同口播素材、隔离沙盒）：推近 15→8 次、快推 14→2 次，作者盲选改后版\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "9ff59339f934e08483ba0a5b1db20f4c2c421b35",
+          "date": "2026-10-10T10:03:07Z",
+          "message": "showcase: 梵高片段换成修正版（去掉右缘越界的灰边）\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "c2c8b7536bc87ea5bbbca9112aaacf4dfe388bbd",
+          "date": "2026-10-10T09:47:50Z",
+          "message": "showcase: 加入《Clawd 博物馆奇妙夜》三段 GIF 与说明\n\n98 秒纯代码动画：Clawd 夜巡大都会与自然史博物馆，入画的五幅原作来自大都会开放获取（CC0）。\nREADME 新增展示段与版权说明（Clawd 形象归 Anthropic，非官方同人示范，不随 MIT 授权）；完整成片放 Releases。\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "d861767d180008d27675819932070a670a3ae43f",
+          "date": "2026-10-10T03:14:20Z",
+          "message": "fix: 角色精细度补拟物主角例外，验收段补蓝紫门禁，门禁测试图可回退\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        }
+      ]
+    },
+    {
+      "name": "huashu-motion",
+      "stars": 2363,
+      "license": "MIT",
+      "sha": "52467f99c602b76ba86d511d37acdfe93fa1e16e",
+      "url": "https://github.com/alchaincyf/huashu-motion",
+      "created_at": "2026-10-18T12:19:27Z",
+      "latest_commits": [
+        {
+          "sha": "52467f99c602b76ba86d511d37acdfe93fa1e16e",
+          "date": "2026-10-22T12:19:32Z",
+          "message": "v0.3.1\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "f4f45e713165b47b835af5cdddbd25c0ccb0fc49",
+          "date": "2026-10-22T12:19:09Z",
+          "message": "Music is the director's call, chosen from the product's character, not a choice on the cards\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "ad35c427df0c3f38999bcc2598f32af58a152e8f",
+          "date": "2026-10-22T12:17:23Z",
+          "message": "v0.3.0\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "245abe5fbcbad3afd4d5528bd9faf7a5894f042b",
+          "date": "2026-10-22T11:47:35Z",
+          "message": "Music: sixteen worlds to choose from, a soundprint that catches a repeated band\n\nTen test films in a row, and a live film the same day, all played the band of the example score\nSignal (synpluck, supersaw, violins, piano, synbass, an 808 and a pop kit) at about 120 BPM in a\nminor key: the composer copied the nearest example's header every time.\n\n- references/music.md: sixteen musical worlds (pulse minimalism, UK garage, minimal techno, drum and\n  bass, funk, lo-fi, trap, synthwave, cinematic, lyrical piano waltz, jazz trio, folk, chiptune,\n  ambient, guofeng electronic, amapiano), each with the products it suits, tempo, band, references\n  and a two-bar groove that renders. Measured on renders: the worlds spread the A-weighted low end\n  from 0 to 21 % and the spectral centroid from 0.5 to 2.4 kHz; the ten films sat at 2-8 % and 1.0-2.1 kHz.\n- Each direction card names its music world; the three cards are three different worlds.\n- The example scores are for structure, not sound.\n- om sound prints the score's soundprint (tempo, key, band) and warns when it is an example score's\n  band or the band of a recent film on this machine (~/.huashu-motion/soundtracks.jsonl).\n- Score drum kits lofi, gated, chip and folk reach drum voices the engine had but scores could not use.\n- Tests run with their own OM_HOME so they never write to the user's history.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "a8c4784289dcfa59a1b882fdcc640d91d1934ad7",
+          "date": "2026-10-22T09:24:51Z",
+          "message": "Depth is one of three choices, carried through the film when chosen; frame 0 is the poster\n\nExactly one of the three directions is a depth direction and the other two are other styles, so the\nuser can choose 3D and always has something else; which one is recommended follows the product and\nthe brief, not 3D by default. When depth is chosen the camera travels through one space for the whole\nfilm (stations in depth, transitions through space, at most one flat beat), planned in the treatment.\n\nom qa flags an empty frame 0 — the poster feeds, players and README GIFs show before playing — and\nsays when the frame fills. Calibrated on 15 films: those opening on their subject had 7-94 % off-median\npixels and 2-18 % edges in frame 0; blank, black or a lone small mark had under 2.5 % and 1.2 %.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "42360539c10d35397b352461347c073a2966031b",
+          "date": "2026-10-22T09:05:18Z",
+          "message": "v0.2.0\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "f6ffba4a5096ff21d9dd743b0afc093db1850b6b",
+          "date": "2026-10-22T08:25:00Z",
+          "message": "Depth: OM.space 3D camera, Three.js studio helpers, ui-space and object-3d templates\n\nOM.space drives a CSS 3D page world or a Three.js camera from the same poses (target, distance, yaw,\npitch, roll, fov, fit, flat); moves run on arcs and the pose is a pure function of time, so any frame\nrenders alone and flat: true lands exactly on the layout. runtime/three bundles three.js r186 with\nthe add-ons a studio needs; om-three.js gives a lit stage with a dark-parted environment, a studio\nsweep, the real logo SVG extruded in its own colours, screenshots on devices or cropped into panels,\nGLB/HDR loading that works from file://, depth of field that follows the camera's target, and one\nrender per frame after every tween has been set (a draw inside the clock tween showed last frame's\nvalues; loads redraw when they land so frame one is never captured before its texture).\n\nTemplates ui-space (the real interface cut into layers that separate, a comment rebuilt in code,\ncollapse to flat) and object-3d (the studio's real screenshot on a floating device, its own cursor\nand comment icons extruded, swing reveal, push with rack focus, crane, hero frame) use huashu-motion's\nown studio capture and icons. depth.md: when to use which route, camera moves, what makes a space,\nreal material in 3D, pitfalls. The skill now defaults to depth for product films and keeps one depth\ndirection among the three.\n\nom check no longer judges a parent element by its children's text through whitespace text nodes\n(hidden titles were reported as cut, overlapping and low-contrast).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "b8e581101327bf979ba3e4f9872e57e593832d78",
+          "date": "2026-10-22T08:02:49Z",
+          "message": "Real material first: om grab, placeholder and no-real-material checks, product palette over invented colour\n\nom grab <url|folder> collects a product's logo, screenshots, colours and fonts into materials/ and\nmaterials.md. om check --source warns on placeholder images, films with no real material, logo-only\nfilms and a missing materials list. Palettes taken from the product skip the house-look warnings,\nand the colour reference now starts from the product's own colours. The skill gathers real material\nbefore any direction, rebuilds the interface in code traced from captures when it has to move, and\nuses real or open-licensed images, never placeholders.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "32c62004fe450ebde93fb9d7f5aaa178dedf9064",
+          "date": "2026-10-22T07:42:32Z",
+          "message": "README: the Claude Duet fan film, and how the sample films were made\n\n- Claude Duet (fan-made, unofficial) joins the samples: an 8.5 s GIF with the\n  unofficial label burned in; the full English film goes on the Release page.\n- New section with the original requests and every round of notes behind five sample films,\n  word for word (paths and screenshots replaced by bracketed notes, unrelated words cut and\n  marked); the English README carries translations.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "f3d365adde77ec4e5317c6beaee312a4ba23c816",
+          "date": "2026-10-22T07:42:31Z",
+          "message": "One-line requests: offer real choices, default to an opening that moves, catch slides in qa\n\n- SKILL.md step 1: for a one-line request, one message with what was understood and the few\n  decisions that change the film most, each with a default and two alternatives named by\n  references people recognise (answerable with \"可以\"). No style named -> the energetic\n  default: frame 1 moving with a big move, first burst before 5 s, cuts, type a phone can read.\n- SKILL.md step 5: every om qa ✗ is fixed before anyone sees the film; before the first\n  showing, write and fix the notes a demanding director would give.\n- director.md: a lone object glowing in on an empty dark frame is not a hook.\n- om qa: \"flat opening\" (strongest second of the first 5 s < 1.5, or a still stretch >= 1.5 s\n  there) and \"the whole film barely moves\" (mean < 0.6 and < 3 cuts a minute). Calibrated on\n  15 films the user signed off (peaks 2-24, means 0.85-5.8) against a one-line film by a new\n  user (peak 0.9, still 2.5-4.2 s, mean 0.18, no cut); none of the 15 is flagged.\n\nTwo-pair A/B with independent agents (same one-line prompt, two repos): the new skill opened\nboth films with full-frame type on the beat (peak 5.0 / 3.2, 6 / 3 cuts in the first 5 s)\nwhere the old one opened on small typing in an empty frame (peak 2.4 / 1.8).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        }
+      ]
+    },
+    {
+      "name": "huashu-skills",
+      "stars": 2205,
+      "license": "MIT",
+      "sha": "7de517aa12f61ff31c46f1591fbeaf865160d69f",
+      "url": "https://github.com/alchaincyf/huashu-skills",
+      "created_at": "2026-01-24T01:11:07Z",
+      "latest_commits": [
+        {
+          "sha": "7de517aa12f61ff31c46f1591fbeaf865160d69f",
+          "date": "2026-11-02T07:12:39Z",
+          "message": "chore: 每周自动更新总目录与作者页"
+        },
+        {
+          "sha": "da64db345f36f5171e99f422777ffefbb691a804",
+          "date": "2026-10-26T05:46:05Z",
+          "message": "chore: 每周自动更新总目录与作者页"
+        },
+        {
+          "sha": "004c808335f1fa228cd0a78061e5ece6bc505fbe",
+          "date": "2026-10-19T13:33:41Z",
+          "message": "作者页修复：主页推广块不再混进简介，相对路径的图片不会被复制进 skill 仓库\n\n主页 README 开头的麦门胃推广块标记叫 MCSTOMACH-PROMO-202610，带连字符，\n剔除标记块的正则只认 \\w+，没剔掉；挑简介段时又只跳过 <img 开头的段落，\n推广横幅 [![…](assets/…png)](…) 被当成简介，真正的简介丢了，图片路径在\n别的仓库里是坏链（huashu-motion v0.1.1 套规范时带了进去）。\n\n- 标记名允许连字符\n- 简介跳过 Markdown 图片段落\n- 生成结果含相对路径链接时拒绝写入，保留旧文件\n- 顺带：huashu-motion 版本 0.1.0 → 0.1.1（skills.json，与每周任务结果相同）\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "e0882be0d2791e0af18d9d074a7cb4bc0924fd9f",
+          "date": "2026-10-19T05:43:04Z",
+          "message": "chore: 每周自动更新总目录与作者页"
+        },
+        {
+          "sha": "fdb4086348cebda0ec9cf81cdcb546cc18ff3020",
+          "date": "2026-10-13T07:00:27Z",
+          "message": "chore: 每周自动更新总目录与作者页"
+        },
+        {
+          "sha": "68f795c2a0e3fa20595b79a8edc4d63e19b06ea8",
+          "date": "2026-10-13T06:28:22Z",
+          "message": "版本检查支持用户关闭：.last-update-check 写 off 即不再检查，updater 不覆盖\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "e6b3a83a8bc092ee68ddc6a933b0a6a8359b9dc8",
+          "date": "2026-10-13T06:21:33Z",
+          "message": "总目录自动化：每周从主页与仓库生成 skills.json 和作者页；更新检查改按版本标签\n\n- tools/build_catalog.py + 每周 Action：自动发现新 skill 仓库、刷新各仓库最新版本号、\n  从 GitHub 主页生成 about-author.md（各 skill 的作者页来源）\n- 收录 huashu-art-motion、huashu-flash、mcstomach；huashu-chrome 归入「不是 skill」\n- huashu-skill-updater：按 metadata.version 与远程 vX.Y.Z 标签比较，联网失败不记为已检查\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+        },
+        {
+          "sha": "2efea35738efa06abbfa9acaee923fcef0732a14",
+          "date": "2026-09-22T15:32:42Z",
+          "message": "huashu-data-pro: html2pptx.js 换成独立实现（替换 Anthropic 专有代码），NOTICE 更新"
+        },
+        {
+          "sha": "e2a5e93639e913871c7a3ace22cc4c4e562777f7",
+          "date": "2026-09-22T14:19:19Z",
+          "message": "LICENSE: plain MIT text (third-party note moved to NOTICE)"
+        },
+        {
+          "sha": "109c9af7376d01c466c55b43a2ae6750045c1292",
+          "date": "2026-09-22T14:18:02Z",
+          "message": "Add NOTICE: html2pptx.js is Anthropic third-party, not MIT"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "name": "nuwa-skill",
+      "path": "references/fidelity-scorecard.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/nuwa-skill/5bb9b659b7750e2ae775308bf2af706e37cbae30/references/fidelity-scorecard.md",
+      "pin": "5bb9b659b7750e2ae775308bf2af706e37cbae30",
+      "local": "ai-product-craft/research/huashu-20261105/sources/nuwa-skill/references/fidelity-scorecard.md"
+    },
+    {
+      "name": "nuwa-skill",
+      "path": "references/extraction-framework.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/nuwa-skill/5bb9b659b7750e2ae775308bf2af706e37cbae30/references/extraction-framework.md",
+      "pin": "5bb9b659b7750e2ae775308bf2af706e37cbae30",
+      "local": "ai-product-craft/research/huashu-20261105/sources/nuwa-skill/references/extraction-framework.md"
+    },
+    {
+      "name": "nuwa-skill",
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/alchaincyf/nuwa-skill/5bb9b659b7750e2ae775308bf2af706e37cbae30/LICENSE",
+      "pin": "5bb9b659b7750e2ae775308bf2af706e37cbae30",
+      "local": "ai-product-craft/research/huashu-20261105/sources/nuwa-skill/LICENSE"
+    },
+    {
+      "name": "nuwa-skill",
+      "path": "scripts/quality_check.py",
+      "url": "https://raw.githubusercontent.com/alchaincyf/nuwa-skill/5bb9b659b7750e2ae775308bf2af706e37cbae30/scripts/quality_check.py",
+      "pin": "5bb9b659b7750e2ae775308bf2af706e37cbae30",
+      "local": "ai-product-craft/research/huashu-20261105/sources/nuwa-skill/scripts/quality_check.py"
+    },
+    {
+      "name": "huashu-design",
+      "path": "SKILL.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-design/b2460b031c33ff32d2bf3b97263527daa231e4de/SKILL.md",
+      "pin": "b2460b031c33ff32d2bf3b97263527daa231e4de",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-design/SKILL.md"
+    },
+    {
+      "name": "huashu-design",
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-design/b2460b031c33ff32d2bf3b97263527daa231e4de/README.md",
+      "pin": "b2460b031c33ff32d2bf3b97263527daa231e4de",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-design/README.md"
+    },
+    {
+      "name": "nuwa-skill",
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/nuwa-skill/5bb9b659b7750e2ae775308bf2af706e37cbae30/README.md",
+      "pin": "5bb9b659b7750e2ae775308bf2af706e37cbae30",
+      "local": "ai-product-craft/research/huashu-20261105/sources/nuwa-skill/README.md"
+    },
+    {
+      "name": "nuwa-skill",
+      "path": "SKILL.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/nuwa-skill/5bb9b659b7750e2ae775308bf2af706e37cbae30/SKILL.md",
+      "pin": "5bb9b659b7750e2ae775308bf2af706e37cbae30",
+      "local": "ai-product-craft/research/huashu-20261105/sources/nuwa-skill/SKILL.md"
+    },
+    {
+      "name": "zhangxuefeng-skill",
+      "path": "SKILL.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/zhangxuefeng-skill/38bbd944e2ecbd7ec0232a7448fcb27ab4710da0/SKILL.md",
+      "pin": "38bbd944e2ecbd7ec0232a7448fcb27ab4710da0",
+      "local": "ai-product-craft/research/huashu-20261105/sources/zhangxuefeng-skill/SKILL.md"
+    },
+    {
+      "name": "zhangxuefeng-skill",
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/zhangxuefeng-skill/38bbd944e2ecbd7ec0232a7448fcb27ab4710da0/README.md",
+      "pin": "38bbd944e2ecbd7ec0232a7448fcb27ab4710da0",
+      "local": "ai-product-craft/research/huashu-20261105/sources/zhangxuefeng-skill/README.md"
+    },
+    {
+      "name": "huashu-design",
+      "path": "references/multi-perspective-parallel-case-study.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-design/b2460b031c33ff32d2bf3b97263527daa231e4de/references/multi-perspective-parallel-case-study.md",
+      "pin": "b2460b031c33ff32d2bf3b97263527daa231e4de",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-design/references/multi-perspective-parallel-case-study.md"
+    },
+    {
+      "name": "zhangxuefeng-skill",
+      "path": "references/research/05-decisions.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/zhangxuefeng-skill/38bbd944e2ecbd7ec0232a7448fcb27ab4710da0/references/research/05-decisions.md",
+      "pin": "38bbd944e2ecbd7ec0232a7448fcb27ab4710da0",
+      "local": "ai-product-craft/research/huashu-20261105/sources/zhangxuefeng-skill/references/research/05-decisions.md"
+    },
+    {
+      "name": "zhangxuefeng-skill",
+      "path": "references/research/06-timeline.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/zhangxuefeng-skill/38bbd944e2ecbd7ec0232a7448fcb27ab4710da0/references/research/06-timeline.md",
+      "pin": "38bbd944e2ecbd7ec0232a7448fcb27ab4710da0",
+      "local": "ai-product-craft/research/huashu-20261105/sources/zhangxuefeng-skill/references/research/06-timeline.md"
+    },
+    {
+      "name": "huashu-design",
+      "path": "references/verification.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-design/b2460b031c33ff32d2bf3b97263527daa231e4de/references/verification.md",
+      "pin": "b2460b031c33ff32d2bf3b97263527daa231e4de",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-design/references/verification.md"
+    },
+    {
+      "name": "huashu-design",
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-design/b2460b031c33ff32d2bf3b97263527daa231e4de/LICENSE",
+      "pin": "b2460b031c33ff32d2bf3b97263527daa231e4de",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-design/LICENSE"
+    },
+    {
+      "name": "huashu-design",
+      "path": "references/evolution.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-design/b2460b031c33ff32d2bf3b97263527daa231e4de/references/evolution.md",
+      "pin": "b2460b031c33ff32d2bf3b97263527daa231e4de",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-design/references/evolution.md"
+    },
+    {
+      "name": "huashu-art-motion",
+      "path": "CHANGELOG.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-art-motion/8a0d7d72ca65fcce6f8ba82c4a6c8dfe35b8422c/CHANGELOG.md",
+      "pin": "8a0d7d72ca65fcce6f8ba82c4a6c8dfe35b8422c",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-art-motion/CHANGELOG.md"
+    },
+    {
+      "name": "huashu-art-motion",
+      "path": "SKILL.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-art-motion/8a0d7d72ca65fcce6f8ba82c4a6c8dfe35b8422c/SKILL.md",
+      "pin": "8a0d7d72ca65fcce6f8ba82c4a6c8dfe35b8422c",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-art-motion/SKILL.md"
+    },
+    {
+      "name": "darwin-skill",
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/alchaincyf/darwin-skill/8a8b66258e3c45d6ae4aea39719468c6428fcb0a/LICENSE",
+      "pin": "8a8b66258e3c45d6ae4aea39719468c6428fcb0a",
+      "local": "ai-product-craft/research/huashu-20261105/sources/darwin-skill/LICENSE"
+    },
+    {
+      "name": "darwin-skill",
+      "path": "SKILL.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/darwin-skill/8a8b66258e3c45d6ae4aea39719468c6428fcb0a/SKILL.md",
+      "pin": "8a8b66258e3c45d6ae4aea39719468c6428fcb0a",
+      "local": "ai-product-craft/research/huashu-20261105/sources/darwin-skill/SKILL.md"
+    },
+    {
+      "name": "darwin-skill",
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/darwin-skill/8a8b66258e3c45d6ae4aea39719468c6428fcb0a/README.md",
+      "pin": "8a8b66258e3c45d6ae4aea39719468c6428fcb0a",
+      "local": "ai-product-craft/research/huashu-20261105/sources/darwin-skill/README.md"
+    },
+    {
+      "name": "darwin-skill",
+      "path": "references/skilllens-evidence.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/darwin-skill/8a8b66258e3c45d6ae4aea39719468c6428fcb0a/references/skilllens-evidence.md",
+      "pin": "8a8b66258e3c45d6ae4aea39719468c6428fcb0a",
+      "local": "ai-product-craft/research/huashu-20261105/sources/darwin-skill/references/skilllens-evidence.md"
+    },
+    {
+      "name": "zhangxuefeng-skill",
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/alchaincyf/zhangxuefeng-skill/38bbd944e2ecbd7ec0232a7448fcb27ab4710da0/LICENSE",
+      "pin": "38bbd944e2ecbd7ec0232a7448fcb27ab4710da0",
+      "local": "ai-product-craft/research/huashu-20261105/sources/zhangxuefeng-skill/LICENSE"
+    },
+    {
+      "name": "huashu-art-motion",
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-art-motion/8a0d7d72ca65fcce6f8ba82c4a6c8dfe35b8422c/README.md",
+      "pin": "8a0d7d72ca65fcce6f8ba82c4a6c8dfe35b8422c",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-art-motion/README.md"
+    },
+    {
+      "name": "huashu-motion",
+      "path": "skills/huashu-motion/references/verification.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-motion/52467f99c602b76ba86d511d37acdfe93fa1e16e/skills/huashu-motion/references/verification.md",
+      "pin": "52467f99c602b76ba86d511d37acdfe93fa1e16e",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-motion/skills/huashu-motion/references/verification.md"
+    },
+    {
+      "name": "huashu-art-motion",
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-art-motion/8a0d7d72ca65fcce6f8ba82c4a6c8dfe35b8422c/LICENSE",
+      "pin": "8a0d7d72ca65fcce6f8ba82c4a6c8dfe35b8422c",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-art-motion/LICENSE"
+    },
+    {
+      "name": "huashu-motion",
+      "path": "skills/huashu-motion/references/experience.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-motion/52467f99c602b76ba86d511d37acdfe93fa1e16e/skills/huashu-motion/references/experience.md",
+      "pin": "52467f99c602b76ba86d511d37acdfe93fa1e16e",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-motion/skills/huashu-motion/references/experience.md"
+    },
+    {
+      "name": "huashu-art-motion",
+      "path": "references/07-正面经验.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-art-motion/8a0d7d72ca65fcce6f8ba82c4a6c8dfe35b8422c/references/07-正面经验.md",
+      "pin": "8a0d7d72ca65fcce6f8ba82c4a6c8dfe35b8422c",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-art-motion/references/07-正面经验.md"
+    },
+    {
+      "name": "huashu-motion",
+      "path": "skills/huashu-motion/references/contract.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-motion/52467f99c602b76ba86d511d37acdfe93fa1e16e/skills/huashu-motion/references/contract.md",
+      "pin": "52467f99c602b76ba86d511d37acdfe93fa1e16e",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-motion/skills/huashu-motion/references/contract.md"
+    },
+    {
+      "name": "huashu-art-motion",
+      "path": "references/12-口播整片与经验回流.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-art-motion/8a0d7d72ca65fcce6f8ba82c4a6c8dfe35b8422c/references/12-口播整片与经验回流.md",
+      "pin": "8a0d7d72ca65fcce6f8ba82c4a6c8dfe35b8422c",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-art-motion/references/12-口播整片与经验回流.md"
+    },
+    {
+      "name": "huashu-motion",
+      "path": "skills/huashu-motion/SKILL.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-motion/52467f99c602b76ba86d511d37acdfe93fa1e16e/skills/huashu-motion/SKILL.md",
+      "pin": "52467f99c602b76ba86d511d37acdfe93fa1e16e",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-motion/skills/huashu-motion/SKILL.md"
+    },
+    {
+      "name": "huashu-motion",
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-motion/52467f99c602b76ba86d511d37acdfe93fa1e16e/README.md",
+      "pin": "52467f99c602b76ba86d511d37acdfe93fa1e16e",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-motion/README.md"
+    },
+    {
+      "name": "huashu-motion",
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-motion/52467f99c602b76ba86d511d37acdfe93fa1e16e/LICENSE",
+      "pin": "52467f99c602b76ba86d511d37acdfe93fa1e16e",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-motion/LICENSE"
+    },
+    {
+      "name": "huashu-skills",
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-skills/7de517aa12f61ff31c46f1591fbeaf865160d69f/LICENSE",
+      "pin": "7de517aa12f61ff31c46f1591fbeaf865160d69f",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-skills/LICENSE"
+    },
+    {
+      "name": "huashu-skills",
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-skills/7de517aa12f61ff31c46f1591fbeaf865160d69f/README.md",
+      "pin": "7de517aa12f61ff31c46f1591fbeaf865160d69f",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-skills/README.md"
+    },
+    {
+      "name": "huashu-skills",
+      "path": "huashu-skill-updater/SKILL.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-skills/7de517aa12f61ff31c46f1591fbeaf865160d69f/huashu-skill-updater/SKILL.md",
+      "pin": "7de517aa12f61ff31c46f1591fbeaf865160d69f",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-skills/huashu-skill-updater/SKILL.md"
+    },
+    {
+      "name": "huashu-skills",
+      "path": "huashu-research/SKILL.md",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-skills/7de517aa12f61ff31c46f1591fbeaf865160d69f/huashu-research/SKILL.md",
+      "pin": "7de517aa12f61ff31c46f1591fbeaf865160d69f",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-skills/huashu-research/SKILL.md"
+    },
+    {
+      "name": "huashu-skills",
+      "path": "skills.json",
+      "url": "https://raw.githubusercontent.com/alchaincyf/huashu-skills/7de517aa12f61ff31c46f1591fbeaf865160d69f/skills.json",
+      "pin": "7de517aa12f61ff31c46f1591fbeaf865160d69f",
+      "local": "ai-product-craft/research/huashu-20261105/sources/huashu-skills/skills.json"
+    }
+  ]
+}

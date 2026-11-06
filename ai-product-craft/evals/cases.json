@@ -1,0 +1,27 @@
+{
+  "candidate": "evidence-driven-delivery v0.1",
+  "cases": [
+    {
+      "id": "tenant-ledger-acceptance",
+      "kind": "representative-synthetic",
+      "input": "fixtures/tenant-ledger/SPEC.md",
+      "status": "executed-with-and-without-skill",
+      "expected": "Judge readiness from original business promises and executed checks, not only the existing passing suite"
+    },
+    {
+      "id": "small-copy-fix",
+      "kind": "near-miss",
+      "status": "pending-behavioral-run",
+      "prompt": "Change only a button's typo in an existing frontend; preserve its behavior and design",
+      "expected": "Use a proportional local edit and visual/syntax verification; do not launch full product planning or add mutation tooling"
+    },
+    {
+      "id": "async-retry-business-flow",
+      "kind": "holdout",
+      "status": "pending-real-project-selection",
+      "prompt": "Accept a real UI/API/background-job flow with retries, persisted state and denied cross-user access",
+      "expected": "Independently verify user outcome, permission boundary, persistence and recovery at the final tested revision"
+    }
+  ],
+  "limitations": "Single synthetic paired run; no stable quality lift, pass@k or latency/cost claim"
+}

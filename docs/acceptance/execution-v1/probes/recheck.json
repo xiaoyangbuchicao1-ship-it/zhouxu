@@ -1,0 +1,21 @@
+{
+  "op": {
+    "ok": false,
+    "error": "invalid_operation_fields"
+  },
+  "fifo": {
+    "ok": false,
+    "error": "regular_single_link_file_under_10MiB_required"
+  },
+  "fifo_seconds": 0.375,
+  "retained": {
+    "ok": true,
+    "sha256": "ca67bd59cc4116ac80db5f64cbf4747f26ba929c85e8cc689a6123368d08719b",
+    "size": 8,
+    "text": "retained",
+    "offset": 0,
+    "truncated": false
+  },
+  "cancelled_container_absent": true,
+  "startup_cancel_absent": true
+}

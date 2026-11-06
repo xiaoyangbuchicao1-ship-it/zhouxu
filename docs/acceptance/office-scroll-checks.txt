@@ -1,0 +1,10 @@
+
+Running 3 tests using 1 worker
+
+(node:45788) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 e2e\maritime.spec.ts:5:1 › real UI: register, author skill, retrieve corpus, calculate and version a case (11.9s)
+  ok 2 e2e\office-scroll.spec.ts:6:3 › skill workshop scrolls to its last action at 1366px (3.7s)
+  ok 3 e2e\office-scroll.spec.ts:6:3 › skill workshop scrolls to its last action at 390px (2.6s)
+
+  3 passed (19.7s)

@@ -1,0 +1,20 @@
+{
+  "category": "verification-gap",
+  "trigger": "Accepting a tenant-protected ledger after its existing suite passes",
+  "observation": "The four existing tests pass, while new business-boundary probes expose cross-tenant writes, fractional balances and replay failures.",
+  "wrong_decision": "Treating the pre-existing happy-path suite as a complete acceptance contract",
+  "correction": "Map each authoritative business promise to role/state/boundary observations before claiming acceptance; product fixes are pending.",
+  "scope": "This synthetic tenant ledger acceptance exercise; do not infer prevalence in real projects",
+  "counterexample": "A narrow local change whose existing tests already cover its complete stated contract may need no new suite",
+  "validation": "observation",
+  "evidence": [
+    "acceptance-tests.txt",
+    "gate-result.txt"
+  ],
+  "tags": [
+    "acceptance",
+    "tenant",
+    "test-selection"
+  ],
+  "supersedes": null
+}

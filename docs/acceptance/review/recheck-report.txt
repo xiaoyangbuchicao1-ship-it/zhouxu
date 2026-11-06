@@ -1,0 +1,10 @@
+复查记录（2026-11-05，独立探针）
+
+原问题1已复查通过：隔离新库创建private v1，发布community v2；非owner读取v1返回404，owner仍可取v1，非owner可取当前v2。
+原问题2已复查通过：不存在主检索SQLite索引时，用真实案例语料首行模拟在线命中，search生成可读内容快照；同ID正文改变后生成不同snapshot，两个旧/新引用分别读取各自原文；kind错配被拒绝。未联网、未读取.env。
+
+新增确认并即时报告：旧workbench_steer直接透传facts，未调用resolver；inline真实路由AST探针证实skill_id和伪造skill_context被原样送至派发。这属于选择技能未解析/正文来源不一致，不等于私密正文泄露或系统权限扩大。父agent随后修改源码。
+
+保留回归文件：test_skill_steer_boundary.py。它抽取当前真实workbench_steer路由函数AST，使用真实attach_maritime resolver和隔离SQLite；替换身份、会话归属、调度边界，不启动模型/网络/数据库服务。三项断言：私密技能404且不派发；community正文由服务端解析替代伪造正文；未选择技能时删除伪造context。保存后实际运行时父agent已修复，三项全部通过。
+
+范围边界：源代码复查包含service、maritime API、app技能解析/会话归属守卫及control_plane的steer事实合并。原两项独立探针通过；新的steer问题在修复前复现、修复后上述三项通过。未进行真实登录HTTP端到端、全部legacy分支或并发撤销权限竞态验证，因此不声称全面证明账号隔离。未改生产代码、语料、密钥或用户运行数据。

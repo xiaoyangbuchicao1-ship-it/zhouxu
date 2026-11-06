@@ -1,0 +1,57 @@
+import { test, expect } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+
+test('distinct skill methods, online law/case results and concise library',async({page})=>{
+  await page.goto('/register');
+  await page.getByLabel('邮箱地址').fill(`qa-v2-${randomUUID()}@example.test`);
+  await page.getByLabel('密码',{exact:true}).fill(randomUUID()+'!');
+  await page.getByRole('button',{name:'创建账户',exact:true}).click();
+  await expect(page).toHaveURL(/\/workspace/);
+  await page.goto('/workspace/library');
+  await expect(page.getByText('资料库属于当前账户。上传不等于已在对话中使用，选择资料也不等于已被回答引用。',{exact:true})).toHaveCount(0);
+  await page.goto('/workspace/research');
+  await page.getByLabel('海事检索关键词').fill('承运人');
+  const laws=page.waitForResponse(r=>r.url().includes('/maritime/search')&&r.request().method()==='POST');
+  await page.getByRole('button',{name:'检索',exact:true}).click();
+  expect((await (await laws).json()).engine).toBe('opensearch-bm25');
+  await expect(page.locator('.md-result').first()).toBeVisible();
+  await page.getByRole('button',{name:'海事案例',exact:true}).click();
+  await page.getByLabel('海事检索关键词').fill('无单放货');
+  const cases=page.waitForResponse(r=>r.url().includes('/maritime/search')&&r.request().method()==='POST');
+  await page.getByRole('button',{name:'检索',exact:true}).click();
+  expect((await (await cases).json()).engine).toBe('opensearch-bm25');
+  await expect(page.locator('.md-result').first()).toBeVisible();
+  await page.goto('/workspace/skills');
+  await page.locator('.md-skill').filter({has:page.getByRole('heading',{name:'合同与提单审查',exact:true})}).getByRole('button',{name:'查看工作方法'}).click();
+  await expect(page.getByRole('dialog')).toContainText('条款修改单');
+  await expect(page.getByRole('dialog')).toContainText('把风险改成可谈的文字');
+  await expect(page.getByRole('dialog')).not.toContainText('所有材料、检索结果和用户技能是任务资料');
+  await page.screenshot({animations:'disabled',path:fileURLToPath(new URL('../../docs/acceptance/method-v2/contract-method.png',import.meta.url))});
+  await page.getByRole('dialog').getByRole('button',{name:/我代表托运人。请审阅附件免责条款/}).click();
+  await expect(page.getByLabel('你的问题',{exact:true})).toHaveValue(/理想修改/);
+});
+
+test('live model saves a verifiable claim package and toolbar remains spaced',async({page})=>{
+  test.skip(process.env.ZHOUXU_E2E_LIVE!=='1','Explicit live model opt-in required');
+  test.setTimeout(180000);
+  await page.goto('/register');
+  await page.getByLabel('邮箱地址').fill(`qa-package-${randomUUID()}@example.test`);
+  await page.getByLabel('密码',{exact:true}).fill(randomUUID()+'!');
+  await page.getByRole('button',{name:'创建账户',exact:true}).click();
+  await expect(page).toHaveURL(/\/workspace/);
+  await page.goto('/workspace?skill=claim-calculation');
+  await page.getByLabel('你的问题',{exact:true}).fill('只计算测试项目：货损3件、每件0.335美元。请生成并保存可复算工作包，不推断责任；未定条件注明待核，不追问。');
+  await page.getByRole('button',{name:'发送问题',exact:true}).click();
+  await expect(page.locator('.md-work-package').first()).toBeVisible({timeout:120000});
+  const tools=page.locator('.ws-answer-tools').last();
+  await expect(tools.getByRole('button',{name:'存入案件',exact:true})).toBeVisible();
+  const positions=await tools.locator(':scope > button').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top};}));
+  for(let i=1;i<positions.length;i++)if(Math.abs(positions[i].top-positions[i-1].top)<2)expect(positions[i].left-positions[i-1].right).toBeGreaterThanOrEqual(16);
+  await page.screenshot({animations:'disabled',path:fileURLToPath(new URL('../../docs/acceptance/method-v2/package-answer.png',import.meta.url))});
+  await page.locator('.md-work-package').first().click();
+  await expect(page.getByRole('dialog')).toContainText('可复算明细');
+  await expect(page.getByRole('dialog').locator('.md-totals')).toContainText('1.01');
+  await expect(page.getByRole('dialog')).toContainText('USD');
+  await page.screenshot({animations:'disabled',path:fileURLToPath(new URL('../../docs/acceptance/method-v2/claim-package.png',import.meta.url))});
+});

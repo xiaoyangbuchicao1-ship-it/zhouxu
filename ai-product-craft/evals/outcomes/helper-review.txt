@@ -1,0 +1,9 @@
+Independent read-only helper review
+
+Scope: delivery.py, references/tooling.md, references/learning.md and all 19 tests in tests/test_delivery.py.
+
+Result: No demonstrated actionable false-pass, stale-evidence, lesson-isolation or unintended-write findings within the documented local-helper trust model.
+
+Validation: Ran the complete 19-test suite successfully, importing the suite and overriding its TEMP directory so fixture writes stayed under this review directory. Reviewed current-input matching, contract hashes, latest-record selection, checksums, required/optional criteria, run-time input mutation handling, evidence hashing, proposal checks, supersession, local path resolution and record writes.
+
+Limitations: Did not exercise filesystem junction/symlink races, concurrent invocations, clock changes, external services, environment changes or test descendants. Snapshot evidence cannot observe edits restored between before/after snapshots; excluded paths and environment state are expressly outside the documented coverage. Existing tests use synthetic output for helper-unit checks; they do not prove a real project's acceptance commands exercise its promises. No sandbox/signature requirement was imposed.

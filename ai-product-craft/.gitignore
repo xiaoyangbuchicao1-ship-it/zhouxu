@@ -1,0 +1,5 @@
+.ai-tmp/
+__pycache__/
+*.py[cod]
+.delivery/
+evals/outcomes/with-skill/temp/

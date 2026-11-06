@@ -1,0 +1,33 @@
+import asyncio,json,time,sys
+from pathlib import Path
+sys.path.insert(0,str(Path.cwd()))
+from backend.infrastructure.execution.runtime import DockerRuntime,ExecutionStore
+async def main():
+ r=DockerRuntime(image='zhouxu-task-runtime:0.1',store=ExecutionStore('.ai-tmp/execution-review-20261105/recheck-store'));out={}
+ try:
+  out['op']=await r.operate('recheck','read',{'path':'bad.txt','op':'write','content':'bad'})
+  assert not out['op']['ok'] and not r.worlds
+  await r.operate('recheck','bash',{'command':'mkfifo pipe; printf retained > normal.txt'})
+  start=time.monotonic();out['fifo']=await r.operate('recheck','read',{'path':'pipe'});out['fifo_seconds']=time.monotonic()-start
+  assert not out['fifo']['ok'] and out['fifo_seconds']<3
+  out['retained']=await r.operate('recheck','read',{'path':'normal.txt'});assert out['retained']['text']=='retained'
+  name=r.worlds['recheck'];task=asyncio.create_task(r.operate('recheck','bash',{'command':'sleep 100 & wait'}));await asyncio.sleep(1);task.cancel()
+  try:await task
+  except asyncio.CancelledError:pass
+  code,_,_=await r.command(['inspect',name]);out['cancelled_container_absent']=code!=0;assert code!=0
+  await r.close_run('recheck');assert 'recheck' not in r.locks
+  original=r.command;started=asyncio.Event();held=[]
+  async def wrapper(args,*a,**kw):
+   result=await original(args,*a,**kw)
+   if args[0]=='run':held.append(args[args.index('--name')+1]);started.set();await asyncio.sleep(100)
+   return result
+  r.command=wrapper
+  task=asyncio.create_task(r.world('startup-cancel'));await asyncio.wait_for(started.wait(),15);task.cancel()
+  try:await task
+  except asyncio.CancelledError:pass
+  code,_,_=await original(['inspect',held[0]]);out['startup_cancel_absent']=code!=0;assert code!=0
+ finally:
+  r.command=locals().get('original',r.command)
+  for rid in list(r.worlds):await r.close_run(rid)
+ Path('.ai-tmp/execution-review-20261105/recheck-results.json').write_text(json.dumps(out,indent=2),encoding='utf-8');print(json.dumps(out))
+asyncio.run(main())

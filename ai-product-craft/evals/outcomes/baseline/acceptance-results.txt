@@ -1,0 +1,75 @@
+test_foreign_admin_denied_without_mutation (__main__.Acceptance.test_foreign_admin_denied_without_mutation) ... FAIL
+test_fractional_cent_rejected (__main__.Acceptance.test_fractional_cent_rejected) ... FAIL
+test_positive_integer_only (__main__.Acceptance.test_positive_integer_only) ... ok
+test_request_scoped_to_account (__main__.Acceptance.test_request_scoped_to_account) ... ok
+test_retry_full_balance_after_reopen (__main__.Acceptance.test_retry_full_balance_after_reopen) ... ERROR
+test_retry_large_debit (__main__.Acceptance.test_retry_large_debit) ... ERROR
+test_retry_small_debit (__main__.Acceptance.test_retry_small_debit) ... ok
+test_unrelated_denied_without_mutation (__main__.Acceptance.test_unrelated_denied_without_mutation) ... ok
+
+======================================================================
+ERROR: test_retry_full_balance_after_reopen (__main__.Acceptance.test_retry_full_balance_after_reopen)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\projects\codex\��������������\.ai-tmp\product-skill-research-20261104\eval-baseline\acceptance_probe.py", line 49, in test_retry_full_balance_after_reopen
+    self.assertEqual(self.debit(1000), 0)
+                     ~~~~~~~~~~^^^^^^
+  File "D:\projects\codex\��������������\.ai-tmp\product-skill-research-20261104\eval-baseline\acceptance_probe.py", line 19, in debit
+    return self.ledger.debit('acc', actor, tenant, role, amount, request)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\projects\codex\��������������\ai-product-craft\evals\fixtures\tenant-ledger\service.py", line 29, in debit
+    raise ValueError('Invalid amount')
+ValueError: Invalid amount
+
+======================================================================
+ERROR: test_retry_large_debit (__main__.Acceptance.test_retry_large_debit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\projects\codex\��������������\.ai-tmp\product-skill-research-20261104\eval-baseline\acceptance_probe.py", line 43, in test_retry_large_debit
+    self.assertEqual(self.debit(700), 300)
+                     ~~~~~~~~~~^^^^^
+  File "D:\projects\codex\��������������\.ai-tmp\product-skill-research-20261104\eval-baseline\acceptance_probe.py", line 19, in debit
+    return self.ledger.debit('acc', actor, tenant, role, amount, request)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\projects\codex\��������������\ai-product-craft\evals\fixtures\tenant-ledger\service.py", line 29, in debit
+    raise ValueError('Invalid amount')
+ValueError: Invalid amount
+
+======================================================================
+FAIL: test_foreign_admin_denied_without_mutation (__main__.Acceptance.test_foreign_admin_denied_without_mutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\projects\codex\��������������\.ai-tmp\product-skill-research-20261104\eval-baseline\acceptance_probe.py", line 22, in test_foreign_admin_denied_without_mutation
+    with self.assertRaises(PermissionError):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+AssertionError: PermissionError not raised
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\projects\codex\��������������\.ai-tmp\product-skill-research-20261104\eval-baseline\acceptance_probe.py", line 25, in test_foreign_admin_denied_without_mutation
+    self.assertEqual(self.ledger.balance('acc'), 1000)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 900 != 1000
+
+======================================================================
+FAIL: test_fractional_cent_rejected (__main__.Acceptance.test_fractional_cent_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\projects\codex\��������������\.ai-tmp\product-skill-research-20261104\eval-baseline\acceptance_probe.py", line 35, in test_fractional_cent_rejected
+    with self.assertRaises((ValueError, TypeError)): self.debit(0.5)
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (<class 'ValueError'>, <class 'TypeError'>) not raised
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\projects\codex\��������������\.ai-tmp\product-skill-research-20261104\eval-baseline\acceptance_probe.py", line 37, in test_fractional_cent_rejected
+    self.assertEqual(self.ledger.balance('acc'), 1000)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 999.5 != 1000
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.117s
+
+FAILED (failures=2, errors=2)

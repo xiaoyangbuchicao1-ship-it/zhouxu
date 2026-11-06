@@ -1,0 +1,12 @@
+最终独立复查 — 2026-11-05
+
+结论：本次限定范围未复现新的可行动缺陷；此前编码sources路径绕过已修复。
+
+实际复核：
+1. 阅读当前citations.py、maritime_corpus.py、CorpusTool及bootstrap/loop接线。工具回执保留[[ZX:16位hash]]并移除长source_url；后端以不可变快照解析标记。MaritimeReflection先展开再校验；Harness finish对合并后的阶段正文再展开并校验，非法引用不能依靠早阶段输出避开最终检查。
+2. 独立重跑正式迁移的backend/tests/independent、unit/test_maritime_office.py、integration/test_maritime_citation_gate.py、integration/test_maritime_api.py：25 passed，1条现有Starlette TestClient弃用警告。覆盖此前真实HTTP编码路径404但完成的回归、steer技能边界、私密历史、引用快照、短标记展开与多阶段最终校验。
+3. 独立SQLite生命周期探针：用自建案例JSONL在任务临时目录构建小索引，执行build_index、status、local_search、remember_source、citation、source，再刻意使connection上下文异常退出。跟踪并强引用保留全部7个真实sqlite connection，退出后逐个执行SQL都报ProgrammingError（已关闭），且Windows下SQLite文件立即unlink成功。无需依靠垃圾回收释放锁。检查当前文件所有连接入口均使用显式finally close的connection上下文。
+
+命令：backend/.venv/Scripts/python.exe -B -m pytest backend/tests/independent backend/tests/unit/test_maritime_office.py backend/tests/integration/test_maritime_citation_gate.py backend/tests/integration/test_maritime_api.py -q -p no:cacheprovider --basetemp=.ai-tmp/maritime-platform-20261105/review/pytest-final-recheck
+
+范围限制：本次未重新运行真实8场景、两个浏览器流程、付费模型或在线OpenSearch；不将父agent此前结果视为本次独立验证。未进行专业法律质量验收，未评判法律解释正确性、法条现行效力、类案适用性或文书专业可用性。本报告也不是全面安全认证。只读生产代码，除指定报告与任务过程目录外未写生产文件，未读取凭证、改动语料或用户运行数据。

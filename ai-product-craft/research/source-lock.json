@@ -1,0 +1,754 @@
+[
+  {
+    "repo": "obra/superpowers",
+    "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+    "path": "LICENSE",
+    "url": "https://raw.githubusercontent.com/obra/superpowers/22f0b463e7a5e579904dd6211a520321035526f7/LICENSE",
+    "sha256": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400",
+    "bytes": 1070
+  },
+  {
+    "repo": "obra/superpowers",
+    "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+    "path": "skills/receiving-code-review/SKILL.md",
+    "url": "https://raw.githubusercontent.com/obra/superpowers/22f0b463e7a5e579904dd6211a520321035526f7/skills/receiving-code-review/SKILL.md",
+    "sha256": "091df1629510af1b92fc4abd6f96732ebedb4cb2c0f3457e8f2740b0504a2438",
+    "bytes": 6203
+  },
+  {
+    "repo": "obra/superpowers",
+    "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+    "path": "skills/requesting-code-review/SKILL.md",
+    "url": "https://raw.githubusercontent.com/obra/superpowers/22f0b463e7a5e579904dd6211a520321035526f7/skills/requesting-code-review/SKILL.md",
+    "sha256": "2180e14a448e9410bec88e6646a2d1f0ce7fdd58de27388c1e052e929679d2bc",
+    "bytes": 2974
+  },
+  {
+    "repo": "obra/superpowers",
+    "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+    "path": "skills/requesting-code-review/code-reviewer.md",
+    "url": "https://raw.githubusercontent.com/obra/superpowers/22f0b463e7a5e579904dd6211a520321035526f7/skills/requesting-code-review/code-reviewer.md",
+    "sha256": "82e370be6b3447523816286195571e4216ba56ba1ad6ad0e87862294c4c78dcb",
+    "bytes": 6449
+  },
+  {
+    "repo": "obra/superpowers",
+    "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+    "path": "skills/test-driven-development/SKILL.md",
+    "url": "https://raw.githubusercontent.com/obra/superpowers/22f0b463e7a5e579904dd6211a520321035526f7/skills/test-driven-development/SKILL.md",
+    "sha256": "64b03fce4aee5a97a93160cea8111f3ba13a17b7c001db4bd5836d67fd10705d",
+    "bytes": 9578
+  },
+  {
+    "repo": "obra/superpowers",
+    "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+    "path": "skills/test-driven-development/writing-good-tests.md",
+    "url": "https://raw.githubusercontent.com/obra/superpowers/22f0b463e7a5e579904dd6211a520321035526f7/skills/test-driven-development/writing-good-tests.md",
+    "sha256": "51471c853306ff92ca8bb41dcaea05f31c0e46b03651f8f3c99754b7172f4ae1",
+    "bytes": 8268
+  },
+  {
+    "repo": "obra/superpowers",
+    "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+    "path": "skills/verification-before-completion/SKILL.md",
+    "url": "https://raw.githubusercontent.com/obra/superpowers/22f0b463e7a5e579904dd6211a520321035526f7/skills/verification-before-completion/SKILL.md",
+    "sha256": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3",
+    "bytes": 3646
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "LICENSE",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/LICENSE",
+    "sha256": "e56fbb5b3d95756f3fa1cfefa24732ec79f18ece1ad08a4e79e00df57e8b198c",
+    "bytes": 1066
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "learn/SKILL.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/learn/SKILL.md",
+    "sha256": "984e8ff01336e01e71a1049fc4e0b50a9e31ef21eb3d46edc600d4f61eafa3b9",
+    "bytes": 8375
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "learn/sections/preamble.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/learn/sections/preamble.md",
+    "sha256": "3eeee274045c6af4a3a4a88895944a348e3f8613232f44e04875fd1318861705",
+    "bytes": 22396
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "qa/SKILL.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/qa/SKILL.md",
+    "sha256": "e08f653b55f1e345890af06d25daa0d7b154f2c14af2d00b78fce77dbfa574c4",
+    "bytes": 29290
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "qa/references/issue-taxonomy.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/qa/references/issue-taxonomy.md",
+    "sha256": "8f40b0f76c0575ee70ad7418c5715cbf08663b2bd8094b0e3bd1b21f1ddd1779",
+    "bytes": 3839
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "qa/sections/browser-setup.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/qa/sections/browser-setup.md",
+    "sha256": "2a22e1211f2321586a95d643bbe65cdad94efecbb1d7c47936a6e4f7a8b6ec93",
+    "bytes": 10901
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "qa/sections/browser-verify.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/qa/sections/browser-verify.md",
+    "sha256": "cfa1177c175dd1acef3b943d84419dfedf6219ac5de0110b5bd9b356bf1aa04b",
+    "bytes": 1154
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "qa/sections/exploratory.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/qa/sections/exploratory.md",
+    "sha256": "31e3a496c2d8ee0e35ef9c2ed1e59812e9da0c80cf8dfd00d04313dd1a61cf0e",
+    "bytes": 8032
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "qa/sections/manifest.json",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/qa/sections/manifest.json",
+    "sha256": "01d75e66a44151c35ff25274b0684de23452872d345276612074701ee10da981",
+    "bytes": 2393
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "qa/sections/preamble.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/qa/sections/preamble.md",
+    "sha256": "3eeee274045c6af4a3a4a88895944a348e3f8613232f44e04875fd1318861705",
+    "bytes": 22396
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "qa/sections/qa-patterns.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/qa/sections/qa-patterns.md",
+    "sha256": "8f46ba8932e9dfdb37801ced266b2a1c982d11b8396e28e9f4f95912e65b9f3a",
+    "bytes": 11411
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "qa/sections/scope.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/qa/sections/scope.md",
+    "sha256": "dc4d1a3b6e7f90a5555860bf3cbafa47dc623a7f295428cde8a5de2043b8e245",
+    "bytes": 1590
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "qa/sections/system-functional.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/qa/sections/system-functional.md",
+    "sha256": "6f957bc2c372926dd86d36b7f9b52004ee4e5179ca43cbbe2cfbf115f6dc7913",
+    "bytes": 3933
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "qa/sections/test-bootstrap.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/qa/sections/test-bootstrap.md",
+    "sha256": "5c5c9a5333a0769789567a4a4c000b2f8fa39ea384787aebfcaaf790ad5604c6",
+    "bytes": 7276
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "qa/templates/functional-report-template.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/qa/templates/functional-report-template.md",
+    "sha256": "4523947bfc0cb521adefbfd7caeb1b6ed34e6ba3d2e6a950e15da1a4d41b4ed2",
+    "bytes": 3209
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "qa/templates/qa-report-template.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/qa/templates/qa-report-template.md",
+    "sha256": "896fca3ec1f98de9515642f3c0a2da41ea07dd57cff6b17be935c56bc7368aa4",
+    "bytes": 3134
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/SKILL.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/SKILL.md",
+    "sha256": "205ec3e52663cc918ad20e084bb70c3fd2b2d7a1eb60d3b63365483a9d6e9546",
+    "bytes": 60070
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/TODOS-format.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/TODOS-format.md",
+    "sha256": "0c281a3f57bad6f43b04bb5d74854654e9f305d93c8a03b950e9c47d9d706371",
+    "bytes": 1655
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/checklist.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/checklist.md",
+    "sha256": "a32963ef38d9d3613c58c805e8517cd2e593c63769b30dd7d40e2592fa48fc78",
+    "bytes": 24837
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/design-checklist.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/design-checklist.md",
+    "sha256": "b9205f88313cc64902c0b13e9685722ab8138d3dcc58916154f47274abda7d83",
+    "bytes": 14492
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/gate-integrity.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/gate-integrity.md",
+    "sha256": "f570db344c9a01df633bcaa281d6017f4f12420fd3e0aa3078c1ce06e0df8332",
+    "bytes": 10075
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/greptile-triage.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/greptile-triage.md",
+    "sha256": "66f3f458cb1124bdb2afde5ac1ad12cad57e37f99f31cbd3b1c9aa59176eb0d8",
+    "bytes": 12039
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/sections/adversarial.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/sections/adversarial.md",
+    "sha256": "e6962fa25b78f362654f2954f79683e524d2ebd452d1494f8a2b099888e8e255",
+    "bytes": 23940
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/sections/manifest.json",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/sections/manifest.json",
+    "sha256": "6b17b8b9ed9641be7e59c3f0047abbf5d6dc1cb01853679aea8c5b51f13f0b2d",
+    "bytes": 1373
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/sections/plan-completion.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/sections/plan-completion.md",
+    "sha256": "aa700a4c30377314d6e65f4067a0397b36bf2362291bca6a04b21664055aae0c",
+    "bytes": 17194
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/sections/preamble.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/sections/preamble.md",
+    "sha256": "3eeee274045c6af4a3a4a88895944a348e3f8613232f44e04875fd1318861705",
+    "bytes": 22396
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/sections/review-army.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/sections/review-army.md",
+    "sha256": "78329b64640260cd8831ca81a9189f3f8dcade9c406431631d3f2cd798cd3967",
+    "bytes": 18261
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/sections/shared-code-reuse.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/sections/shared-code-reuse.md",
+    "sha256": "2f8145edacd1b704a8518efe61b234666ddae17853711e16fe3efb903b828768",
+    "bytes": 2342
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/specialists/api-contract.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/specialists/api-contract.md",
+    "sha256": "263d23ac119dd601d315c191dbdbd503d47c00264c9c0ca81959559ca11d4e95",
+    "bytes": 2357
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/specialists/data-migration.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/specialists/data-migration.md",
+    "sha256": "b6fd9eb229002ea598f8fe9ff53b1cd8821e3bd37a7aa7b07b5526556c71ebca",
+    "bytes": 2306
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/specialists/maintainability.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/specialists/maintainability.md",
+    "sha256": "f8015d549e70297f782f0aabf6fe3a9fe31ec5ed61c311ab854e4a858282ed9b",
+    "bytes": 2616
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/specialists/performance.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/specialists/performance.md",
+    "sha256": "545c294ae53638b4c8524e8cde08246a4ce3b5c287ec7c44e27f5556a3b0e8cc",
+    "bytes": 2618
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/specialists/red-team.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/specialists/red-team.md",
+    "sha256": "9ea05149f5b13d6a19ecec26285142d09d259cf80a515af828abdd1f43320427",
+    "bytes": 2258
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/specialists/security.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/specialists/security.md",
+    "sha256": "17bfe813eb3de22835af048ec359770720f1d7f371a26460169f7e32b1bcac9f",
+    "bytes": 4060
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/specialists/simplification.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/specialists/simplification.md",
+    "sha256": "f33846b1dcf2fdeef82d0744ab2ef48fb4a33b34a737dafc33dd0e891756689f",
+    "bytes": 4421
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/specialists/state-machines.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/specialists/state-machines.md",
+    "sha256": "597215e4438d85d9cc71b48097c61eef7cba4f4b09dc14c92b4b94893b3d3ea2",
+    "bytes": 3748
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/specialists/targeted.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/specialists/targeted.md",
+    "sha256": "7f92a0d0a8319c3c0e076fb3b1a4689c45120b2be2c14dfc7d4cb03aafa9d6a5",
+    "bytes": 3309
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "review/specialists/testing.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/review/specialists/testing.md",
+    "sha256": "d6cc2bef7be562387d0c0a22fefe646dff9c295f1d34d8453a6cb496584150e4",
+    "bytes": 9163
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "test-audit/SKILL.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/test-audit/SKILL.md",
+    "sha256": "0e9d77f22b6ae217e29db6e091e7c92010a17fd513adef51145555af08dba657",
+    "bytes": 17686
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "test-audit/sections/preamble.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/test-audit/sections/preamble.md",
+    "sha256": "3eeee274045c6af4a3a4a88895944a348e3f8613232f44e04875fd1318861705",
+    "bytes": 22396
+  },
+  {
+    "repo": "garrytan/gstack",
+    "commit": "b244e6d11a6466650c5147cd7dc023859968c4b5",
+    "path": "verify/SKILL.md",
+    "url": "https://raw.githubusercontent.com/garrytan/gstack/b244e6d11a6466650c5147cd7dc023859968c4b5/verify/SKILL.md",
+    "sha256": "2d52f62fb1dbb7f6b00ff8d93ea0acaebbecaf52923359596c652987435f8005",
+    "bytes": 11274
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "LICENSE",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/LICENSE",
+    "sha256": "7abe19ec9bb73b36141b999b861d24ad855e808bafe0f81e84cce28556f6c297",
+    "bytes": 20131
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/differential-review/skills/differential-review/SKILL.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/differential-review/skills/differential-review/SKILL.md",
+    "sha256": "f9af6a8193fc1a9f8ca3c54bb8d19095a5f20c9472ca6d014488bbde50b67da0",
+    "bytes": 7439
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/differential-review/skills/differential-review/adversarial.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/differential-review/skills/differential-review/adversarial.md",
+    "sha256": "3cb823f38c6e551cbcf5f72325d2bb219dacdad774072519c31d50d92db19800",
+    "bytes": 5062
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/differential-review/skills/differential-review/agents/openai.yaml",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/differential-review/skills/differential-review/agents/openai.yaml",
+    "sha256": "0279d56f88dc1a04d4b1941a25fa7672912a3ceb0557b13c38d069908b30ae61",
+    "bytes": 245
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/differential-review/skills/differential-review/methodology.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/differential-review/skills/differential-review/methodology.md",
+    "sha256": "16b335d24cf2145e3dc4a37f50056550d29db2efa20e6df78fec95ec1e6fb0b4",
+    "bytes": 6738
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/differential-review/skills/differential-review/patterns.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/differential-review/skills/differential-review/patterns.md",
+    "sha256": "52abb18abbc73502a3d3b2f36a7a035adc1db40fd812d1d5424cf065036a06e9",
+    "bytes": 6999
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/differential-review/skills/differential-review/reporting.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/differential-review/skills/differential-review/reporting.md",
+    "sha256": "0016876dc6f158e926448bff1b6f634796757c7afe09dff177cfe30250724fc4",
+    "bytes": 7006
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/property-based-testing/skills/property-based-testing/README.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/property-based-testing/skills/property-based-testing/README.md",
+    "sha256": "ffbe30eec09cc64fb1eae836b07ca1d82939bda3f1e6f0dceadcdd78793a3112",
+    "bytes": 15332
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/property-based-testing/skills/property-based-testing/SKILL.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/property-based-testing/skills/property-based-testing/SKILL.md",
+    "sha256": "9448cacb65c6237a7c22dc59602667177ecae405524079ae9ff92240590b995a",
+    "bytes": 4306
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/property-based-testing/skills/property-based-testing/agents/openai.yaml",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/property-based-testing/skills/property-based-testing/agents/openai.yaml",
+    "sha256": "51d635deefa254d8cdf6dc56450851b6ec9545cd37f88a4eb4035cf3f2262fff",
+    "bytes": 254
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/property-based-testing/skills/property-based-testing/references/generating.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/property-based-testing/skills/property-based-testing/references/generating.md",
+    "sha256": "c0e72dfc89babe3c32de718b81b94044362c85e776d7475e950dfeaab78bb58e",
+    "bytes": 2634
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/property-based-testing/skills/property-based-testing/references/interpreting-failures.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/property-based-testing/skills/property-based-testing/references/interpreting-failures.md",
+    "sha256": "dbae7db8773712ba03268a3d56ea5aa6720af0650a5189580bfd88aa2edc3f9a",
+    "bytes": 3426
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/property-based-testing/skills/property-based-testing/references/libraries.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/property-based-testing/skills/property-based-testing/references/libraries.md",
+    "sha256": "f7218acf8e668130ef3048983472579d04e12030c5401926f666363e5f69c686",
+    "bytes": 2952
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/property-based-testing/skills/property-based-testing/references/refactoring.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/property-based-testing/skills/property-based-testing/references/refactoring.md",
+    "sha256": "6eb5c206f575704791f089608bb06e41d6eed91b9d3c7fb27912f969aed07a18",
+    "bytes": 4854
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/property-based-testing/skills/property-based-testing/references/reviewing.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/property-based-testing/skills/property-based-testing/references/reviewing.md",
+    "sha256": "110b08118a1e7b1a2566def6e9d2a0bf43fc2deefce857d2ce3b4382b07bc774",
+    "bytes": 2859
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/spec-to-code-compliance/skills/spec-to-code-compliance/SKILL.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/spec-to-code-compliance/skills/spec-to-code-compliance/SKILL.md",
+    "sha256": "eb0d91b50a9c06f50baf8763d1e23566897b9fa3e7ffcf13134eee4e1ccaefe5",
+    "bytes": 7547
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/spec-to-code-compliance/skills/spec-to-code-compliance/agents/openai.yaml",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/spec-to-code-compliance/skills/spec-to-code-compliance/agents/openai.yaml",
+    "sha256": "419472a4c1f12fc061081e3ea1cb2f525776d17d0dc05e7a3c4a26d6a98099f0",
+    "bytes": 252
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/spec-to-code-compliance/skills/spec-to-code-compliance/resources/ANALYSIS_FORMAT.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/spec-to-code-compliance/skills/spec-to-code-compliance/resources/ANALYSIS_FORMAT.md",
+    "sha256": "802674d5a0622fba7c32d1e480fd236f4bddcd2435841fcf48b17044d5d4d273",
+    "bytes": 2855
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/spec-to-code-compliance/skills/spec-to-code-compliance/resources/DIVERGENCE_RUBRIC.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/spec-to-code-compliance/skills/spec-to-code-compliance/resources/DIVERGENCE_RUBRIC.md",
+    "sha256": "c7192803ae5c489501788ae5be56a5dd36b3f0b64f88982bf41f69a4245303f1",
+    "bytes": 3421
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/spec-to-code-compliance/skills/spec-to-code-compliance/resources/DOMAIN_NOTES.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/spec-to-code-compliance/skills/spec-to-code-compliance/resources/DOMAIN_NOTES.md",
+    "sha256": "435459c75d21208ea73a6cda7dfc6910efc468a903f62e20f4837d5bd8b92c4a",
+    "bytes": 5810
+  },
+  {
+    "repo": "trailofbits/skills",
+    "commit": "711af095215ad4ecde5b90cd1d0124b3f1c4ca9e",
+    "path": "plugins/spec-to-code-compliance/skills/spec-to-code-compliance/resources/WORKED_EXAMPLE.md",
+    "url": "https://raw.githubusercontent.com/trailofbits/skills/711af095215ad4ecde5b90cd1d0124b3f1c4ca9e/plugins/spec-to-code-compliance/skills/spec-to-code-compliance/resources/WORKED_EXAMPLE.md",
+    "sha256": "7b9ff43b20ba83e1ce934bc9161b14ce58617b65a9ae9c4583026dbf0299e927",
+    "bytes": 4238
+  },
+  {
+    "repo": "anthropics/skills",
+    "commit": "ca45fc496a3436251f191354091d557da31c15b5",
+    "path": "skills/webapp-testing/LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/anthropics/skills/ca45fc496a3436251f191354091d557da31c15b5/skills/webapp-testing/LICENSE.txt",
+    "sha256": "bc6b3af2f331cbc7fb0da1344efb2cbe5877a31498b4d70dbc7000f3405a1362",
+    "bytes": 11345
+  },
+  {
+    "repo": "anthropics/skills",
+    "commit": "ca45fc496a3436251f191354091d557da31c15b5",
+    "path": "skills/webapp-testing/SKILL.md",
+    "url": "https://raw.githubusercontent.com/anthropics/skills/ca45fc496a3436251f191354091d557da31c15b5/skills/webapp-testing/SKILL.md",
+    "sha256": "51b7349e77ec63b7744a6f63647e7566a0b4d2e301121cc10e8c2113af6556a2",
+    "bytes": 3913
+  },
+  {
+    "repo": "anthropics/skills",
+    "commit": "ca45fc496a3436251f191354091d557da31c15b5",
+    "path": "skills/webapp-testing/examples/console_logging.py",
+    "url": "https://raw.githubusercontent.com/anthropics/skills/ca45fc496a3436251f191354091d557da31c15b5/skills/webapp-testing/examples/console_logging.py",
+    "sha256": "ea46877289acb82da7e7ce59d0bc37c8977cd57e2a006d0c88d7a1c625bf95da",
+    "bytes": 1027
+  },
+  {
+    "repo": "anthropics/skills",
+    "commit": "ca45fc496a3436251f191354091d557da31c15b5",
+    "path": "skills/webapp-testing/examples/element_discovery.py",
+    "url": "https://raw.githubusercontent.com/anthropics/skills/ca45fc496a3436251f191354091d557da31c15b5/skills/webapp-testing/examples/element_discovery.py",
+    "sha256": "d63c89604a22f8845d724e95dda45db49b1bf57c25ce0a83afbb7b8da3d402f0",
+    "bytes": 1463
+  },
+  {
+    "repo": "anthropics/skills",
+    "commit": "ca45fc496a3436251f191354091d557da31c15b5",
+    "path": "skills/webapp-testing/examples/static_html_automation.py",
+    "url": "https://raw.githubusercontent.com/anthropics/skills/ca45fc496a3436251f191354091d557da31c15b5/skills/webapp-testing/examples/static_html_automation.py",
+    "sha256": "9d533aafb875ee3ab8b8ebf8f5b9003ac8d999da3d09b285cce252e623140064",
+    "bytes": 953
+  },
+  {
+    "repo": "anthropics/skills",
+    "commit": "ca45fc496a3436251f191354091d557da31c15b5",
+    "path": "skills/webapp-testing/scripts/with_server.py",
+    "url": "https://raw.githubusercontent.com/anthropics/skills/ca45fc496a3436251f191354091d557da31c15b5/skills/webapp-testing/scripts/with_server.py",
+    "sha256": "b0dcf4918935b795f4eda9821579b9902119235ff4447f687a30286e7d0925fd",
+    "bytes": 3693
+  },
+  {
+    "repo": "affaan-m/ECC",
+    "commit": "b38be6a7f6350964d59328b52f0624e1d1d552d1",
+    "path": "LICENSE",
+    "url": "https://raw.githubusercontent.com/affaan-m/ECC/b38be6a7f6350964d59328b52f0624e1d1d552d1/LICENSE",
+    "sha256": "326146379f01bb137c0a5d3c54770c1aa31076705c8b88a7f6b26a460f6221b2",
+    "bytes": 1071
+  },
+  {
+    "repo": "affaan-m/ECC",
+    "commit": "b38be6a7f6350964d59328b52f0624e1d1d552d1",
+    "path": "skills/browser-qa/SKILL.md",
+    "url": "https://raw.githubusercontent.com/affaan-m/ECC/b38be6a7f6350964d59328b52f0624e1d1d552d1/skills/browser-qa/SKILL.md",
+    "sha256": "6eb78a2460adcde116e6b44fcdff7ae37aeec6208241a24417cb2db4b3b254cd",
+    "bytes": 4104
+  },
+  {
+    "repo": "affaan-m/ECC",
+    "commit": "b38be6a7f6350964d59328b52f0624e1d1d552d1",
+    "path": "skills/continuous-learning-v2/SKILL.md",
+    "url": "https://raw.githubusercontent.com/affaan-m/ECC/b38be6a7f6350964d59328b52f0624e1d1d552d1/skills/continuous-learning-v2/SKILL.md",
+    "sha256": "ddad12451a0d582c6ef1b197b7be193bef613cbc74eba4117fcb74fc7a4ecd00",
+    "bytes": 14149
+  },
+  {
+    "repo": "affaan-m/ECC",
+    "commit": "b38be6a7f6350964d59328b52f0624e1d1d552d1",
+    "path": "skills/continuous-learning-v2/agents/observer.md",
+    "url": "https://raw.githubusercontent.com/affaan-m/ECC/b38be6a7f6350964d59328b52f0624e1d1d552d1/skills/continuous-learning-v2/agents/observer.md",
+    "sha256": "320d50ff2965efeabd6f07c2be134e11da160293e958c1bc27c309d613839ad2",
+    "bytes": 6892
+  },
+  {
+    "repo": "affaan-m/ECC",
+    "commit": "b38be6a7f6350964d59328b52f0624e1d1d552d1",
+    "path": "skills/continuous-learning-v2/config.json",
+    "url": "https://raw.githubusercontent.com/affaan-m/ECC/b38be6a7f6350964d59328b52f0624e1d1d552d1/skills/continuous-learning-v2/config.json",
+    "sha256": "6f17e7a99aafe252ecd0b9212fb5f606be50b8ce1685f5a6435e46e87ffeb970",
+    "bytes": 135
+  },
+  {
+    "repo": "affaan-m/ECC",
+    "commit": "b38be6a7f6350964d59328b52f0624e1d1d552d1",
+    "path": "skills/continuous-learning-v2/scripts/instinct-cli.py",
+    "url": "https://raw.githubusercontent.com/affaan-m/ECC/b38be6a7f6350964d59328b52f0624e1d1d552d1/skills/continuous-learning-v2/scripts/instinct-cli.py",
+    "sha256": "34e6d8d800ae47d08c7ba286040499444f6a6da08c00cda190548c39b45dee93",
+    "bytes": 91424
+  },
+  {
+    "repo": "affaan-m/ECC",
+    "commit": "b38be6a7f6350964d59328b52f0624e1d1d552d1",
+    "path": "skills/continuous-learning-v2/scripts/test_parse_instinct.py",
+    "url": "https://raw.githubusercontent.com/affaan-m/ECC/b38be6a7f6350964d59328b52f0624e1d1d552d1/skills/continuous-learning-v2/scripts/test_parse_instinct.py",
+    "sha256": "ef532da862e1482b62cabfafd9079036bd291a58327ac164d2cf67063711a51d",
+    "bytes": 56243
+  },
+  {
+    "repo": "affaan-m/ECC",
+    "commit": "b38be6a7f6350964d59328b52f0624e1d1d552d1",
+    "path": "skills/e2e-testing/SKILL.md",
+    "url": "https://raw.githubusercontent.com/affaan-m/ECC/b38be6a7f6350964d59328b52f0624e1d1d552d1/skills/e2e-testing/SKILL.md",
+    "sha256": "b0e00e7e17cb259101139900816c5528aed18dd10bcf5f9cb42cfc35baf8a755",
+    "bytes": 8170
+  },
+  {
+    "repo": "affaan-m/ECC",
+    "commit": "b38be6a7f6350964d59328b52f0624e1d1d552d1",
+    "path": "skills/eval-harness/SKILL.md",
+    "url": "https://raw.githubusercontent.com/affaan-m/ECC/b38be6a7f6350964d59328b52f0624e1d1d552d1/skills/eval-harness/SKILL.md",
+    "sha256": "3a5339a5a80099a5c9d55da9b6c8e05a690f5befc6f78d779c75dd79d818ca07",
+    "bytes": 8738
+  },
+  {
+    "repo": "affaan-m/ECC",
+    "commit": "b38be6a7f6350964d59328b52f0624e1d1d552d1",
+    "path": "skills/verification-loop/SKILL.md",
+    "url": "https://raw.githubusercontent.com/affaan-m/ECC/b38be6a7f6350964d59328b52f0624e1d1d552d1/skills/verification-loop/SKILL.md",
+    "sha256": "9ee288d426660b0c785f534a003a4960fb4d8083a21302d8a4fd9b035b2edbb1",
+    "bytes": 3972
+  },
+  {
+    "repo": "mattpocock/skills",
+    "commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+    "path": "LICENSE",
+    "url": "https://raw.githubusercontent.com/mattpocock/skills/4ae2317ddb22b046e26455e4f9c9b3aaaf62212d/LICENSE",
+    "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
+    "bytes": 1068
+  },
+  {
+    "repo": "mattpocock/skills",
+    "commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+    "path": "skills/engineering/code-review/SKILL.md",
+    "url": "https://raw.githubusercontent.com/mattpocock/skills/4ae2317ddb22b046e26455e4f9c9b3aaaf62212d/skills/engineering/code-review/SKILL.md",
+    "sha256": "9c921a8d88138a41401d8897ca1bb852088ab1b7b605cdd04edc13e3e8aab6dd",
+    "bytes": 6721
+  },
+  {
+    "repo": "mattpocock/skills",
+    "commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+    "path": "skills/engineering/code-review/agents/openai.yaml",
+    "url": "https://raw.githubusercontent.com/mattpocock/skills/4ae2317ddb22b046e26455e4f9c9b3aaaf62212d/skills/engineering/code-review/agents/openai.yaml",
+    "sha256": "8229ca854e11dc8e6aef2131ee03f31fb1561cf905fab9ccc325180cf3331352",
+    "bytes": 100
+  },
+  {
+    "repo": "mattpocock/skills",
+    "commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+    "path": "skills/engineering/diagnosing-bugs/SKILL.md",
+    "url": "https://raw.githubusercontent.com/mattpocock/skills/4ae2317ddb22b046e26455e4f9c9b3aaaf62212d/skills/engineering/diagnosing-bugs/SKILL.md",
+    "sha256": "849198df88cdb65fd0d97236604c1fca7ff2f22d2f705f9724a800d0266b118d",
+    "bytes": 8664
+  },
+  {
+    "repo": "mattpocock/skills",
+    "commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+    "path": "skills/engineering/diagnosing-bugs/agents/openai.yaml",
+    "url": "https://raw.githubusercontent.com/mattpocock/skills/4ae2317ddb22b046e26455e4f9c9b3aaaf62212d/skills/engineering/diagnosing-bugs/agents/openai.yaml",
+    "sha256": "3e430dbe4334a87597488c060cb3dc3786bb00c9182877d6f5ec41f62490e90b",
+    "bytes": 103
+  },
+  {
+    "repo": "mattpocock/skills",
+    "commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+    "path": "skills/engineering/implement-spec/SKILL.md",
+    "url": "https://raw.githubusercontent.com/mattpocock/skills/4ae2317ddb22b046e26455e4f9c9b3aaaf62212d/skills/engineering/implement-spec/SKILL.md",
+    "sha256": "1993a473cec40ac85d081c112cdffdc63ec3267c2e412055ad09e013a2f623d1",
+    "bytes": 2835
+  },
+  {
+    "repo": "mattpocock/skills",
+    "commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+    "path": "skills/engineering/implement-spec/agents/openai.yaml",
+    "url": "https://raw.githubusercontent.com/mattpocock/skills/4ae2317ddb22b046e26455e4f9c9b3aaaf62212d/skills/engineering/implement-spec/agents/openai.yaml",
+    "sha256": "fd41efb42c60c96320d6531be7e4bf15cbf5518cd652d57dff27ccffa46988e9",
+    "bytes": 168
+  },
+  {
+    "repo": "mattpocock/skills",
+    "commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+    "path": "skills/engineering/to-spec/SKILL.md",
+    "url": "https://raw.githubusercontent.com/mattpocock/skills/4ae2317ddb22b046e26455e4f9c9b3aaaf62212d/skills/engineering/to-spec/SKILL.md",
+    "sha256": "43ad9cf318e5e7d3d1fa360253a37021796dc87a0c2e595ad262661a10f85088",
+    "bytes": 3043
+  },
+  {
+    "repo": "mattpocock/skills",
+    "commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+    "path": "skills/engineering/to-spec/agents/openai.yaml",
+    "url": "https://raw.githubusercontent.com/mattpocock/skills/4ae2317ddb22b046e26455e4f9c9b3aaaf62212d/skills/engineering/to-spec/agents/openai.yaml",
+    "sha256": "1c5b4d1e3d8e52287ef19cc2742fdbbfae1914ac75d33af3e4c8174f08cc55bb",
+    "bytes": 135
+  }
+]

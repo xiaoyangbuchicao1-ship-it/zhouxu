@@ -1,0 +1,53 @@
+{
+  "op_override": {
+    "ok": true,
+    "sha256": "aae5f542e62423fbec08bb9e7080f96f292e9b25b7ca75136abcdfa5128412f5",
+    "size": 19
+  },
+  "read_injected": {
+    "ok": true,
+    "sha256": "aae5f542e62423fbec08bb9e7080f96f292e9b25b7ca75136abcdfa5128412f5",
+    "size": 19,
+    "text": "unexpected mutation",
+    "offset": 0,
+    "truncated": false
+  },
+  "isolation": {
+    "ok": false,
+    "error": "[Errno 2] No such file or directory: '/workspace/injected.txt'"
+  },
+  "parent": {
+    "ok": false,
+    "error": "workspace_relative_path_required"
+  },
+  "symlink_create": {
+    "ok": true,
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "",
+    "output_limit_bytes": 65536
+  },
+  "symlink": {
+    "ok": false,
+    "error": "symlink_not_allowed"
+  },
+  "stdout": {
+    "ok": true,
+    "exit_code": 0,
+    "stderr": "",
+    "output_limit_bytes": 65536,
+    "stdout_bytes": 65536
+  },
+  "publish": {
+    "ok": true,
+    "artifact": {
+      "id": "c15c35f1cc4c4bbdb5ea8a216114a07e",
+      "name": "report.txt",
+      "size": 3,
+      "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    },
+    "notice": "文件快照已保存，前端提供鉴权下载；不等于专业内容已复核。"
+  },
+  "snapshot": "abc",
+  "security": "{\"Binds\":null,\"ContainerIDFile\":\"\",\"LogConfig\":{\"Type\":\"local\",\"Config\":{}},\"NetworkMode\":\"none\",\"PortBindings\":{},\"RestartPolicy\":{\"Name\":\"no\",\"MaximumRetryCount\":0},\"AutoRemove\":true,\"VolumeDriver\":\"\",\"VolumesFrom\":null,\"ConsoleSize\":[0,0],\"CapAdd\":null,\"CapDrop\":[\"ALL\"],\"CgroupnsMode\":\"private\",\"Dns\":null,\"DnsOptions\":[],\"DnsSearch\":[],\"ExtraHosts\":null,\"GroupAdd\":null,\"IpcMode\":\"private\",\"Cgroup\":\"\",\"Links\":null,\"OomScoreAdj\":0,\"PidMode\":\"\",\"Privileged\":false,\"PublishAllPorts\":false,\"ReadonlyRootfs\":true,\"SecurityOpt\":[\"no-new-privileges\"],\"Tmpfs\":{\"/tmp\":\"rw,noexec,nosuid,nodev,size=33554432,uid=65534,gid=65534,mode=0700\",\"/workspace\":\"rw,nosuid,nodev,size=67108864,uid=65534,gid=65534,mode=0700\"},\"UTSMode\":\"\",\"UsernsMode\":\"\",\"ShmSize\":67108864,\"Runtime\":\"runc\",\"Isolation\":\"\",\"CpuShares\":0,\"Memory\":536870912,\"NanoCpus\":1000000000,\"CgroupParent\":\"\",\"BlkioWeight\":0,\"BlkioWeightDevice\":[],\"BlkioDeviceReadBps\":[],\"BlkioDeviceWriteBps\":[],\"BlkioDeviceReadIOps\":[],\"BlkioDeviceWriteIOps\":[],\"CpuPeriod\":0,\"CpuQuota\":0,\"CpuRealtimePeriod\":0,\"CpuRealtimeRuntime\":0,\"CpusetCpus\":\"\",\"CpusetMems\":\"\",\"Devices\":[],\"DeviceCgroupRules\":null,\"DeviceRequests\":null,\"MemoryReservation\":0,\"MemorySwap\":536870912,\"MemorySwappiness\":null,\"OomKillDisable\":null,\"PidsLimit\":64,\"Ulimits\":[{\"Name\":\"fsize\",\"Hard\":16777216,\"Soft\":16777216}],\"CpuCount\":0,\"CpuPercent\":0,\"IOMaximumIOps\":0,\"IOMaximumBandwidth\":0,\"MaskedPaths\":[\"/proc/acpi\",\"/proc/asound\",\"/proc/interrupts\",\"/proc/kcore\",\"/proc/keys\",\"/proc/latency_stats\",\"/proc/sched_debug\",\"/proc/scsi\",\"/proc/timer_list\",\"/proc/timer_stats\",\"/sys/devices/virtual/powercap\",\"/sys/firmware\"],\"ReadonlyPaths\":[\"/proc/bus\",\"/proc/fs\",\"/proc/irq\",\"/proc/sys\",\"/proc/sysrq-trigger\"]}\n"
+}

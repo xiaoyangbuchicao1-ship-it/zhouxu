@@ -1,0 +1,14 @@
+最终边界挑战（独立，2026-11-05）
+
+确认缺陷：编码URL路径绕过引用校验。
+位置：application/maritime/citations.py SOURCE_LINK / invalid_citations。
+精确输入：[原文](/api/maritime/%73ources/laws/invented?snapshot=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa)
+真实FastAPI TestClient挂载/api后验证：%73ources与sources指向同一路由；存在快照200，invented快照404。真实build_harness+MaritimeReflection+ScriptedModel运行上述答案，result.status为completed；invalid_citations返回空列表。原因是检测器只识别固定字面sources前缀，HTTP路径解码发生在后续路由。建议规范化URL路径后再判定是否内部source引用，并继续校验kind/id/snapshot。
+
+独立回归文件：test_encoded_citation_boundary.py。执行 backend/.venv/Scripts/python.exe -B .ai-tmp/maritime-platform-20261105/review/test_encoded_citation_boundary.py 。修复前执行为1项FAIL，断言真实404引用不得completed。测试无联网、无真实模型、无凭证读取；临时SQLite自动删除。
+
+案件解析独立探针通过：未选案件时伪造case_context被删除；非成员404；加入成员后以服务端真实记录覆盖伪造正文；5条各7000字正文被截为4条各6000字、总量24000，truncated为true，total_entries仍为5；撤销成员后再解析404。24000限制验证针对entry.content，summary/title/metadata未纳入该数值，不声称整个序列化context小于24000。
+
+既有相关测试独立重跑：test_maritime_citation_gate.py + test_maritime_api.py，4 passed。它们覆盖普通虚构引用失败、真实快照完成、早阶段坏引用阻止完成、实际账户/案件API边界；未覆盖编码路径。
+
+本次未发现新的成员信息泄露，源码present_case在服务层成员权限验证之后才查询对应成员资料。未进行真实付费模型/外部服务/并发权限撤销认证；上述结论不是全面安全认证。未改生产文件、源语料、凭证或用户运行数据。

@@ -1,0 +1,26 @@
+import asyncio,json,sys
+from pathlib import Path
+sys.path.insert(0,str(Path.cwd()))
+from backend.infrastructure.execution.runtime import DockerRuntime,ExecutionStore
+async def main():
+ r=DockerRuntime(store=ExecutionStore(Path('.ai-tmp/execution-review-20261105/store')))
+ results={}
+ try:
+  results['op_override']=await r.operate('review-a','read',{'path':'injected.txt','op':'write','content':'unexpected mutation'})
+  results['read_injected']=await r.operate('review-a','read',{'path':'injected.txt'})
+  results['isolation']=await r.operate('review-b','read',{'path':'injected.txt'})
+  results['parent']=await r.operate('review-a','read',{'path':'../etc/passwd'})
+  results['symlink_create']=await r.operate('review-a','bash',{'command':'ln -s /etc/passwd link; printf abc > report.txt'})
+  results['symlink']=await r.operate('review-a','read',{'path':'link'})
+  results['stdout']=await r.operate('review-a','bash',{'command':"python -c \"print('x'*200000)\""})
+  results['stdout']['stdout_bytes']=len(results['stdout'].pop('stdout').encode())
+  results['publish']=await r.operate('review-a','present',{'path':'report.txt'})
+  await r.operate('review-a','bash',{'command':'printf changed > report.txt'})
+  item=results['publish']['artifact'];results['snapshot']=r.store.get('review-a',item['id'])[1].decode()
+  results['security']=await r.command(['inspect',r.worlds['review-a'],'--format','{{json .HostConfig}}'])
+  results['security']=results['security'][1].decode()
+ finally:
+  for rid in list(r.worlds):await r.destroy(rid)
+ Path('.ai-tmp/execution-review-20261105/results.json').write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding='utf-8')
+ print(json.dumps({k:v for k,v in results.items() if k!='security'},ensure_ascii=False))
+asyncio.run(main())

@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "goal": "舟序本地基础版本：八项海事工作规范、真实检索/材料/模型、账户隔离、案件协作和可核验交付。命令通过不等于专业法律验收或生产上线。",
+  "inputs": [
+    "backend/application",
+    "backend/config",
+    "backend/contracts",
+    "backend/harness",
+    "backend/infrastructure",
+    "backend/interfaces",
+    "backend/modules",
+    "backend/tests",
+    "backend/bootstrap.py",
+    "backend/pyproject.toml",
+    "backend/uv.lock",
+    "frontend/src",
+    "frontend/scripts",
+    "frontend/e2e",
+    "frontend/package.json",
+    "frontend/package-lock.json",
+    "frontend/vite.config.ts",
+    "frontend/vitest.config.ts",
+    "frontend/playwright.config.ts",
+    "frontend/tsconfig.app.json",
+    "frontend/eslint.config.js",
+    "ai-product-craft/skill/scripts/delivery.py",
+    "opensearch/corpus/manifest/chunks.jsonl",
+    "opensearch_1/海事案例库/maritime_case_rag/corpus/chunk.jsonl",
+    "frontend/tailwind.config.ts",
+    "frontend/postcss.config.js",
+    "frontend/tsconfig.json",
+    "frontend/tsconfig.node.json",
+    "backend/skills/maritime",
+    "ai-product-craft/skill/SKILL.md",
+    "ai-product-craft/skill/references",
+    "ai-product-craft/evals/maritime-v2/run_comparison.py",
+    "ai-product-craft/evals/maritime-v2/fixture.txt",
+    "docs/acceptance/execution-v1/contract.md"
+  ],
+  "criteria": [
+    {
+      "id": "backend-regression",
+      "promise": "账户/材料/运行/案件/版本/引用的离线回归",
+      "required": true,
+      "argv": [
+        "backend/.venv/Scripts/python.exe",
+        "-m",
+        "pytest",
+        "backend/tests",
+        "-q",
+        "--tb=short",
+        "--basetemp",
+        ".ai-tmp/maritime-v2-20261105/pytest-final"
+      ],
+      "success_regex": "[1-9][0-9]* passed",
+      "failure_regex": "(?i)no tests ran|collected 0 items"
+    },
+    {
+      "id": "frontend-types",
+      "promise": "前端类型一致",
+      "required": true,
+      "argv": [
+        "node",
+        "frontend/scripts/check-types.mjs"
+      ],
+      "success_regex": "TypeScript check passed",
+      "failure_regex": "(?i)no tests ran|collected 0 items"
+    },
+    {
+      "id": "frontend-tests",
+      "promise": "已有状态/协议/认证回归",
+      "required": true,
+      "argv": [
+        "node",
+        "frontend/node_modules/vitest/vitest.mjs",
+        "run",
+        "--root",
+        "frontend",
+        "--reporter=dot"
+      ],
+      "success_regex": "[1-9][0-9]* passed",
+      "failure_regex": "(?i)no tests ran|collected 0 items"
+    },
+    {
+      "id": "frontend-build",
+      "promise": "可生成生产产物",
+      "required": true,
+      "argv": [
+        "node",
+        "frontend/scripts/build.mjs"
+      ],
+      "success_regex": "built in",
+      "failure_regex": "(?i)no tests ran|collected 0 items"
+    },
+    {
+      "id": "browser-journey",
+      "promise": "真实注册/技能保存/检索/计算/案件版本/手机布局",
+      "required": true,
+      "argv": [
+        "node",
+        "frontend/node_modules/@playwright/test/cli.js",
+        "test",
+        "--config=frontend/playwright.config.ts",
+        "--reporter=list"
+      ],
+      "success_regex": "[1-9][0-9]* passed",
+      "failure_regex": "(?i)no tests ran|collected 0 items"
+    },
+    {
+      "id": "isolated-execution",
+      "promise": "真实隔离容器、文件操作/错误恢复/交付快照及取消清理，不接受跳过",
+      "required": true,
+      "argv": [
+        "backend/.venv/Scripts/python.exe",
+        "-c",
+        "import os,pytest;os.environ['ZHOUXU_EXECUTION_TEST']='1';os.environ['ZHOUXU_E2E_DOCKER']='1';raise SystemExit(pytest.main(['backend/tests/integration/test_task_execution.py','backend/tests/independent/test_execution_recovery.py','-q','--tb=short','--basetemp','.ai-tmp/execution-v1-20261105/contract-docker']))"
+      ],
+      "success_regex": "8 passed",
+      "failure_regex": "(?i)skipped|no tests ran"
+    }
+  ]
+}

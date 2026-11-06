@@ -1,0 +1,13 @@
+{
+  "category": "verification-gap",
+  "trigger": "Applying the evidence helper during a small read-only acceptance audit",
+  "observation": "An independent forward evaluator needed byte-identical snapshots and hash bookkeeping because helper records must live under its project root while audit writes were forbidden in the target tree.",
+  "wrong_decision": "Presented repeatable helper use without an explicit proportional read-only alternative",
+  "correction": "Allow native test logs, a compact requirement matrix and input fingerprint in the authorized output directory; keep the helper optional when it adds no useful evidence",
+  "scope": "This candidate workflow and small read-only audits with restricted output paths",
+  "counterexample": "A writable adopted business project with recurring acceptance checks benefits from persistent helper evidence",
+  "validation": "observation",
+  "evidence": ["evals/outcomes/with-skill/REPORT.md"],
+  "tags": ["read-only", "workflow-cost", "acceptance"],
+  "supersedes": null
+}

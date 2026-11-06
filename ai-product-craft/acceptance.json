@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "goal": "Validate the evidence and lesson helper's mechanical invariants; does not certify business-product improvement",
+  "inputs": ["skill", "tests"],
+  "criteria": [{
+    "id": "helper-invariants",
+    "promise": "False-green, freshness, containment and lesson lifecycle regression tests pass",
+    "required": true,
+    "argv": ["python", "-m", "unittest", "discover", "-s", "tests", "-v"],
+    "success_regex": "(?s)Ran [1-9][0-9]* tests.*\\bOK\\b",
+    "failure_regex": "FAILED|ERROR:|FAIL:"
+  }]
+}
