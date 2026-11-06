@@ -64,11 +64,6 @@ const tasks = [
       "请梳理我将提供的材料，按时间线、待证事实与对应证据整理，并标出矛盾与缺口。",
   },
   {
-    label: "索赔测算",
-    prompt:
-      "请协助梳理以下索赔的计算依据与项目：\n\n请列出公式、已知条件与缺失数据，不要推定尚未提供的数值。",
-  },
-  {
     label: "文书起草",
     prompt:
       "请协助起草一份海事争议相关文书：\n文书类型：\n用途与对象：\n事实与诉求：\n\n请将尚未确认的信息保留为待补充项。",
@@ -83,7 +78,7 @@ const tasks = [
 function SourceCitation({href,children}:{href:string;children:ReactNode}) {
   const session=useAuthSession();const [open,setOpen]=useState(false);const [source,setSource]=useState<CorpusSource|null>(null);const [error,setError]=useState("");
   async function show(){setOpen(true);setError("");setSource(null);try{if(!session)throw new Error("请登录后查看来源。");const url=new URL(href,window.location.origin);const match=url.pathname.match(/^\/(?:api\/)?maritime\/sources\/(laws|cases)\/(.+)$/);if(!match)throw new Error("引用链接不完整。");setSource(await maritimeApi(session.session.token).source(match[1],decodeURIComponent(match[2]),url.searchParams.get("snapshot")||undefined));}catch(e){setError(e instanceof Error?e.message:"来源未能载入。");}}
-  return <><button className="ws-text-button md-citation" onClick={()=>void show()}>{children}<ArrowUpRight size={13}/></button><Modal open={open} onOpenChange={setOpen} title={source?.title||"核对引用来源"} description={source?`${source.id} · ${source.version||"语料未提供版本日期"}`:"从自研语料库读取原始片段，不将引用等同于结论正确。"}>{error?<p role="alert">{error}</p>:source?<><p className="md-source-text">{source.text}</p><p className="md-footnote">{source.source_path} · 原文片段，不代表全文。</p></>:<Loading label="正在载入原文…"/>}</Modal></>;
+  return <><button className="ws-text-button md-citation" onClick={()=>void show()}>{children}<ArrowUpRight size={13}/></button><Modal open={open} onOpenChange={setOpen} title={source?.title||"核对引用来源"} description={source?"舟序资料库中的完整原文":"从舟序资料库读取原文。"}>{error?<p role="alert">{error}</p>:source?<p className="md-source-text">{source.text}</p>:<Loading label="正在载入原文…"/>}</Modal></>;
 }
 
 export function Markdown({ content }: { content: string }) {
@@ -199,7 +194,7 @@ export default function Conversation({
   const navigate = useNavigate();
   const location = useLocation();
   const selectedSkillId = new URLSearchParams(location.search).get("skill");
-  const builtins = ["law-research","case-research","contract-review","case-assessment","evidence-review","claim-calculation","document-drafting","case-management"];
+  const builtins = ["law-research","case-research","contract-review","case-assessment","evidence-review","document-drafting","case-management"];
   const selectedTask = selectedSkillId ? tasks[builtins.indexOf(selectedSkillId)]?.label || "自定义技能" : undefined;
   const reader = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);

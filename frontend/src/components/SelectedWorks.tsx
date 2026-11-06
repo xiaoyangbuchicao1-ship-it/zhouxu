@@ -4,7 +4,7 @@ import { plannedModules } from "@/lib/landing-content";
 const projects = [
   { slug: "legal-research", title: "查明依据", subtitle: "法律检索 · 案例分析", image: "/projects/wireframe.png", gradient: "from-violet-500 via-fuchsia-400/60 via-indigo-500/60 to-transparent" },
   { slug: "contract-review", title: "审视约定", subtitle: "合同审查 · 案件研判", image: "/projects/building.png", gradient: "from-sky-500 via-blue-400/60 to-transparent" },
-  { slug: "evidence", title: "理清事实", subtitle: "证据整理 · 索赔辅助", image: "/projects/person.png", gradient: "from-emerald-500 via-emerald-300/60 via-teal-500/60 to-transparent" },
+  { slug: "evidence", title: "理清事实", subtitle: "证据整理 · 案件研判", image: "/projects/person.png", gradient: "from-emerald-500 via-emerald-300/60 via-teal-500/60 to-transparent" },
   { slug: "legal-drafting", title: "推进工作", subtitle: "文书起草 · 案件协同", image: "/projects/branding.png", gradient: "from-amber-500 via-amber-300/60 via-orange-500/60 to-transparent" },
 ];
 
@@ -57,7 +57,7 @@ const SelectedWorks = () => {
               从查明依据，到形成判断
             </h2>
             <p className="text-muted text-sm md:text-base mt-3 max-w-md">
-              围绕海事争议的工作过程，逐步连接研究、审查、证据、索赔与案件协作。
+              围绕海事争议的工作过程，逐步连接研究、审查、证据与案件协作。
             </p>
           </div>
           <ViewAllButton className="hidden md:inline-flex" />
@@ -125,7 +125,7 @@ const SelectedWorks = () => {
         <div id="roadmap" className="mt-16 md:mt-24 px-2">
           <span className="text-xs text-muted tracking-[0.25em]">MARITIME WORKFLOWS</span>
           <h3 className="font-editorial text-2xl md:text-3xl mt-4">八个方向，一条工作脉络。</h3>
-          <p className="text-sm text-muted leading-[1.9] mt-4 max-w-2xl">八项基础工作方法已接入研究工作台，并连接海事检索、索赔测算与案件协作。专业结论仍需核对原文与适用条件。配图仅作视觉表达，不是案件实图或产品输出。</p>
+          <p className="text-sm text-muted leading-[1.9] mt-4 max-w-2xl">可用工作方法已接入研究工作台，并连接海事检索与案件协作。专业结论仍需核对原文与适用条件。配图仅作视觉表达，不是案件实图或产品输出。</p>
           <div className="grid md:grid-cols-2 gap-x-12 mt-8">
             {plannedModules.map((module, i) => (
               <article key={module.id} id={module.id} className="border-t border-stroke py-6">

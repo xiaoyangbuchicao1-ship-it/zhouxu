@@ -142,8 +142,7 @@
   display: grid;
   gap: 18px;
 }
-.md-form label,
-.md-claim-row label {
+.md-form label {
   display: grid;
   gap: 8px;
   color: #bdc9d7;
@@ -151,9 +150,7 @@
 }
 .md-form input,
 .md-form textarea,
-.md-form select,
-.md-claim-row input,
-.md-claim-row select {
+.md-form select {
   border: 1px solid #415165;
   background: #0e151e;
   color: var(--ws-text);
@@ -331,56 +328,6 @@
 .md-version-list .md-source-text {
   max-height: 200px;
 }
-.md-claim-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 88px 28px;
-  gap: 15px;
-  align-items: end;
-  padding: 17px 0;
-  border-bottom: 1px solid var(--ws-line);
-}
-.md-claim-row > .ws-icon-button {
-  margin-bottom: 9px;
-}
-.md-claim-result {
-  margin-top: 42px;
-  border-top: 1px solid #486078;
-  padding-top: 24px;
-}
-.md-claim-result h2 {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  font-size: 18px;
-  font-weight: 500;
-}
-.md-claim-result > p:not(.md-footnote) {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  border-bottom: 1px solid var(--ws-line);
-  padding: 16px 0;
-  font-variant-numeric: tabular-nums;
-}
-.md-claim-result strong {
-  font-weight: 500;
-}
-.md-totals {
-  display: flex;
-  gap: 35px;
-  flex-wrap: wrap;
-  padding: 20px 0;
-}
-.md-totals span {
-  display: block;
-  color: var(--ws-muted);
-  font-size: 12px;
-}
-.md-totals strong {
-  font-size: 30px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.025em;
-}
 .md-selected-skill {
   display: flex;
   align-items: center;
@@ -450,20 +397,6 @@
   .md-skill .md-tag {
     font-size: 11px;
   }
-  .md-claim-row {
-    grid-template-columns: 1fr 1fr 1fr 28px;
-    gap: 10px;
-  }
-  .md-claim-row label:first-child {
-    grid-column: 1 / -1;
-  }
-  .md-claim-row label {
-    font-size: 11px;
-  }
-  .md-claim-row input,
-  .md-claim-row select {
-    padding: 8px;
-  }
   .md-form-row {
     grid-template-columns: 1fr;
   }
@@ -472,10 +405,6 @@
   }
   .md-search-field {
     gap: 8px;
-  }
-  .md-claim-result > p:not(.md-footnote) {
-    flex-direction: column;
-    gap: 6px;
   }
   .md-case-row {
     gap: 12px;

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowUpRight,
   BookOpen,
-  Check,
   ChevronLeft,
   Download,
   FileText,
@@ -21,19 +20,16 @@ import {
   type CaseEntry,
   type SearchResult,
   type CorpusSource,
-  type ClaimLine,
-  type ClaimResult,
 } from "@/lib/maritime-api";
 import { Modal, Loading } from "./Primitives";
 import { Markdown } from "./Conversation";
 import "./maritime.css";
 
-export type OfficePage = "skills" | "research" | "cases" | "claims";
+export type OfficePage = "skills" | "research" | "cases";
 const labelFor = {
   skills: "技能工坊",
   research: "海事检索",
   cases: "案件协作",
-  claims: "索赔测算",
 };
 const errorText = (e: unknown) =>
   e instanceof Error ? e.message : "操作未完成，请重试。";
@@ -72,9 +68,6 @@ export default function MaritimeDesk({
         <Research api={api} onError={setError} error={error} />
       )}
       {page === "cases" && <Cases api={api} onError={setError} error={error} />}
-      {page === "claims" && (
-        <Claims api={api} onError={setError} error={error} />
-      )}
     </section>
   );
 }
@@ -144,6 +137,8 @@ function Skills({
     }
   }
   const rows = (query.data?.skills || []).filter(
+    (s) => s.id !== "claim-calculation",
+  ).filter(
     (s) =>
       filter === "all" ||
       (filter === "mine"
@@ -157,7 +152,7 @@ function Skills({
           <span className="md-eyebrow">你的专业方法，可以成为下一项能力</span>
           <h1>把海事经验，写成技能。</h1>
           <p>
-            从八项基础工作出发，查看方法、开始任务，或编写属于你的工作规范。
+            从可用的工作方法出发，查看方法、开始任务，或编写属于你的工作规范。
           </p>
         </div>
         <button className="ws-primary-button" onClick={() => edit(null)}>
@@ -202,14 +197,11 @@ function Skills({
               <div>
                 <div className="md-row">
                   <h2>{s.name}</h2>
-                  <span className="md-tag">
-                    {s.visibility === "builtin"
-                      ? "舟序基础"
-                      : s.owner_id === accountId
-                        ? "我的技能"
-                        : "社区作者"}{" "}
-                    · v{s.version}
-                  </span>
+                  {s.visibility !== "builtin" && (
+                    <span className="md-tag">
+                      {s.owner_id === accountId ? "我的技能" : "社区作者"}
+                    </span>
+                  )}
                 </div>
                 <p>{s.summary}</p>
                 <div className="md-skill-actions">
@@ -237,7 +229,7 @@ function Skills({
           ))}
           {!rows.length && (
             <div className="md-empty">
-              这里还没有技能。你可以先复制基础技能，再加入自己的经验。
+              这里还没有技能。你可以创建自己的工作规范。
             </div>
           )}
         </div>
@@ -427,7 +419,7 @@ function Research({ api, onError }: Props) {
         <div>
           <span className="md-eyebrow">依据先于结论</span>
           <h1>回到真实的海事资料。</h1>
-          <p>检索自研法规与案例库，先看原文、出处和版本，再作判断。</p>
+          <p>检索自研法规与案例库，先读完整原文，再作判断。</p>
         </div>
         <BookOpen size={28} strokeWidth={1.2} />
       </div>
@@ -486,7 +478,7 @@ function Research({ api, onError }: Props) {
               checked={current}
               onChange={(e) => setCurrent(e.target.checked)}
             />
-            仅看库内标记的现行版本
+            优先显示现行资料
           </label>
         )}
       </form>
@@ -503,61 +495,23 @@ function Research({ api, onError }: Props) {
       {result && (
         <>
           <div className="md-result-info">
-            <span>{result.items.length} 条片段</span>
-            <span>
-              {result.engine === "opensearch-bm25"
-                ? "在线全文检索"
-                : "本地同源语料检索"}
-            </span>
+            <span>找到 {result.items.length} 条匹配资料</span>
           </div>
-          {result.online_error && (
-            <p className="md-footnote" role="status">
-              {{
-                credentials_missing:
-                  "在线库尚未配置凭证，请在数据库配置文件中填写管理员密码。",
-                authentication_failed: "在线库认证未通过，请核对数据库密码。",
-                access_denied: "当前数据库账户没有检索权限。",
-                index_missing: "在线检索索引尚未就绪。",
-                connection_failed: "暂时无法连接在线库，正在使用本地资料。",
-                schema_mismatch:
-                  "在线资料格式与检索配置不匹配，正在使用本地资料。",
-              }[result.online_error] || "在线库暂不可用，正在使用本地资料。"}
-            </p>
-          )}
-          <details className="md-search-details">
-            <summary>来源与版本说明</summary>
-            {result.notices.map((n) => (
-              <p className="md-footnote" key={n}>
-                {n}
-              </p>
-            ))}
-          </details>
           {result.items.map((item) => (
             <article className="md-result" key={item.id}>
-              <div className="md-row">
-                <span className="md-tag">
-                  {item.case_id || item.legal_status || "状态未标注"}
-                </span>
-                {item.version && (
-                  <span className="md-footnote">语料版本 {item.version}</span>
-                )}
-              </div>
               <h2>{item.title}</h2>
-              <p className="md-footnote">
-                {Array.isArray(item.locator)
-                  ? item.locator.join(" / ")
-                  : item.locator}{" "}
-                · {item.id}
-              </p>
+              {kind === "laws" && typeof item.locator === "string" && (
+                <p className="md-footnote">{item.locator}</p>
+              )}
               <p className="md-excerpt">
-                {item.text.slice(0, 550)}
-                {item.text.length > 550 ? "…" : ""}
+                {(item.excerpt || item.text).slice(0, 550)}
+                {(item.excerpt || item.text).length > 550 ? "…" : ""}
               </p>
               <button
                 className="ws-text-button"
                 onClick={() => setSource(item)}
               >
-                查看原文片段
+                查看全文
                 <ArrowUpRight size={15} />
               </button>
             </article>
@@ -574,15 +528,10 @@ function Research({ api, onError }: Props) {
         onOpenChange={(open) => {
           if (!open) setSource(null);
         }}
-        title={source?.title || "原文片段"}
-        description={
-          source ? `${source.id} · ${source.version || "版本日期未提供"}` : ""
-        }
+        title={source?.title || "原文"}
+        description={source ? "舟序资料库中的完整原文" : ""}
       >
         <div className="md-source-text">{source?.text}</div>
-        <p className="md-footnote">
-          {source?.source_path} · 这是检索片段，不代表整篇文献。
-        </p>
       </Modal>
     </>
   );
@@ -1112,179 +1061,6 @@ function Cases({ api, onError, error }: Props) {
           ))}
         </div>
       </Modal>
-    </>
-  );
-}
-
-function Claims({ api, onError }: Props) {
-  const [items, setItems] = useState<ClaimLine[]>([
-    { name: "", quantity: "", rate: "", currency: "CNY" },
-  ]);
-  const [result, setResult] = useState<ClaimResult | null>(null);
-  const [busy, setBusy] = useState(false);
-  function update(i: number, key: keyof ClaimLine, value: string) {
-    setResult(null);
-    setItems((current) =>
-      current.map((r, j) => (i === j ? { ...r, [key]: value } : r)),
-    );
-  }
-  return (
-    <>
-      <div className="md-heading">
-        <div>
-          <span className="md-eyebrow">算清每一项，保留每一步</span>
-          <h1>索赔数字，经得起复算。</h1>
-          <p>
-            数量 × 单价，或天数 × 日费率。按币种分别汇总，不替代赔偿责任判断。
-          </p>
-        </div>
-      </div>
-      <form
-        className="md-claim-form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setBusy(true);
-          onError("");
-          setResult(null);
-          void api
-            .calculate(items)
-            .then(setResult)
-            .catch((e) => onError(errorText(e)))
-            .finally(() => setBusy(false));
-        }}
-      >
-        <div className="md-claim-table">
-          {items.map((item, i) => (
-            <div className="md-claim-row" key={i}>
-              <label>
-                项目
-                <input
-                  aria-label={`项目 ${i + 1}`}
-                  required
-                  maxLength={160}
-                  value={item.name}
-                  onChange={(e) => update(i, "name", e.target.value)}
-                  placeholder="例如：货物损失"
-                />
-              </label>
-              <label>
-                数量 / 天数
-                <input
-                  aria-label={`数量 ${i + 1}`}
-                  type="number"
-                  step="any"
-                  min="0"
-                  required
-                  value={item.quantity}
-                  onChange={(e) => update(i, "quantity", e.target.value)}
-                />
-              </label>
-              <label>
-                单价 / 日费率
-                <input
-                  aria-label={`费率 ${i + 1}`}
-                  type="number"
-                  step="any"
-                  min="0"
-                  required
-                  value={item.rate}
-                  onChange={(e) => update(i, "rate", e.target.value)}
-                />
-              </label>
-              <label>
-                币种
-                <select
-                  aria-label={`币种 ${i + 1}`}
-                  value={item.currency}
-                  onChange={(e) => update(i, "currency", e.target.value)}
-                >
-                  {["CNY", "USD", "EUR", "GBP", "HKD", "SGD", "JPY"].map(
-                    (c) => (
-                      <option key={c}>{c}</option>
-                    ),
-                  )}
-                </select>
-              </label>
-              <button
-                aria-label={`移除项目 ${i + 1}`}
-                className="ws-icon-button"
-                type="button"
-                disabled={items.length === 1}
-                onClick={() => {
-                  setItems(items.filter((_, j) => i !== j));
-                  setResult(null);
-                }}
-              >
-                <X size={17} />
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="md-actions">
-          <button
-            type="button"
-            className="ws-secondary-button"
-            disabled={items.length >= 100}
-            onClick={() => {
-              setItems([
-                ...items,
-                { name: "", quantity: "", rate: "", currency: "CNY" },
-              ]);
-              setResult(null);
-            }}
-          >
-            <Plus size={16} />
-            添加项目
-          </button>
-          <button disabled={busy} className="ws-primary-button">
-            {busy ? "计算中…" : "计算并展示过程"}
-          </button>
-        </div>
-      </form>
-      {result && (
-        <div className="md-claim-result">
-          <div className="md-row">
-            <h2>
-              <Check size={19} />
-              计算结果
-            </h2>
-            <button
-              className="ws-text-button"
-              onClick={() =>
-                downloadDraft(
-                  "索赔计算明细",
-                  result.items
-                    .map((i) => `${i.name}：${i.formula}`)
-                    .join("\n\n") +
-                    "\n\n" +
-                    result.notice,
-                )
-              }
-            >
-              <Download size={15} />
-              导出计算明细
-            </button>
-          </div>
-          {result.items.map((r, i) => (
-            <p key={i}>
-              <span>{r.name}</span>
-              <strong>{r.formula}</strong>
-            </p>
-          ))}
-          <div className="md-totals">
-            {Object.entries(result.totals).map(([currency, amount]) => (
-              <div key={currency}>
-                <span>{currency} 合计</span>
-                <strong>{amount}</strong>
-              </div>
-            ))}
-          </div>
-          <p className="md-footnote">{result.notice}</p>
-        </div>
-      )}
-      <p className="md-footnote">
-        责任比例、免赔额、利息、汇率与法定期限须依据实际材料另行核定；本页没有自动确认这些条件。
-      </p>
     </>
   );
 }

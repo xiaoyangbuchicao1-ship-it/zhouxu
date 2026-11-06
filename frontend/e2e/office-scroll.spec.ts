@@ -11,7 +11,7 @@ for (const viewport of [{ width: 1366, height: 620 }, { width: 390, height: 650 
     await page.getByRole('button', { name: '创建账户', exact: true }).click();
     await expect(page).toHaveURL(/\/workspace/);
     await page.goto('/workspace/skills');
-    await expect(page.locator('.md-skill')).toHaveCount(8);
+    await expect(page.locator('.md-skill')).toHaveCount(7);
     const lastAction = page.locator('.md-skill').last().getByRole('button', { name: '开始任务' });
     await expect(lastAction).not.toBeInViewport();
     await page.locator('.maritime-desk').hover({ position: { x: 100, y: 200 } });

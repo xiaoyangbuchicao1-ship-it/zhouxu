@@ -76,6 +76,7 @@ export interface CorpusSource {
   kind: "laws" | "cases";
   title: string;
   text: string;
+  excerpt?: string;
   locator?: string | string[];
   current: boolean | null;
   version: string | null;
@@ -83,25 +84,10 @@ export interface CorpusSource {
   case_id?: string;
   source_path?: string;
   version_relation?: string;
+  document_complete?: boolean;
 }
 export interface SearchResult {
-  engine: string;
-  online_error?: string | null;
   items: CorpusSource[];
-  notices: string[];
-}
-export interface ClaimLine {
-  name: string;
-  quantity: string;
-  rate: string;
-  currency: string;
-  amount?: string;
-  formula?: string;
-}
-export interface ClaimResult {
-  items: ClaimLine[];
-  totals: Record<string, string>;
-  notice: string;
 }
 
 export function maritimeApi(token: string) {
@@ -224,15 +210,6 @@ export function maritimeApi(token: string) {
       call<CorpusSource>(
         `/sources/${kind}/${encodeURIComponent(id)}${snapshot ? `?snapshot=${encodeURIComponent(snapshot)}` : ""}`,
       ),
-    calculate: (items: ClaimLine[]) =>
-      call<ClaimResult>("/claims/calculate", "POST", {
-        items: items.map(({ name, quantity, rate, currency }) => ({
-          name,
-          quantity,
-          rate,
-          currency,
-        })),
-      }),
     status: () =>
       call<{
         model_runtime_ready: boolean;

@@ -13,7 +13,7 @@ import {
   Trash2,
   LogOut,
   ArrowUpRight,
-  Compass, Search, BriefcaseBusiness, Calculator,
+  Compass, Search, BriefcaseBusiness,
 } from "lucide-react";
 import logo from "../../../zhou-xu-mark.png";
 import { IconButton, Menu, MenuItem, Loading, LoadError } from "./Primitives";
@@ -151,7 +151,7 @@ export default function Sidebar({
           <Library size={18} />
           <span>资料库</span>
         </Link>
-        {([{path:"skills",label:"技能工坊",Icon:Compass},{path:"research",label:"海事检索",Icon:Search},{path:"cases",label:"案件协作",Icon:BriefcaseBusiness},{path:"claims",label:"索赔测算",Icon:Calculator}]).map(({path,label,Icon})=><Link key={path} to={`/workspace/${path}`} onClick={onNavigate} className={`ws-nav-link ${location.pathname===`/workspace/${path}`?"is-active":""}`} title={label} aria-current={location.pathname===`/workspace/${path}`?"page":undefined}><Icon size={18}/><span>{label}</span></Link>)}
+        {([{path:"skills",label:"技能工坊",Icon:Compass},{path:"research",label:"海事检索",Icon:Search},{path:"cases",label:"案件协作",Icon:BriefcaseBusiness}]).map(({path,label,Icon})=><Link key={path} to={`/workspace/${path}`} onClick={onNavigate} className={`ws-nav-link ${location.pathname===`/workspace/${path}`?"is-active":""}`} title={label} aria-current={location.pathname===`/workspace/${path}`?"page":undefined}><Icon size={18}/><span>{label}</span></Link>)}
       </nav>
       <AnimatePresence initial={false}>
         {!collapsed && (

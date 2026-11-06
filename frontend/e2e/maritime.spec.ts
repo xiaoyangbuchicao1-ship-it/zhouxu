@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
-test("real UI: register, author skill, retrieve corpus, calculate and version a case", async ({
+test("real UI: register, author skill, retrieve complete corpus sources and version a case", async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -16,7 +16,9 @@ test("real UI: register, author skill, retrieve corpus, calculate and version a 
   await expect(
     page.getByRole("heading", { name: "法律检索与问答", exact: true }),
   ).toBeVisible();
-  await expect(page.locator(".md-skill")).toHaveCount(8);
+  await expect(page.locator(".md-skill")).toHaveCount(7);
+  await expect(page.getByText("索赔辅助", { exact: true })).toHaveCount(0);
+  await expect(page.getByText(/舟序基础|· v2/)).toHaveCount(0);
   await page.getByRole("button", { name: "创建技能", exact: true }).click();
   await page.getByLabel("技能名称").fill("QA 运单核对");
   await page.getByLabel("一句话介绍").fill("页面验收创建的私人技能");
@@ -38,19 +40,25 @@ test("real UI: register, author skill, retrieve corpus, calculate and version a 
   await page.getByLabel("海事检索关键词").fill("承运人");
   await page.getByRole("button", { name: "检索", exact: true }).click();
   await expect(page.locator(".md-result").first()).toBeVisible();
-  await page.getByRole("button", { name: "查看原文片段" }).first().click();
+  await expect(page.getByText(/暂时无法连接在线库|正在使用本地资料/)).toHaveCount(0);
+  await expect(page.getByText("来源与版本说明", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "查看全文" }).first().click();
   await expect(page.locator(".md-source-text")).not.toBeEmpty();
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "海事案例", exact: true }).click();
   await page.getByLabel("海事检索关键词").fill("货损");
   await page.getByRole("button", { name: "检索", exact: true }).click();
   await expect(page.locator(".md-result").first()).toBeVisible();
-  await page.goto("/workspace/claims");
-  await page.getByLabel("项目 1", { exact: true }).fill("测试货损");
-  await page.getByLabel("数量 1", { exact: true }).fill("3");
-  await page.getByLabel("费率 1", { exact: true }).fill("0.335");
-  await page.getByRole("button", { name: "计算并展示过程" }).click();
-  await expect(page.locator(".md-totals")).toContainText("1.01");
+  await expect(page.getByText(/暂时无法连接在线库|正在使用本地资料/)).toHaveCount(0);
+  await expect(page.getByText("来源与版本说明", { exact: true })).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText(/HH\d{4}/);
+  await expect(page.locator("body")).not.toContainText("原文第");
+  const caseExcerpt = await page.locator(".md-result").first().locator(".md-excerpt").innerText();
+  await page.getByRole("button", { name: "查看全文" }).first().click();
+  const caseSource = await page.locator(".md-source-text").innerText();
+  expect(caseSource.length).toBeGreaterThan(caseExcerpt.length);
+  await expect(page.locator(".md-source-text")).not.toContainText(/HH\d{4}|原文第/);
+  await page.keyboard.press("Escape");
   await page.goto("/workspace/cases");
   await page.getByRole("button", { name: "建立案件", exact: true }).click();
   await page.getByLabel("案件名称").fill("QA 货损案件");

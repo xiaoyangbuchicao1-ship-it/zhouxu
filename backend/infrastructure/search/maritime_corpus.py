@@ -21,6 +21,101 @@ CORPORA = {
 }
 
 
+def corpus_root(kind):
+    """Return the checked-in corpus root for a kind without trusting request data."""
+    path = Path(CORPORA[kind]).resolve()
+    return path.parents[2] if kind == "laws" else path.parents[1]
+
+
+def safe_corpus_path(kind, relative):
+    if not relative or not isinstance(relative, str):
+        return None
+    root = corpus_root(kind)
+    candidate = (root / relative).resolve()
+    if candidate != root and root not in candidate.parents:
+        return None
+    return candidate
+
+
+def complete_law_text(item):
+    path = safe_corpus_path("laws", item.get("source_path"))
+    if path and path.is_file() and path.suffix.lower() == ".txt":
+        return path.read_text(encoding="utf-8-sig")
+    document_id = item.get("document_id")
+    if document_id:
+        path = corpus_root("laws") / "corpus" / "sources" / f"{document_id}.txt"
+        if path.is_file():
+            return path.read_text(encoding="utf-8-sig")
+    return None
+
+
+def complete_case_text(item):
+    root = corpus_root("cases")
+    case_id = item.get("case_id")
+    cases_path = root / "corpus" / "cases.jsonl"
+    if case_id and cases_path.is_file():
+        with cases_path.open(encoding="utf-8-sig") as stream:
+            for line in stream:
+                try:
+                    record = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if record.get("案例编号") != case_id:
+                    continue
+                body = record.get("案例全文与来源") or {}
+                text = body.get("原文全文")
+                if isinstance(text, str) and text.strip():
+                    return text
+                break
+    path = safe_corpus_path("cases", item.get("source_path"))
+    if path and path.is_file() and path.suffix.lower() == ".docx":
+        try:
+            from docx import Document
+
+            return "\n".join(paragraph.text for paragraph in Document(path).paragraphs)
+        except (ImportError, OSError, ValueError):
+            return None
+    return None
+
+
+LAW_METADATA_RE = re.compile(
+    r"^(?:条文ID|文献来源ID|文献名称|版本日期|效力状态|文献类型|原章节|原小节|条号|研究主题)[：:]"
+)
+
+
+def user_source_text(kind, text):
+    """Remove corpus bookkeeping headers before text reaches a user or model."""
+    if kind != "laws" or not isinstance(text, str):
+        return text
+    lines = text.splitlines()
+    metadata_count = sum(1 for line in lines[:20] if LAW_METADATA_RE.match(line.strip()))
+    if metadata_count < 2:
+        return text
+    start = 0
+    while start < len(lines) and (
+        not lines[start].strip() or LAW_METADATA_RE.match(lines[start].strip())
+    ):
+        start += 1
+    return "\n".join(lines[start:]).strip()
+
+
+def complete_source(item):
+    kind = item.get("kind")
+    original = item.get("text", "")
+    excerpt = user_source_text(kind, item.get("excerpt") or original)
+    text = complete_law_text(item) if kind == "laws" else complete_case_text(item)
+    if not text:
+        cleaned_original = user_source_text(kind, original)
+        if cleaned_original != original or excerpt != item.get("excerpt"):
+            return {**item, "text": cleaned_original, "excerpt": excerpt}
+        return item
+    cleaned = user_source_text(kind, text)
+    result = {**item, "text": cleaned, "excerpt": excerpt}
+    if len(text) > len(original):
+        result["document_complete"] = True
+    return result
+
+
 @contextmanager
 def connection(*args, **kwargs):
     db = sqlite3.connect(*args, **kwargs)
@@ -59,6 +154,7 @@ def normalize(kind, row):
             case_id=row["case_id"],
             snapshot_id=row.get("snapshot_id"),
             source_path=row.get("source_path"),
+            document_id=row.get("document_id"),
             current=None,
             version=None,
         )
@@ -70,6 +166,7 @@ def normalize(kind, row):
         locator=row.get("原文位置"),
         case_id=row["案例编号"],
         source_path=row.get("原文相对路径"),
+        document_id=None,
         category=row.get("案件类型"),
         section=row.get("片段类型"),
         current=None,
@@ -198,7 +295,7 @@ class MaritimeCorpus:
                         (kind, source_id),
                     ).fetchone()
             if cached:
-                return json.loads(cached[0])
+                return complete_source(json.loads(cached[0]))
         if snapshot:
             raise LookupError("citation_snapshot_not_found")
         if not self.path.is_file():
@@ -209,7 +306,7 @@ class MaritimeCorpus:
             ).fetchone()
         if not row:
             raise LookupError("source_not_found")
-        return json.loads(row[0])
+        return complete_source(json.loads(row[0]))
 
     def local_search(self, query, kind, current_only=True, limit=8):
         if not self.path.is_file():
@@ -254,8 +351,6 @@ class MaritimeCorpus:
         ):
             raise ValueError("请输入 2 至 500 字查询，并选择法规或案例库")
         query = query.strip()
-        notice = []
-        online_error = None
         try:
             # Fixed loopback addresses only; caller content cannot choose a host or index.
             values = dotenv_values(
@@ -301,33 +396,13 @@ class MaritimeCorpus:
                     normalize(kind, hit["_source"]) for hit in data["hits"]["hits"]
                 ]
                 engine = "opensearch-bm25"
-        except (httpx.HTTPError, KeyError, ValueError, LookupError, OSError) as exc:
-            if isinstance(exc, LookupError):
-                online_error = (
-                    "credentials_missing"
-                    if str(exc) == "search_credentials_unconfigured"
-                    else "schema_mismatch"
-                )
-            elif isinstance(exc, httpx.HTTPStatusError):
-                online_error = {
-                    401: "authentication_failed",
-                    403: "access_denied",
-                    404: "index_missing",
-                }.get(exc.response.status_code, "service_error")
-            else:
-                online_error = (
-                    "connection_failed"
-                    if isinstance(exc, (httpx.ConnectError, httpx.TimeoutException))
-                    else "invalid_response"
-                )
-            notice.append(
-                "在线检索不可用，已使用同源语料本地全文检索；未执行向量检索或在线效力核验。"
-            )
+        except (httpx.HTTPError, KeyError, ValueError, LookupError, OSError):
             items = await asyncio.to_thread(
                 self.local_search, query, kind, current_only, limit
             )
             engine = "local-corpus-fulltext"
         for item in items:
+            item = complete_source(item)
             snapshot = await asyncio.to_thread(self.remember_source, item)
             item["citation"] = f"[[ZX:{snapshot[:16]}]]"
             item["source_url"] = (
@@ -337,12 +412,7 @@ class MaritimeCorpus:
             "query": query,
             "kind": kind,
             "engine": engine,
-            "online_error": online_error,
             "items": items,
-            "notices": notice
-            + [
-                "结果来自自研语料库；版本日期含义以原文为准，法规效力与类案适用性需专业核对。"
-            ],
         }
 
 

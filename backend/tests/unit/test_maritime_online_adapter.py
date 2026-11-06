@@ -24,8 +24,8 @@ async def test_case_search_targets_deployed_alias_and_normalizes_online_schema(
         async def post(self, url, **kwargs):
             calls.append((url, kwargs["json"]))
             source = {
-                "chunk_id": "HH0001:片段:001",
-                "case_id": "HH0001",
+                "chunk_id": "ONLINE-0001:片段:001",
+                "case_id": "ONLINE-0001",
                 "title": "水上运输案",
                 "text": "运输事故争议原文",
                 "start": 10,
@@ -53,5 +53,5 @@ async def test_case_search_targets_deployed_alias_and_normalizes_online_schema(
         "text",
     ]
     item = result["items"][0]
-    assert item["id"] == "HH0001:片段:001" and item["case_id"] == "HH0001"
+    assert item["id"] == "ONLINE-0001:片段:001" and item["case_id"] == "ONLINE-0001"
     assert corpus.source("cases", item["id"])["text"] == "运输事故争议原文"

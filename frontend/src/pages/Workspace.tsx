@@ -42,7 +42,7 @@ function Desk({ session }: { session: AuthSession }) {
   const navigate = useNavigate();
   const location = useLocation();
   const library = location.pathname === "/workspace/library";
-  const officePage = location.pathname.match(/^\/workspace\/(skills|research|cases|claims)\/?$/)?.[1] as OfficePage | undefined;
+  const officePage = location.pathname.match(/^\/workspace\/(skills|research|cases)\/?$/)?.[1] as OfficePage | undefined;
   const match = location.pathname.match(/^\/workspace\/chat\/([^/]+)\/?$/);
   const id = match?.[1];
   const ws = useWorkspace(session, id);
@@ -134,7 +134,7 @@ function Desk({ session }: { session: AuthSession }) {
       });
     },
   };
-  const title = officePage ? ({skills:"技能工坊",research:"海事检索",cases:"案件协作",claims:"索赔测算"}[officePage]) : library
+  const title = officePage ? ({skills:"技能工坊",research:"海事检索",cases:"案件协作"}[officePage]) : library
     ? "资料库"
     : ws.detail.data?.conversation.title || "新对话";
   const group = ws.projects.data?.projects.find(

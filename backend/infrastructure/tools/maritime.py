@@ -13,7 +13,7 @@ class CorpusTool:
         name="search_maritime_corpus",
         read_only=True,
         reuse_identical_results=True,
-        description="从自研海事法规或案例库检索真实证据。kind=laws/cases。引用时逐字复制返回的 citation 标记（如 [[ZX:0123456789abcdef]]），系统会转换为真实原文链接，禁止自编网址。返回原文、来源编号、版本和引擎；不是联网法律效力认证。",
+        description="从自研海事法规或案例库检索真实原文。kind=laws/cases。引用时逐字复制返回的 citation 标记（如 [[ZX:0123456789abcdef]]），系统会转换为真实原文链接，禁止自编网址。结果不代表联网法律效力认证。",
         parameters={
             "type": "object",
             "properties": {
@@ -29,11 +29,26 @@ class CorpusTool:
     async def execute(self, request):
         try:
             result = await self.corpus.search(**request.arguments)
+            public_items = []
             for item in result["items"]:
-                item.pop("source_url", None)
                 original = item["text"]
-                item["text"] = original[:5000]
-                item["excerpt_truncated"] = len(original) > 5000
+                public = {
+                    key: item[key]
+                    for key in ("kind", "title", "text", "locator", "citation")
+                    if item.get(key) not in (None, "", [])
+                }
+                # A case locator is an internal chunk position; the case title
+                # and complete source are enough for a user-facing answer.
+                if item.get("kind") == "cases":
+                    public.pop("locator", None)
+                public["text"] = original[:5000]
+                public["excerpt_truncated"] = len(original) > 5000
+                public_items.append(public)
+            result = {
+                "query": result.get("query", request.arguments.get("query", "")),
+                "kind": result.get("kind", request.arguments.get("kind", "laws")),
+                "items": public_items,
+            }
             return ActionResult(
                 tool_name=request.tool_name,
                 action_id=request.action_id,
