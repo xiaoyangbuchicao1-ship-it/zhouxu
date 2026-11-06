@@ -70,28 +70,68 @@ def test_http_mode_is_validated_and_saved_on_run(tmp_path):
                 json={"email": "modes@example.test", "password": "long-password-12"},
             ).json()
             headers = {"Authorization": "Bearer " + account["session"]["token"]}
-            cid = client.post(
+            chat = client.post(
                 "/workspace/conversations", json={}, headers=headers
-            ).json()["conversation"]["conversation_id"]
-            for index, mode in enumerate((None, "work", "invalid")):
-                facts = {} if mode is None else {"task_mode": mode}
-                response = client.post(
-                    f"/workspace/conversations/{cid}/runs",
-                    json={
-                        "conversation_id": cid,
-                        "client_request_id": str(index),
-                        "text": "mode test",
-                        "facts": facts,
-                    },
-                    headers=headers,
-                )
-                if mode == "invalid":
-                    assert response.status_code == 422
-                else:
-                    assert response.status_code == 202
-                    assert response.json()["run"]["payload"]["facts"]["task_mode"] == (
-                        mode or "chat"
-                    )
+            ).json()["conversation"]
+            chat_id = chat["conversation_id"]
+            assert chat["task_mode"] == "chat"
+            response = client.post(
+                f"/workspace/conversations/{chat_id}/runs",
+                json={
+                    "conversation_id": chat_id,
+                    "client_request_id": "chat-1",
+                    "text": "mode test",
+                    "facts": {},
+                },
+                headers=headers,
+            )
+            assert response.status_code == 202
+            assert response.json()["run"]["payload"]["facts"]["task_mode"] == "chat"
+
+            mismatch = client.post(
+                f"/workspace/conversations/{chat_id}/runs",
+                json={
+                    "conversation_id": chat_id,
+                    "client_request_id": "chat-work-mismatch",
+                    "text": "mode test",
+                    "facts": {"task_mode": "work"},
+                },
+                headers=headers,
+            )
+            assert mismatch.status_code == 409
+            assert mismatch.json()["detail"] == "conversation_mode_locked"
+
+            invalid = client.post(
+                f"/workspace/conversations/{chat_id}/runs",
+                json={
+                    "conversation_id": chat_id,
+                    "client_request_id": "chat-invalid",
+                    "text": "mode test",
+                    "facts": {"task_mode": "invalid"},
+                },
+                headers=headers,
+            )
+            assert invalid.status_code == 422
+
+            work = client.post(
+                "/workspace/conversations",
+                json={"task_mode": "work"},
+                headers=headers,
+            ).json()["conversation"]
+            work_id = work["conversation_id"]
+            assert work["task_mode"] == "work"
+            response = client.post(
+                f"/workspace/conversations/{work_id}/runs",
+                json={
+                    "conversation_id": work_id,
+                    "client_request_id": "work-1",
+                    "text": "mode test",
+                    "facts": {"task_mode": "work"},
+                },
+                headers=headers,
+            )
+            assert response.status_code == 202
+            assert response.json()["run"]["payload"]["facts"]["task_mode"] == "work"
     finally:
         database.close()
 

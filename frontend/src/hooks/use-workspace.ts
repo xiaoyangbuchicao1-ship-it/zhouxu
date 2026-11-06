@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useLocation } from "react-router-dom";
 import { saveSession } from "@/lib/auth-session";
 import type { AuthSession } from "@/lib/auth";
-import { workbenchApi, WorkbenchError, acceptStreamSequence, type Activity, type Material, type RunEnvelope, type RunStatus } from "@/lib/workbench-api";
+import { workbenchApi, WorkbenchError, acceptStreamSequence, type Activity, type Material, type RunEnvelope, type RunStatus, type TaskMode } from "@/lib/workbench-api";
 
 export interface PendingTurn { conversationId: string; runId?: string; question: string; answer: string; materials: Material[]; updates: string[]; activities: Activity[]; state: "receiving" | "waiting" | "completed" | "failed" | "stopped" | "interrupted"; status: RunStatus; revision: number; error?: string; inputRequest?: { requestId: string; question: string }; }
 export interface Upload { key: string; conversationId: string; file: File; error?: string; }
@@ -21,9 +21,8 @@ export function useWorkspace(session: AuthSession, id?: string) {
   const scope = useMemo(() => ["workbench", session.account.id], [session.account.id]);
   const attachmentKey = `zhouxu.attachments.v1.${session.account.id}`;
   const [notice, setNotice] = useState("");
-  const taskModeKey = `zhouxu.task-mode.v1.${session.account.id}`;
-  const [taskMode,setTaskMode] = useState<"chat"|"work">(()=>sessionStorage.getItem(taskModeKey)==='work'?'work':'chat');
-  useEffect(()=>{sessionStorage.setItem(taskModeKey,taskMode);},[taskModeKey,taskMode]);
+  const initialMode = new URLSearchParams(location.search).get("mode") === "work" ? "work" : "chat";
+  const [taskMode, setTaskModeState] = useState<TaskMode>(initialMode);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [attachments, setAttachments] = useState<Record<string, Material[]>>(() => {
     try { return JSON.parse(sessionStorage.getItem(attachmentKey) || "{}"); } catch { return {}; }
@@ -42,6 +41,26 @@ export function useWorkspace(session: AuthSession, id?: string) {
   const history = useQuery({ queryKey: [...scope, "history"], queryFn: ({ signal }) => api.conversations(signal), retry: false });
   const resources = useQuery({ queryKey: [...scope, "resources"], queryFn: ({ signal }) => api.resources(signal), retry: false });
   const detail = useQuery({ queryKey: [...scope, "chat", id], queryFn: ({ signal }) => api.detail(id!, signal), enabled: Boolean(id), retry: false });
+  const conversationMode = detail.data?.conversation.task_mode;
+  useEffect(() => {
+    if (id) {
+      if (conversationMode) setTaskModeState(conversationMode);
+      return;
+    }
+    const requested = new URLSearchParams(location.search).get("mode");
+    setTaskModeState(requested === "work" ? "work" : "chat");
+  }, [conversationMode, id, location.search]);
+  const setTaskMode = useCallback((next: TaskMode) => {
+    // A persisted conversation owns its mode.  The control is rendered as a
+    // locked status for it; this guard also protects callers outside the UI.
+    if (id && conversationMode) return;
+    setTaskModeState(next);
+    const params = new URLSearchParams(location.search);
+    if (next === "work") params.set("mode", "work");
+    else params.delete("mode");
+    const query = params.toString();
+    navigate(`${location.pathname}${query ? `?${query}` : ""}`, { replace: true });
+  }, [conversationMode, id, location.pathname, location.search, navigate]);
   const currentCards = Object.values(cards).filter(c => c.conversationId === id);
   const turn = currentCards.find(c => c.status === "running") || currentCards.find(c => c.status === "queued") || currentCards.find(c => c.status === "waiting_user") || currentCards.at(-1) || null;
   const queuedRuns = currentCards.filter(c => c !== turn);
@@ -74,9 +93,10 @@ export function useWorkspace(session: AuthSession, id?: string) {
   async function act(operation: () => Promise<unknown>) { try { await operation(); await refresh(); return true; } catch (e) { report(e); return false; } }
   async function ensureConversation() {
     if (id) return id;
-    if (!creation.current) creation.current = api.create().then(chat => {
+    if (!creation.current) creation.current = api.create(undefined, taskMode).then(chat => {
       if (lifetime.signal.aborted) throw new DOMException("Aborted", "AbortError");
       draftTarget.current = chat.id;
+      setTaskModeState(chat.task_mode || taskMode);
       setDrafts(current => { const next = { ...current, [chat.id]: current.new || current[chat.id] || "" }; delete next.new; return next; });
       navigate(`/workspace/chat/${chat.id}${location.search}`, { replace: true });
       void client.invalidateQueries({ queryKey: [...scope, "history"] }); return chat.id;
@@ -173,14 +193,15 @@ export function useWorkspace(session: AuthSession, id?: string) {
     try {
       const conversationId = await ensureConversation(); const sent = [...draftMaterials];
       let run: RunEnvelope;
+      const requestMode = detail.data?.conversation.task_mode || taskMode;
       if (mode === "steer" && turn?.runId && turn.status === "running") {
-        run = (await api.steer(turn.runId, conversationId, question, [], sent.map(m => m.id), skillId, caseId, taskMode)).run;
+        run = (await api.steer(turn.runId, conversationId, question, [], sent.map(m => m.id), skillId, caseId, requestMode)).run;
         controllers.current[run.run_id]?.abort(); delete controllers.current[run.run_id];
       } else if (turn?.state === "waiting" && turn.runId && turn.inputRequest) {
         run = (await api.resume(turn.runId, conversationId, turn.inputRequest.requestId, question, sent.map(m => m.id))).run;
       } else {
         const key = crypto.randomUUID();
-        const submit = () => api.submit(conversationId, question, [], lifetime.signal, key, undefined, sent.map(m => m.id), skillId, caseId, taskMode);
+        const submit = () => api.submit(conversationId, question, [], lifetime.signal, key, undefined, sent.map(m => m.id), skillId, caseId, requestMode);
         try { run = (await submit()).run; }
         catch (e) { if (e instanceof WorkbenchError && e.status === 0 && !lifetime.signal.aborted) run = (await submit()).run; else throw e; }
       }
@@ -224,7 +245,7 @@ export function useWorkspace(session: AuthSession, id?: string) {
   async function retryTurn(runId = turn?.runId) {
     if (!id || !runId || submitLock.current) return;
     submitLock.current = true;
-    try { const source = (await api.run(runId, id)).run; if (source.status === "waiting_user") { const stopped = await api.stop(runId, id); await applyRun(id, stopped.run); } const selectedSkill = typeof source.payload.facts.skill_id === "string" ? source.payload.facts.skill_id : undefined; const { run } = await api.submit(id, source.payload.text, source.payload.material_ids, lifetime.signal, crypto.randomUUID(), runId, source.payload.attached_material_ids, selectedSkill, typeof source.payload.facts.case_id === "string" ? source.payload.facts.case_id : undefined, source.payload.facts.task_mode === "work" ? "work" : "chat"); await applyRun(id, run); observe(id, run.run_id); await refresh(); }
+    try { const source = (await api.run(runId, id)).run; if (source.status === "waiting_user") { const stopped = await api.stop(runId, id); await applyRun(id, stopped.run); } const selectedSkill = typeof source.payload.facts.skill_id === "string" ? source.payload.facts.skill_id : undefined; const requestMode = detail.data?.conversation.task_mode || (source.payload.facts.task_mode === "work" ? "work" : "chat"); const { run } = await api.submit(id, source.payload.text, source.payload.material_ids, lifetime.signal, crypto.randomUUID(), runId, source.payload.attached_material_ids, selectedSkill, typeof source.payload.facts.case_id === "string" ? source.payload.facts.case_id : undefined, requestMode); await applyRun(id, run); observe(id, run.run_id); await refresh(); }
     catch (e) { report(e); } finally { submitLock.current = false; }
   }
   async function cancel(interrupt = false) {

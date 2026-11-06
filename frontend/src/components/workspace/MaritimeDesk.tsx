@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowUpRight,
   BookOpen,
+  Compass,
   ChevronLeft,
   Download,
   FileText,
@@ -188,7 +189,7 @@ function Skills({
           </button>
         </div>
       ) : (
-        <div className="md-skill-list">
+        <div className={`md-skill-list ${!rows.length ? "is-empty" : ""}`}>
           {rows.map((s, i) => (
             <article className="md-skill" key={s.id}>
               <div className="md-skill-number">
@@ -228,13 +229,18 @@ function Skills({
             </article>
           ))}
           {!rows.length && (
-            <div className="md-empty">
-              这里还没有技能。你可以创建自己的工作规范。
+            <div className="md-empty md-skill-empty">
+              <span className="md-empty-mark" aria-hidden="true"><Compass size={23} /></span>
+              <p>这里还没有技能。你可以创建自己的工作规范。</p>
+              <button className="ws-secondary-button" onClick={() => edit(null)}>
+                <Plus size={15} />
+                创建第一项技能
+              </button>
             </div>
           )}
         </div>
       )}
-      <p className="md-footnote">
+      <p className={`md-footnote md-skills-footnote ${!rows.length ? "is-empty" : ""}`}>
         技能以文字工作规范运行，不执行上传代码。社区分享对其他注册用户可见，不代表舟序专业认证。
       </p>
       <Modal

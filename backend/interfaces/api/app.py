@@ -287,6 +287,41 @@ def create_app(
             raise HTTPException(status_code=404, detail=exc.code) from None
         return principal
 
+    def bind_conversation_task_mode(
+        request: Request,
+        principal: AccountPrincipal,
+        conversation_id: str,
+        facts: dict,
+    ) -> dict:
+        """Bind every new/steered run to its conversation's fixed mode.
+
+        The browser sends the mode for clarity, but the database is the
+        authority.  A missing mode is filled from the conversation for older
+        clients; an explicit mismatch is rejected instead of silently
+        changing execution permissions mid-thread.
+        """
+
+        service_instance = workspace(request)
+        if service_instance is None:
+            raise HTTPException(status_code=503, detail="workspace_service_unavailable")
+        try:
+            conversation = service_instance.get(
+                account_id=principal.id,
+                conversation_id=conversation_id,
+                include_archived=True,
+            )
+        except WorkspaceError as exc:
+            raise HTTPException(status_code=404, detail=exc.code) from None
+        mode = getattr(conversation, "task_mode", "chat")
+        requested = facts.get("task_mode")
+        if requested is not None and requested not in {"chat", "work"}:
+            raise HTTPException(status_code=422, detail="invalid_task_mode")
+        if requested is not None and requested != mode:
+            raise HTTPException(status_code=409, detail="conversation_mode_locked")
+        bound = dict(facts)
+        bound["task_mode"] = mode
+        return bound
+
     def require_session_owner(
         request: Request, session_id: str, authorization: str | None
     ) -> AccountPrincipal | None:
@@ -388,6 +423,7 @@ def create_app(
             conversation_id=conversation.id,
             project_id=getattr(conversation, "project_id", None),
             title=conversation.title,
+            task_mode=getattr(conversation, "task_mode", "chat"),
             pinned=conversation.pinned,
             archived_at=conversation.archived_at,
             created_at=conversation.created_at,
@@ -475,6 +511,7 @@ def create_app(
                 account_id=principal.id,
                 title=body.title,
                 project_id=body.project_id,
+                task_mode=body.task_mode,
             )
         except WorkspaceError as exc:
             raise HTTPException(status_code=404, detail=exc.code) from None
@@ -787,6 +824,10 @@ def create_app(
                 else:
                     from backend.contracts.modules.loop import RunInput
 
+                    bound_facts = bind_conversation_task_mode(
+                        request, principal, conversation_id, body.facts
+                    )
+
                     steer_material_ids = list(body.material_ids)
                     if not steer_material_ids:
                         service_instance = workspace(request)
@@ -819,7 +860,7 @@ def create_app(
                         run_id=body.target_run_id,
                         payload=RunInput(
                             text=body.text,
-                            facts=request.app.state.resolve_maritime_skill(request, principal.id, body.facts),
+                            facts=request.app.state.resolve_maritime_skill(request, principal.id, bound_facts),
                             constraints=body.constraints,
                             material_ids=steer_material_ids,
                         ),
@@ -858,6 +899,10 @@ def create_app(
                 raise HTTPException(status_code=404, detail=exc.code) from None
         from backend.contracts.modules.loop import RunInput
 
+        bound_facts = bind_conversation_task_mode(
+            request, principal, conversation_id, body.facts
+        )
+
         try:
             _, run = await service(request).submit(
                 session_id=conversation_id,
@@ -868,7 +913,7 @@ def create_app(
                 payload=RunInput(
                     text=body.text,
                     thinking_mode=body.thinking_mode or settings.model.thinking_mode,
-                    facts=request.app.state.resolve_maritime_skill(request, principal.id, body.facts),
+                    facts=request.app.state.resolve_maritime_skill(request, principal.id, bound_facts),
                     constraints=body.constraints,
                     material_ids=material_ids,
                     attached_material_ids=body.attached_material_ids,
@@ -1011,6 +1056,26 @@ def create_app(
         authorization: str | None = Header(default=None),
     ):
         principal = require_conversation(request, body.conversation_id, authorization)
+        # Keep the steer boundary self-contained: this route is also exercised
+        # by an isolated AST seam test that supplies only the route globals.
+        service_instance = workspace(request)
+        bound_facts = dict(body.facts)
+        if hasattr(service_instance, "get"):
+            try:
+                conversation = service_instance.get(
+                    account_id=principal.id,
+                    conversation_id=body.conversation_id,
+                    include_archived=True,
+                )
+            except WorkspaceError as exc:
+                raise HTTPException(status_code=404, detail=exc.code) from None
+            mode = getattr(conversation, "task_mode", "chat")
+            requested = bound_facts.get("task_mode")
+            if requested is not None and requested not in {"chat", "work"}:
+                raise HTTPException(status_code=422, detail="invalid_task_mode")
+            if requested is not None and requested != mode:
+                raise HTTPException(status_code=409, detail="conversation_mode_locked")
+            bound_facts["task_mode"] = mode
         ids = list(body.material_ids) or workspace(request).list_conversation_material_ids(account_id=principal.id, conversation_id=body.conversation_id)
         ids = list(dict.fromkeys(ids + body.attached_material_ids))
         if ids:
@@ -1036,7 +1101,7 @@ def create_app(
                 run_id=run_id,
                 payload=RunInput(
                     text=body.text,
-                    facts=request.app.state.resolve_maritime_skill(request, principal.id, body.facts),
+                    facts=request.app.state.resolve_maritime_skill(request, principal.id, bound_facts),
                     constraints=body.constraints,
                     material_ids=ids,
                     attached_material_ids=body.attached_material_ids,

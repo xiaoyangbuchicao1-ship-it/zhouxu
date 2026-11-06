@@ -15,11 +15,15 @@ import {
   Folder,
   ArrowLeft,
   Plus,
+  MessageCircle,
+  BriefcaseBusiness,
+  LoaderCircle,
+  LockKeyhole,
 } from "lucide-react";
 import { useAuthSession, saveSession, getSignedOutNotice } from "@/lib/auth-session";
 import { revokeSession, type AuthSession } from "@/lib/auth";
 import { useWorkspace } from "@/hooks/use-workspace";
-import type { Conversation as Chat, Resource } from "@/lib/workbench-api";
+import type { Conversation as Chat, Resource, TaskMode } from "@/lib/workbench-api";
 import Sidebar, { type SidebarProps } from "@/components/workspace/Sidebar";
 import Conversation from "@/components/workspace/Conversation";
 import {
@@ -36,6 +40,42 @@ interface Confirmation {
   description: string;
   action: string;
   run: () => Promise<unknown>;
+}
+
+function TaskModeControl({
+  mode,
+  locked,
+  transitioning,
+  onChange,
+}: {
+  mode: TaskMode;
+  locked: boolean;
+  transitioning: boolean;
+  onChange: (mode: TaskMode) => void;
+}) {
+  const options: { value: TaskMode; label: string; hint: string; Icon: typeof MessageCircle }[] = [
+    { value: "chat", label: "聊天", hint: "问答、读资料与检索", Icon: MessageCircle },
+    { value: "work", label: "工作", hint: "允许在隔离工作区执行任务", Icon: BriefcaseBusiness },
+  ];
+  return (
+    <div className={`ws-task-mode ${locked ? "is-locked" : ""} ${transitioning ? "is-transitioning" : ""}`} role="group" aria-label={locked ? "已固定的会话模式" : "新会话模式"}>
+      {options.map(({ value, label, hint, Icon }) => (
+        <button
+          key={value}
+          type="button"
+          title={locked ? `此会话已固定为${label === "聊天" ? "聊天" : "工作"}模式` : hint}
+          aria-pressed={mode === value}
+          aria-label={label}
+          disabled={locked || transitioning}
+          onClick={() => onChange(value)}
+        >
+          {mode === value && <motion.span layoutId="ws-task-mode-active" className="ws-task-mode-active" transition={{ type: "spring", stiffness: 420, damping: 32 }} />}
+          <span className="ws-task-mode-content"><Icon size={14} aria-hidden="true" /><span>{label}</span></span>
+        </button>
+      ))}
+      {locked && <span className="ws-task-mode-lock" title="会话模式已固定"><LockKeyhole size={13} aria-hidden="true" /></span>}
+    </div>
+  );
 }
 
 function Desk({ session }: { session: AuthSession }) {
@@ -59,6 +99,19 @@ function Desk({ session }: { session: AuthSession }) {
   const [moving, setMoving] = useState<Chat | null>(null);
   const [targetProject, setTargetProject] = useState("");
   const [preview, setPreview] = useState<Resource | null>(null);
+  const [modeTransition, setModeTransition] = useState<TaskMode | null>(null);
+
+  useEffect(() => {
+    if (!modeTransition) return;
+    const timer = window.setTimeout(() => setModeTransition(null), 280);
+    return () => window.clearTimeout(timer);
+  }, [modeTransition]);
+
+  function changeTaskMode(next: TaskMode) {
+    if (id || ws.busy || ws.taskMode === next) return;
+    setModeTransition(next);
+    ws.setTaskMode(next);
+  }
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 1100px)");
@@ -198,10 +251,29 @@ function Desk({ session }: { session: AuthSession }) {
                 <span title={title}>{title}</span>
               </div>
             </div>
-            {!library && !officePage && <div className="ws-task-mode" role="group" aria-label="任务模式">
-              <button type="button" title="下一次请求仅问答、读资料与检索" aria-pressed={ws.taskMode==='chat'} onClick={()=>ws.setTaskMode('chat')}>聊天</button>
-              <button type="button" title="下一次任务允许在隔离工作区运行代码并交付文件" aria-pressed={ws.taskMode==='work'} onClick={()=>ws.setTaskMode('work')}>工作</button>
-            </div>}
+            {!library && !officePage && <>
+              <TaskModeControl
+                mode={ws.taskMode}
+                locked={Boolean(id)}
+                transitioning={Boolean(modeTransition)}
+                onChange={changeTaskMode}
+              />
+              <AnimatePresence initial={false}>
+                {modeTransition && (
+                  <motion.div
+                    className="ws-mode-transition"
+                    role="status"
+                    aria-live="polite"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                  >
+                    <LoaderCircle size={13} aria-hidden="true" />
+                    正在准备{modeTransition === "work" ? "工作" : "聊天"}空间…
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>}
             <div className="ws-topbar-actions">
               {library || officePage ? (
                 <Link className="ws-text-button" to="/workspace">

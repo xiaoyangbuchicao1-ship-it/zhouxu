@@ -126,6 +126,48 @@
   color: var(--ws-muted);
   line-height: 2;
 }
+.md-skill-list.is-empty {
+  display: block;
+  min-height: 270px;
+}
+.md-skill-empty {
+  min-height: 270px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid #202d3a;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #0d141c 0%, #0a1016 100%);
+}
+.md-empty-mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 2px;
+  border: 1px solid #31495e;
+  border-radius: 50%;
+  color: var(--ws-accent);
+  background: #162433;
+}
+.md-skill-empty p {
+  margin: 0;
+  color: #c4cfdb;
+  font-size: 15px;
+}
+.md-skill-empty .ws-secondary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 2px;
+}
+.md-skills-footnote.is-empty {
+  max-width: 720px;
+  margin: 20px auto;
+  text-align: center;
+}
 .md-empty h2 {
   font-size: 21px;
   font-weight: 400;

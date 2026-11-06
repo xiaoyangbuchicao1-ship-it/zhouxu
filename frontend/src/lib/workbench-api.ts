@@ -5,7 +5,8 @@ export type RunStatus =
   | "failed" | "stopped" | "interrupted";
 
 export interface Project { id: string; name: string; conversation_count: number; created_at: string; updated_at: string; }
-export interface Conversation { id: string; title: string; project_id: string | null; pinned: boolean; preview?: string; material_count?: number; created_at: string; updated_at: string; }
+export type TaskMode = "chat" | "work";
+export interface Conversation { id: string; title: string; project_id: string | null; task_mode: TaskMode; pinned: boolean; preview?: string; material_count?: number; created_at: string; updated_at: string; }
 export interface Material { id: string; filename: string; status: string; size_bytes?: number; content_type?: string; issue?: string | null; }
 export interface Resource extends Material { chunk_count?: number; conversation_count?: number; created_at: string; updated_at: string; }
 export interface Passage { id: string; ordinal: number; locator?: string; heading_path?: string[] | string; text: string; enabled?: boolean; }
@@ -71,11 +72,11 @@ export function workbenchApi(token: string, lifetime?: AbortSignal) {
   const conversationPath = (id: string) => `/workspace/conversations/${segment(id)}`;
   const runPath = (id: string) => `/workspace/runs/${segment(id)}`;
   const material = (raw: any): Resource => ({ id: raw.material_id, filename: raw.name, status: raw.status, size_bytes: raw.size_bytes, issue: raw.issue ?? null, content_type: raw.media_type, created_at: raw.created_at || new Date().toISOString(), updated_at: raw.updated_at || raw.created_at || new Date().toISOString() });
-  const conversation = (raw: any): Conversation => ({ id: raw.conversation_id, title: raw.title, project_id: raw.project_id ?? null, pinned: raw.pinned, created_at: raw.created_at, updated_at: raw.updated_at, material_count: raw.material_count });
+  const conversation = (raw: any): Conversation => ({ id: raw.conversation_id, title: raw.title, project_id: raw.project_id ?? null, task_mode: raw.task_mode === "work" ? "work" : "chat", pinned: raw.pinned, created_at: raw.created_at, updated_at: raw.updated_at, material_count: raw.material_count });
   const detail = (raw: any): ConversationDetail => ({ conversation: conversation(raw.conversation), messages: (raw.messages || []).map((m: any) => ({ id: m.message_id, role: m.role, content: m.content, created_at: m.created_at, run_id: m.run_id, status: m.status, error_code: m.error_code ?? null, materials: (m.materials || []).map(material), updates: m.updates || [] })), pending_materials: [], linked_resources: (raw.materials || []).map(material) });
   return {
     conversations: async (signal?: AbortSignal) => ({ conversations: (await request<any>("/workspace/conversations", {}, signal)).conversations.map(conversation) }),
-    create: async (_projectId?: string) => conversation((await request<any>("/workspace/conversations", { method: "POST", body: JSON.stringify({ title: "" }) })).conversation),
+    create: async (_projectId?: string, taskMode: TaskMode = "chat") => conversation((await request<any>("/workspace/conversations", { method: "POST", body: JSON.stringify({ title: "", task_mode: taskMode }) })).conversation),
     update: async (id: string, input: { title?: string; pinned?: boolean }) => conversation((await request<any>(conversationPath(id), { method: "PATCH", body: JSON.stringify(input) })).conversation),
     deleteChat: (id: string) => request<void>(conversationPath(id), { method: "DELETE" }),
     pin: (id: string, pinned: boolean) => request<void>(conversationPath(id), { method: "PATCH", body: JSON.stringify({ pinned }) }),

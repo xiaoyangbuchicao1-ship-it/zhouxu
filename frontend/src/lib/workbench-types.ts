@@ -13,4 +13,5 @@ export type {
   RunStatus,
   SessionSnapshot,
   StreamEvent,
+  TaskMode,
 } from "./workbench-api";

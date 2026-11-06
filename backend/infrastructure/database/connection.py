@@ -78,9 +78,15 @@ class Database:
                 column["name"]
                 for column in inspector.get_columns("conversations")
             }
+        task_mode_added = False
         with self.engine.begin() as connection:
             if "conversations" in tables and "project_id" not in conversation_columns:
                 connection.execute(text("ALTER TABLE conversations ADD COLUMN project_id VARCHAR(32)"))
+            if "conversations" in tables and "task_mode" not in conversation_columns:
+                connection.execute(
+                    text("ALTER TABLE conversations ADD COLUMN task_mode VARCHAR(8) NOT NULL DEFAULT 'chat'")
+                )
+                task_mode_added = True
         self._migrate_conversation_project_fk(tables)
         if "conversation_runs" not in tables:
             return
@@ -115,6 +121,20 @@ class Database:
                         "ON conversation_runs (conversation_id, client_request_id)"
                     )
                 )
+            if task_mode_added and "conversations" in tables:
+                # Before task_mode existed, work permission lived in each run
+                # payload. Preserve that history when it is unambiguous; old
+                # conversations without a work run remain chat sessions.
+                connection.execute(
+                    text(
+                        "UPDATE conversations SET task_mode = 'work' "
+                        "WHERE task_mode = 'chat' AND id IN ("
+                        "SELECT conversation_id FROM conversation_runs WHERE "
+                        "payload_json LIKE '%\"task_mode\": \"work\"%' OR "
+                        "payload_json LIKE '%\"task_mode\":\"work\"%'"
+                        ")"
+                    )
+                )
 
     def _migrate_conversation_project_fk(self, tables: set[str]) -> None:
         """Add the project ownership FK to pre-project SQLite databases.
@@ -144,6 +164,7 @@ class Database:
                             account_id VARCHAR(32) NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
                             project_id VARCHAR(32) REFERENCES projects(id) ON DELETE SET NULL,
                             title VARCHAR(200) NOT NULL,
+                            task_mode VARCHAR(8) NOT NULL DEFAULT 'chat',
                             pinned BOOLEAN NOT NULL,
                             archived_at DATETIME,
                             created_at DATETIME NOT NULL,
@@ -154,8 +175,8 @@ class Database:
                     connection.exec_driver_sql(
                         """
                         INSERT INTO conversations__contract_migration
-                            (id, account_id, project_id, title, pinned, archived_at, created_at, updated_at)
-                        SELECT id, account_id, project_id, title, pinned, archived_at, created_at, updated_at
+                            (id, account_id, project_id, title, task_mode, pinned, archived_at, created_at, updated_at)
+                        SELECT id, account_id, project_id, title, task_mode, pinned, archived_at, created_at, updated_at
                         FROM conversations
                         """
                     )

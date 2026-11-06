@@ -254,6 +254,15 @@
   align-items: center;
   gap: 6px;
 }
+.ws-history-mode {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  color: #73879b;
+}
+.ws-history-row.is-selected .ws-history-mode {
+  color: #a8c2dc;
+}
 .ws-history-group .ws-pinned-heading {
   justify-content: space-between;
   height: 28px;
@@ -1879,16 +1888,27 @@
 .ws-user-update small { color: #a7bbcf; font-size: 12px; }
 .ws-user-update p { margin-top: 3px; }
 
-/* Chat/work is a request permission choice, independent of model thinking mode. */
+/* Chat/work is a conversation boundary, not a per-request thinking toggle. */
 .ws-topbar.has-task-mode { position: relative; }
 .has-task-mode .ws-topbar-leading { max-width: calc(50% - 116px); }
-.ws-task-mode { position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; padding: 4px; border-radius: 24px; background: #10171e; }
-.ws-task-mode button { min-width: 78px; padding: 7px 18px; border-radius: 20px; color: var(--ws-muted); font-size: 14px; }
-.ws-task-mode button[aria-pressed="true"] { color: var(--ws-text); background: #23303c; }
+.ws-task-mode { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 3px; padding: 4px; border: 1px solid #263544; border-radius: 24px; background: #10171e; box-shadow: 0 8px 24px #0000001f; }
+.ws-task-mode button { position: relative; min-width: 82px; padding: 7px 15px; border-radius: 20px; color: var(--ws-muted); font-size: 13px; }
+.ws-task-mode button[aria-pressed="true"] { color: var(--ws-text); }
+.ws-task-mode button:disabled { cursor: default; }
+.ws-task-mode.is-locked button:disabled { opacity: 1; }
+.ws-task-mode-active { position: absolute; inset: 0; border-radius: 20px; background: #25384a; box-shadow: inset 0 0 0 1px #38516a; }
+.ws-task-mode-content { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.ws-task-mode-lock { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-right: 2px; color: #708399; }
+.ws-task-mode.is-transitioning { border-color: #42617c; }
+.ws-task-mode.is-transitioning .ws-task-mode-active { background: #29465e; }
+.ws-mode-transition { position: absolute; top: 57px; left: 50%; z-index: 4; display: inline-flex; align-items: center; gap: 6px; transform: translateX(-50%); padding: 5px 10px; border: 1px solid #2e4559; border-radius: 999px; background: #111c27eF; color: #a8bfd5; font-size: 11px; white-space: nowrap; box-shadow: 0 8px 22px #0000002b; }
+.ws-mode-transition svg { animation: ws-mode-spin .8s linear infinite; }
 .ws-task-mode button:focus-visible { outline: 2px solid var(--ws-accent); outline-offset: 2px; }
+@keyframes ws-mode-spin { to { transform: rotate(360deg); } }
 @media (max-width: 700px) {
   .ws-topbar.has-task-mode { flex-wrap: wrap; height: auto; min-height: 100px; padding-bottom: 8px; gap: 4px; }
   .has-task-mode .ws-topbar-leading { max-width: calc(100% - 64px); }
   .has-task-mode .ws-topbar-actions { margin-left: auto; }
   .ws-task-mode { position: static; transform: none; order: 3; margin: 0 auto; }
+  .ws-mode-transition { top: 91px; }
 }

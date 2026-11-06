@@ -13,7 +13,7 @@ import {
   Trash2,
   LogOut,
   ArrowUpRight,
-  Compass, Search, BriefcaseBusiness,
+  Compass, Search, BriefcaseBusiness, MessageCircle,
 } from "lucide-react";
 import logo from "../../../zhou-xu-mark.png";
 import { IconButton, Menu, MenuItem, Loading, LoadError } from "./Primitives";
@@ -79,6 +79,13 @@ export default function Sidebar({
         aria-current={id === chat.id ? "page" : undefined}
       >
         <span>{chat.title}</span>
+        <span
+          className="ws-history-mode"
+          title={chat.task_mode === "work" ? "工作会话" : "聊天会话"}
+          aria-label={chat.task_mode === "work" ? "工作会话" : "聊天会话"}
+        >
+          {chat.task_mode === "work" ? <BriefcaseBusiness size={13} /> : <MessageCircle size={13} />}
+        </span>
         {ws.turn?.conversationId === chat.id && ws.turn.state === "receiving" && (
           <span className="ws-receiving-dot" aria-label="正在接收回答" />
         )}

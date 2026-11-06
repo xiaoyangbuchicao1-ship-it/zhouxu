@@ -168,6 +168,7 @@ class WorkspaceConversationView(Contract):
     conversation_id: str
     project_id: str | None = None
     title: str
+    task_mode: Literal["chat", "work"] = "chat"
     pinned: bool
     archived_at: datetime | None = None
     created_at: datetime
@@ -182,6 +183,7 @@ class WorkspaceConversationListResponse(Contract):
 class CreateConversationRequest(Contract):
     title: str = Field(default="", max_length=200)
     project_id: str | None = Field(default=None, min_length=1)
+    task_mode: Literal["chat", "work"] = "chat"
 
 
 class UpdateConversationRequest(Contract):

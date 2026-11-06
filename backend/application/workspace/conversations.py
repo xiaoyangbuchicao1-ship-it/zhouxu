@@ -61,14 +61,17 @@ class WorkspaceService:
 
     def create(
         self, *, account_id: str, title: str | None = None,
-        project_id: str | None = None,
+        project_id: str | None = None, task_mode: str = "chat",
     ) -> ConversationModel:
+        if task_mode not in {"chat", "work"}:
+            raise WorkspaceError("invalid_task_mode")
         now = self._now()
         conversation = ConversationModel(
             id=secrets.token_hex(16),
             account_id=account_id,
             project_id=project_id,
             title=self._title(title),
+            task_mode=task_mode,
             pinned=False,
             created_at=now,
             updated_at=now,
@@ -110,6 +113,7 @@ class WorkspaceService:
                 account_id=conversation.account_id,
                 project_id=conversation.project_id,
                 title=self._display_title(session, conversation),
+                task_mode=getattr(conversation, "task_mode", "chat"),
                 pinned=conversation.pinned,
                 archived_at=conversation.archived_at,
                 created_at=conversation.created_at,

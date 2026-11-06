@@ -112,6 +112,10 @@ class ConversationModel(Base):
         ForeignKey("projects.id", ondelete="SET NULL"), index=True
     )
     title: Mapped[str] = mapped_column(String(200), default="新对话")
+    # The execution boundary belongs to the conversation.  Keeping it here
+    # prevents a later request (or another browser tab) from changing a chat
+    # into a work session after the conversation has started.
+    task_mode: Mapped[str] = mapped_column(String(8), default="chat", nullable=False)
     pinned: Mapped[bool] = mapped_column(Boolean, default=False)
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
