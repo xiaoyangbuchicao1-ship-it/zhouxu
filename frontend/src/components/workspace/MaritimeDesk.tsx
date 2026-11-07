@@ -227,7 +227,7 @@ function Skills({
           {!rows.length && (
             <div className="md-empty md-skill-empty">
               <span className="md-empty-mark" aria-hidden="true"><Compass size={23} /></span>
-              <p>这里还没有技能。你可以创建自己的工作规范。</p>
+              <p>这里还没有技能。你可以创建自己的处理方式。</p>
               <button className="ws-secondary-button" onClick={() => edit(null)}>
                 <Plus size={15} />
                 创建第一项技能
@@ -276,14 +276,14 @@ function Skills({
             />
           </label>
           <label>
-            工作规范
+            处理说明
             <textarea
               required
               rows={10}
               maxLength={20000}
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
-              placeholder="适用场景、需要的材料、工作步骤、交付标准、失败时怎样处理…"
+              placeholder="使用场景、需要的材料、处理步骤、交付结果、异常时怎样处理…"
             />
           </label>
           <label>
