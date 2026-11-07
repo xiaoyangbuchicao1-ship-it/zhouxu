@@ -272,22 +272,82 @@
 .md-result-info {
   display: flex;
   justify-content: space-between;
-  margin-top: 34px;
+  margin: 34px 0 12px;
   font-size: 13px;
   color: #9eb3ca;
 }
 .md-result {
-  border-bottom: 1px solid var(--ws-line);
-  padding: 24px 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 17px 19px;
+  margin-top: 10px;
+  border: 1px solid #2e4052;
+  border-radius: 15px;
+  background: #15212d;
+  box-shadow: 0 8px 22px rgb(3 10 18 / 12%);
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+.md-result:hover {
+  border-color: #46617a;
+  background: #182735;
+  transform: translateY(-1px);
+}
+.md-result-kind {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 52px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+.md-result-kind.is-law {
+  background: #294765;
+  color: #c1d9ef;
+}
+.md-result-kind.is-case {
+  background: #433b38;
+  color: #dec8b8;
+}
+.md-result-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
 }
 .md-result h2 {
-  margin-top: 13px;
+  overflow: hidden;
+  margin: 0;
+  color: #d9e5f1;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.md-excerpt {
-  line-height: 1.9;
-  white-space: pre-wrap;
-  color: #c0cbd8;
-  font-size: 14px;
+.md-result-locator {
+  overflow: hidden;
+  margin: 0;
+  color: #91a8bf;
+  font-size: 13px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.md-result-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  color: #a8c9ed;
+  white-space: nowrap;
+}
+.md-result-open:hover {
+  color: #d4e7fa;
 }
 .md-case-row {
   width: 100%;
@@ -450,6 +510,25 @@
   }
   .md-case-row {
     gap: 12px;
+  }
+  .md-result {
+    align-items: flex-start;
+    gap: 11px;
+    padding: 14px;
+  }
+  .md-result-kind {
+    min-width: 44px;
+    min-height: 32px;
+    padding: 0 7px;
+    font-size: 12px;
+  }
+  .md-result h2,
+  .md-result-locator {
+    white-space: normal;
+  }
+  .md-result-open {
+    align-self: center;
+    font-size: 13px;
   }
   .md-case-row > .md-tag {
     display: none;

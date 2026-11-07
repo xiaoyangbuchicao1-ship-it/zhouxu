@@ -1,5 +1,7 @@
 import { WorkbenchError } from "./workbench-api";
 
+const REQUEST_TIMEOUT_MS = 600_000;
+
 export interface MaritimeSkill {
   id: string;
   name: string;
@@ -98,7 +100,7 @@ export function maritimeApi(token: string) {
     body?: unknown,
   ): Promise<T> {
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 30000);
+    const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
       const response = await fetch(`${base}/maritime${path}`, {
         method,

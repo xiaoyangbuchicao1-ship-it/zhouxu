@@ -81,22 +81,58 @@ def complete_case_text(item):
 LAW_METADATA_RE = re.compile(
     r"^(?:条文ID|文献来源ID|文献名称|版本日期|效力状态|文献类型|原章节|原小节|条号|研究主题)[：:]"
 )
+INTERNAL_SOURCE_LINE_RE = re.compile(
+    r"^(?:[-*•·]\s*)?(?:"
+    r"库内标记(?:为)?现行(?:性)?|"
+    r"库内历史版本|"
+    r"库内未标记现行性|"
+    r"正文来自舟序已整理法规语料；版本日期和库内标签不等于联网核验效力"
+    r")(?:。)?$"
+)
+INTERNAL_LOCATOR_SUFFIX_RE = re.compile(
+    r"\s*[·•]\s*库内(?:标记(?:为)?现行(?:性)?|历史版本|未标记现行性)(?:。)?"
+)
+INTERNAL_CHUNK_LOCATOR_RE = re.compile(
+    r"^(?:原文\s*)?(?:第\s*\d+\s*个\s*)?(?:检索)?片段(?:\s*[:：]\s*\d+)?$"
+)
+
+
+def user_locator(locator):
+    """Keep human-readable article/section location only."""
+    if isinstance(locator, list):
+        values = [user_locator(value) for value in locator]
+        return [value for value in values if value]
+    if not isinstance(locator, str):
+        return locator
+    cleaned = INTERNAL_LOCATOR_SUFFIX_RE.sub("", locator).strip(" ·•")
+    # Case search locators describe the storage chunk, not a useful legal
+    # position. The complete source is opened from the card instead.
+    if INTERNAL_CHUNK_LOCATOR_RE.fullmatch(cleaned):
+        return None
+    return cleaned or None
 
 
 def user_source_text(kind, text):
     """Remove corpus bookkeeping headers before text reaches a user or model."""
-    if kind != "laws" or not isinstance(text, str):
+    if not isinstance(text, str):
         return text
     lines = text.splitlines()
-    metadata_count = sum(1 for line in lines[:20] if LAW_METADATA_RE.match(line.strip()))
-    if metadata_count < 2:
-        return text
     start = 0
-    while start < len(lines) and (
-        not lines[start].strip() or LAW_METADATA_RE.match(lines[start].strip())
-    ):
-        start += 1
-    return "\n".join(lines[start:]).strip()
+    if kind == "laws":
+        metadata_count = sum(
+            1 for line in lines[:20] if LAW_METADATA_RE.match(line.strip())
+        )
+        if metadata_count >= 2:
+            while start < len(lines) and (
+                not lines[start].strip() or LAW_METADATA_RE.match(lines[start].strip())
+            ):
+                start += 1
+    visible = [
+        line
+        for line in lines[start:]
+        if not INTERNAL_SOURCE_LINE_RE.match(line.strip())
+    ]
+    return "\n".join(visible).strip()
 
 
 def complete_source(item):
@@ -106,11 +142,19 @@ def complete_source(item):
     text = complete_law_text(item) if kind == "laws" else complete_case_text(item)
     if not text:
         cleaned_original = user_source_text(kind, original)
-        if cleaned_original != original or excerpt != item.get("excerpt"):
-            return {**item, "text": cleaned_original, "excerpt": excerpt}
-        return item
+        return {
+            **item,
+            "text": cleaned_original,
+            "excerpt": excerpt,
+            "locator": user_locator(item.get("locator")),
+        }
     cleaned = user_source_text(kind, text)
-    result = {**item, "text": cleaned, "excerpt": excerpt}
+    result = {
+        **item,
+        "text": cleaned,
+        "excerpt": excerpt,
+        "locator": user_locator(item.get("locator")),
+    }
     if len(text) > len(original):
         result["document_complete"] = True
     return result
@@ -278,7 +322,6 @@ class MaritimeCorpus:
         return {
             "indexed": True,
             "counts": counts,
-            "notice": "库内资料不等于当前法律效力已联网核验",
         }
 
     def source(self, kind, source_id, snapshot=None):
@@ -401,13 +444,14 @@ class MaritimeCorpus:
                 self.local_search, query, kind, current_only, limit
             )
             engine = "local-corpus-fulltext"
-        for item in items:
+        for index, item in enumerate(items):
             item = complete_source(item)
             snapshot = await asyncio.to_thread(self.remember_source, item)
             item["citation"] = f"[[ZX:{snapshot[:16]}]]"
             item["source_url"] = (
                 f"/api/maritime/sources/{kind}/{quote(item['id'], safe='')}?snapshot={snapshot}"
             )
+            items[index] = item
         return {
             "query": query,
             "kind": kind,

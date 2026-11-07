@@ -84,6 +84,90 @@ function SourceCitation({href,children}:{href:string;children:ReactNode}) {
   return <><button className="ws-text-button md-citation" onClick={()=>void show()}>{children}<ArrowUpRight size={13}/></button><Modal open={open} onOpenChange={setOpen} title={source?.title||"核对引用来源"} description={source?"舟序资料库中的完整原文":"从舟序资料库读取原文。"}>{error?<p role="alert">{error}</p>:source?<p className="md-source-text">{source.text}</p>:<Loading label="正在载入原文…"/>}</Modal></>;
 }
 
+function sourceLocator(source: CorpusSource) {
+  if (Array.isArray(source.locator)) return source.locator.filter(Boolean).join(" · ");
+  return source.locator || (source.kind === "laws" ? "法规原文" : "案例原文");
+}
+
+function EvidenceCard({ href }: { href: string }) {
+  const session = useAuthSession();
+  const [source, setSource] = useState<CorpusSource | null>(null);
+  const [open, setOpen] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const token = session?.session.token;
+
+  useEffect(() => {
+    let live = true;
+    setSource(null);
+    setFailed(false);
+    if (!token) {
+      setFailed(true);
+      return () => { live = false; };
+    }
+    const url = new URL(href, window.location.origin);
+    const match = url.pathname.match(/^\/(?:api\/)?maritime\/sources\/(laws|cases)\/(.+)$/);
+    if (!match) {
+      setFailed(true);
+      return () => { live = false; };
+    }
+    void maritimeApi(token)
+      .source(match[1], decodeURIComponent(match[2]), url.searchParams.get("snapshot") || undefined)
+      .then(value => { if (live) setSource(value); })
+      .catch(() => { if (live) setFailed(true); });
+    return () => { live = false; };
+  }, [href, token]);
+
+  if (failed) return null;
+  if (!source) {
+    return (
+      <article className="md-evidence-card is-loading" aria-label="正在载入回答依据">
+        正在载入依据…
+      </article>
+    );
+  }
+  const kindLabel = source.kind === "laws" ? "法规" : "案例";
+  return (
+    <>
+      <article className="md-evidence-card">
+        <span className={"md-evidence-kind " + (source.kind === "laws" ? "is-law" : "is-case")}>
+          {kindLabel}
+        </span>
+        <div className="md-evidence-copy">
+          <strong>{source.title}</strong>
+          <span>{sourceLocator(source)}</span>
+        </div>
+        <button className="md-evidence-open" onClick={() => setOpen(true)}>
+          查看原文
+          <ArrowUpRight size={16} aria-hidden="true" />
+        </button>
+      </article>
+      <Modal
+        open={open}
+        onOpenChange={setOpen}
+        title={source.title}
+        description={sourceLocator(source)}
+      >
+        <div className="md-source-text">{source.text}</div>
+      </Modal>
+    </>
+  );
+}
+
+function SourceEvidenceCards({ hrefs }: { hrefs: string[] }) {
+  if (!hrefs.length) return null;
+  return (
+    <section className="md-answer-evidence" aria-label="回答依据">
+      <div className="md-answer-evidence-heading">
+        <strong>回答依据</strong>
+        <span>相关法规与案例资料</span>
+      </div>
+      <div className="md-answer-evidence-list">
+        {hrefs.map(href => <EvidenceCard key={href} href={href} />)}
+      </div>
+    </section>
+  );
+}
+
 export function Markdown({ content }: { content: string }) {
   return (
     <div className="ws-prose">
@@ -169,10 +253,10 @@ function Answer({
       </div>
       <RunProgress activities={message.activity} />
       <Markdown content={message.content} />
+      <SourceEvidenceCards hrefs={sourceLinks} />
       <WorkPackages runId={message.run_id} renderText={text=><Markdown content={text}/>}/>
-      {sourceLinks.length>0&&<div className="md-source-links" aria-label="回答引用原文">{sourceLinks.map((href,i)=><SourceCitation key={href} href={href}>核对原文 {i+1}</SourceCitation>)}</div>}
       <div className="ws-answer-tools">
-        {["stopped", "interrupted", "failed"].includes(message.status || "") && <><button className="ws-text-button" onClick={onContinue}>继续处理</button><button className="ws-text-button" onClick={onRetry}>重新做</button></>}
+        {["stopped", "interrupted", "failed"].includes(message.status || "") && <><button className="ws-text-button" onClick={onContinue}>继续处理</button><button className="ws-text-button" onClick={onRetry}>重新开始</button></>}
         <button className="ws-text-button" onClick={() => void copy()}>
           {copied ? <Check size={15} /> : <Copy size={15} />}
           {copied ? "已复制" : "复制回答"}
@@ -397,7 +481,7 @@ export default function Conversation({
                       </span>
                       <span>舟序</span>
                       <span className="ws-stream-state">
-                        {card.status === "queued" ? "排队中" : card.status === "running" ? "正在回答" : card.status === "waiting_user" ? "等待补充" : card.status === "completed" ? "已完成" : card.status === "failed" ? "运行失败" : card.status === "stopped" ? "已停止" : card.status === "interrupted" ? "已打断" : "未确认保存"}
+                        {card.status === "queued" ? "排队中" : card.status === "running" ? "正在回答" : card.status === "waiting_user" ? "等待补充" : card.status === "completed" ? "已完成" : card.status === "failed" ? "需要处理" : card.status === "stopped" ? "已暂停" : card.status === "interrupted" ? "已中断" : "未确认保存"}
                       </span>
                     </div>
                     <RunProgress
@@ -418,17 +502,10 @@ export default function Conversation({
                         <button className="ws-text-button" onClick={() => void ws.continueRun(card.runId)}>继续处理</button>
                         <button
                           className="ws-text-button"
-                          onClick={() => void ws.reloadTurn(card.runId)}
-                        >
-                          <RefreshCw size={16} />
-                          重新载入对话
-                        </button>
-                        <button
-                          className="ws-text-button"
                           onClick={() => void ws.retryTurn(card.runId)}
                         >
                           <RefreshCw size={16} />
-                          重新做
+                          重新开始
                         </button>
                       </div>
                     )}
@@ -624,7 +701,6 @@ export default function Conversation({
             </div>
           ) : (
             <p className="ws-disclaimer">
-              分析供研究参考，重要结论请核对原文与适用条件。
               <span>Shift + Enter 换行</span>
             </p>
           )}

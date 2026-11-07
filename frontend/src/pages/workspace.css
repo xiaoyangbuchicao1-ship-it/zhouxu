@@ -520,6 +520,101 @@
   margin-bottom: 42px;
   font-size: 16px;
 }
+.md-answer-evidence {
+  margin-top: 28px;
+}
+.md-answer-evidence-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: #d7e4f2;
+}
+.md-answer-evidence-heading strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+.md-answer-evidence-heading span {
+  color: #8fa5bb;
+  font-size: 13px;
+}
+.md-answer-evidence-list {
+  display: grid;
+  gap: 10px;
+}
+.md-evidence-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 17px 19px;
+  border: 1px solid #2e4052;
+  border-radius: 15px;
+  background: #15212d;
+  box-shadow: 0 8px 22px rgb(3 10 18 / 12%);
+}
+.md-evidence-card.is-loading {
+  color: #8fa5bb;
+  font-size: 13px;
+}
+.md-evidence-kind {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 52px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+.md-evidence-kind.is-law {
+  background: #294765;
+  color: #c1d9ef;
+}
+.md-evidence-kind.is-case {
+  background: #433b38;
+  color: #dec8b8;
+}
+.md-evidence-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+}
+.md-evidence-copy strong {
+  overflow: hidden;
+  color: #d9e5f1;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.md-evidence-copy span {
+  overflow: hidden;
+  color: #91a8bf;
+  font-size: 13px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.md-evidence-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: #a8c9ed;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.md-evidence-open:hover {
+  color: #d4e7fa;
+}
 .ws-answer-byline {
   display: flex;
   align-items: center;
@@ -1766,6 +1861,25 @@
   }
 }
 @media (max-width: 760px) {
+  .md-evidence-card {
+    align-items: flex-start;
+    gap: 11px;
+    padding: 14px;
+  }
+  .md-evidence-kind {
+    min-width: 44px;
+    min-height: 32px;
+    padding: 0 7px;
+    font-size: 12px;
+  }
+  .md-evidence-copy strong,
+  .md-evidence-copy span {
+    white-space: normal;
+  }
+  .md-evidence-open {
+    align-self: center;
+    font-size: 13px;
+  }
   .ws-sidebar {
     display: none;
   }

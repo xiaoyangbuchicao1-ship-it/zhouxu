@@ -165,24 +165,15 @@ class RagSearchTool:
         result["items"] = []
         for item in value.items:
             projected = item.model_dump(
-                include={"document_name", "article_no", "text", "version_date"},
+                include={"document_name", "article_no", "text"},
                 exclude_none=True,
             )
             projected["text"] = item.chunk_text
             projected["section_path"] = item.section_path
-            projected["coverage"] = {
-                "part_number": item.chunk_index + 1,
-                "parts": item.chunk_count,
-            }
-            projected["corpus_version_relation"] = item.version_relation
             projected["source_label"] = " · ".join(
                 str(v)
-                for v in (item.document_name, item.article_no, item.version_date)
+                for v in (item.document_name, item.article_no)
                 if v
-            )
-            projected["corpus_current_label"] = item.is_current
-            projected["version_notice"] = (
-                "库内版本标记及语料日期，不等于已联网核验效力或施行日期。"
             )
             result["items"].append(projected)
         return result

@@ -266,8 +266,6 @@ def _source_reference(value):
             for key, item in value.items()
             if key not in internal
         }
-        if "evidence_refs" in projected:
-            projected["notice"] = "历史来源引用，不代表本轮已读取正文或核验法律效力。"
         return projected
     if isinstance(value, list):
         return [_source_reference(item) for item in value]

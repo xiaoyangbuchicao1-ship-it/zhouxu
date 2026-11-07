@@ -164,7 +164,7 @@ export function useWorkspace(session: AuthSession, id?: string) {
         }
       }
     } catch (error) {
-      if (!controller.signal.aborted) update(runId, c => ({ ...c, state: "interrupted", error: error instanceof Error ? error.message : "连接中断，请重新载入对话。" }));
+      if (!controller.signal.aborted) update(runId, c => ({ ...c, state: "interrupted", error: error instanceof Error ? error.message : "连接中断，已保留当前内容；请继续处理或重新开始。" }));
     } finally { if (controllers.current[runId] === controller) delete controllers.current[runId]; }
   }, [api, applyRun, client, scope, update, report]);
   const observe = useCallback((conversationId: string, runId: string) => {

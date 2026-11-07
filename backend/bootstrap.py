@@ -77,7 +77,13 @@ def build_harness(
             max_items=settings.memory.max_recall_items,
             unified_budget=True,
         ),
-        reasoning=ModelReasoning(model, settings, streams=streams),
+        reasoning=ModelReasoning(
+            model,
+            settings,
+            streams=streams,
+            stream_transform_factory=getattr(reflection, "stream_transform", None),
+            answer_transform=getattr(reflection, "public_transform", None),
+        ),
         action=RegisteredAction(
             {name: pair[1] for name, pair in registered.items()}, settings
         ),
@@ -97,6 +103,7 @@ def build_harness(
         context_recovery=ContextRecovery(model, context_model, settings, catalog),
         completion_validator=getattr(reflection, 'validate_final', None),
         completion_transform=getattr(reflection, 'transform', None),
+        completion_sanitizer=getattr(reflection, 'public_transform', None),
     )
 
 

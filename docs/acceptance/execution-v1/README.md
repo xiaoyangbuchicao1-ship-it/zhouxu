@@ -20,7 +20,7 @@
 
 ## 执行边界与寿命
 
-独立Linux容器、固定镜像ID、无宿主bind mount、无网络、非root、只读根、cap-drop ALL、no-new-privileges；1CPU、512MiB内存且无额外swap、64PID、64MiB工作区和32MiB临时区。每条命令30秒，stdout/stderr分别保留最多64KiB；服务内最多4个活跃执行世界。达到限额或环境缺失明确失败，不回退宿主执行。
+独立Linux容器、固定镜像ID、无宿主bind mount、无网络、非root、只读根、cap-drop ALL、no-new-privileges；1CPU、512MiB内存且无额外swap、64PID、64MiB工作区和32MiB临时区。每条命令600秒，stdout/stderr分别保留最多64KiB；服务内最多4个活跃执行世界。达到限额或环境缺失明确失败，不回退宿主执行。
 
 read/write/edit在同一容器执行，不存在一条工具绕回宿主文件系统。拒绝父路径、绝对路径、符号链接；非阻塞打开后检查普通单链接文件。任务结束或取消销毁容器及后代；等待补充输入时暂保留内存工作区。服务重启后未交付脚本不保证恢复，超过容器寿命的工作区需从授权输入重建。正式present快照保存在backend/.runtime/execution/files.sqlite3，与临时容器分离，重启后仍可按原run鉴权下载。
 

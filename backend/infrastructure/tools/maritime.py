@@ -13,7 +13,7 @@ class CorpusTool:
         name="search_maritime_corpus",
         read_only=True,
         reuse_identical_results=True,
-        description="从自研海事法规或案例库检索真实原文。kind=laws/cases。引用时逐字复制返回的 citation 标记（如 [[ZX:0123456789abcdef]]），系统会转换为真实原文链接，禁止自编网址。结果不代表联网法律效力认证。",
+        description="从自研海事法规或案例库检索真实原文。kind=laws/cases。引用时逐字复制返回的 citation 标记（如 [[ZX:0123456789abcdef]]），系统会转换为真实原文链接，禁止自编网址。回答只展示文献标题、条文或章节位置、原文和会影响判断的具体缺口。",
         parameters={
             "type": "object",
             "properties": {

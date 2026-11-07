@@ -16,20 +16,18 @@ test("real UI: register, author skill, retrieve complete corpus sources and vers
   await expect(
     page.getByRole("heading", { name: "法律检索与问答", exact: true }),
   ).toBeVisible();
-  await expect(page.locator(".md-skill")).toHaveCount(7);
+  await expect(page.locator(".md-skill")).toHaveCount(8);
   await expect(page.getByText("索赔辅助", { exact: true })).toHaveCount(0);
   await expect(page.getByText(/舟序基础|· v2/)).toHaveCount(0);
   await page.getByRole("button", { name: "创建技能", exact: true }).click();
   await page.getByLabel("技能名称").fill("QA 运单核对");
   await page.getByLabel("一句话介绍").fill("页面验收创建的私人技能");
   await page
-    .getByLabel("工作规范")
+    .getByLabel("处理说明")
     .fill("先核对真实运单，不足信息标注待确认。");
   await page.getByRole("button", { name: "保存技能", exact: true }).click();
   await expect(
-    page
-      .getByRole("dialog")
-      .getByRole("heading", { name: "QA 运单核对", exact: true }),
+    page.getByRole("heading", { name: "QA 运单核对", exact: true }),
   ).toBeVisible();
   await page.keyboard.press("Escape");
   await page.reload();
@@ -42,8 +40,10 @@ test("real UI: register, author skill, retrieve complete corpus sources and vers
   await expect(page.locator(".md-result").first()).toBeVisible();
   await expect(page.getByText(/暂时无法连接在线库|正在使用本地资料/)).toHaveCount(0);
   await expect(page.getByText("来源与版本说明", { exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: "查看全文" }).first().click();
+  await expect(page.locator("body")).not.toContainText(/库内标记|库内历史版本|库内未标记现行性|联网核验效力|版本日期和库内标签/);
+  await page.getByRole("button", { name: "查看原文" }).first().click();
   await expect(page.locator(".md-source-text")).not.toBeEmpty();
+  await expect(page.locator(".md-source-text")).not.toContainText(/库内标记|库内历史版本|库内未标记现行性|联网核验效力|版本日期和库内标签/);
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "海事案例", exact: true }).click();
   await page.getByLabel("海事检索关键词").fill("货损");
@@ -51,12 +51,12 @@ test("real UI: register, author skill, retrieve complete corpus sources and vers
   await expect(page.locator(".md-result").first()).toBeVisible();
   await expect(page.getByText(/暂时无法连接在线库|正在使用本地资料/)).toHaveCount(0);
   await expect(page.getByText("来源与版本说明", { exact: true })).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText(/库内标记|库内历史版本|库内未标记现行性|联网核验效力|版本日期和库内标签/);
   await expect(page.locator("body")).not.toContainText(/HH\d{4}/);
   await expect(page.locator("body")).not.toContainText("原文第");
-  const caseExcerpt = await page.locator(".md-result").first().locator(".md-excerpt").innerText();
-  await page.getByRole("button", { name: "查看全文" }).first().click();
+  await page.getByRole("button", { name: "查看原文" }).first().click();
   const caseSource = await page.locator(".md-source-text").innerText();
-  expect(caseSource.length).toBeGreaterThan(caseExcerpt.length);
+  expect(caseSource.length).toBeGreaterThan(100);
   await expect(page.locator(".md-source-text")).not.toContainText(/HH\d{4}|原文第/);
   await page.keyboard.press("Escape");
   await page.goto("/workspace/cases");
@@ -138,8 +138,8 @@ test('live model: case context reaches the model and answer returns to a draft',
   await page.goto('/workspace?skill=law-research');
   await page.getByLabel('你的问题',{exact:true}).fill('请从法规库检索海商法承运人责任，引用一个真实工具来源的 Markdown 链接，只写100字，说明库内版本不等于当前效力核验。');
   await page.getByRole('button',{name:'发送问题',exact:true}).click();
-  await expect(page.getByRole('button',{name:'核对原文 1',exact:true})).toBeVisible({timeout:120000});
-  await page.getByRole('button',{name:'核对原文 1',exact:true}).click();
+  await expect(page.locator('.md-evidence-card').first()).toBeVisible({timeout:120000});
+  await page.locator('.md-evidence-card').first().getByRole('button',{name:'查看原文',exact:true}).click();
   await expect(page.getByRole('dialog').locator('.md-source-text')).not.toBeEmpty();
   await page.screenshot({path:fileURLToPath(new URL('../../docs/acceptance/live-citation.png',import.meta.url)),fullPage:true});
 });

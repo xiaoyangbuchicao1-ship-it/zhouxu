@@ -273,7 +273,6 @@ def attach_maritime(app, settings):
             "corpus": MaritimeCorpus().status(),
             "skill_execution": "instruction-pack-with-tools",
             "code_execution": "docker-on-demand",
-            "notices": ["专业结论需核对原文；发布的社区技能不等于专业认证。"],
         }
 
     @router.get("/skills")
@@ -304,9 +303,7 @@ def attach_maritime(app, settings):
         try:
             return await MaritimeCorpus().search(**body.model_dump())
         except LookupError:
-            raise HTTPException(
-                503, "语料索引尚未就绪，请先构建本地索引或恢复在线数据库"
-            ) from None
+            raise HTTPException(503, "暂时没有可用的海事资料，请稍后再试。") from None
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from None
 

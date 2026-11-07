@@ -16,7 +16,7 @@ export interface Activity { id: string; stage: string; status: string; label: st
 export interface Message { id: string; role: "user" | "assistant"; content: string; created_at: string; run_id?: string | null; status?: RunStatus | string; error_code?: string | null; materials?: Material[]; updates?: string[]; activity?: Activity[]; }
 export interface ConversationDetail { conversation: Conversation; messages: Message[]; pending_materials: Material[]; linked_resources: Resource[]; }
 export interface RunPayload { text: string; facts: Record<string, unknown>; constraints: string[]; material_ids: string[]; attached_material_ids?: string[]; model_id?: ModelChoice | null; }
-export interface RunEnvelope { run_id: string; conversation_id: string; status: RunStatus; revision: number; payload: RunPayload; pending_request_ids: string[]; answers: Record<string, unknown>; output?: string | null; partial_output?: string | null; error?: { code: string; message: string; retryable?: boolean } | null; retry_of_run_id?: string | null; completed_units?: number | null; total_units?: number | null; current_unit?: string | null; created_at?: string; started_at?: string | null; first_event_at?: string | null; first_delta_at?: string | null; completed_at?: string | null; last_sequence?: number; }
+export interface RunEnvelope { run_id: string; conversation_id: string; status: RunStatus; revision: number; payload: RunPayload; pending_request_ids: string[]; answers: Record<string, unknown>; output?: string | null; partial_output?: string | null; error?: { code?: string; message: string; retryable?: boolean } | null; retry_of_run_id?: string | null; completed_units?: number | null; total_units?: number | null; current_unit?: string | null; created_at?: string; started_at?: string | null; first_event_at?: string | null; first_delta_at?: string | null; completed_at?: string | null; last_sequence?: number; }
 export interface InputRequest { request_id: string; run_id: string; question: string; options: { value: string; label: string }[]; allow_free_text: boolean; required: boolean; status: "pending" | "answered" | "cancelled"; answer?: unknown; }
 export interface RunCommandResponse { run: RunEnvelope; }
 export interface SessionSnapshot { conversation_id: string; status: "open" | "closed"; active_run_id?: string | null; queued_run_ids: string[]; waiting_run_ids: string[]; runs: RunEnvelope[]; }
@@ -40,6 +40,7 @@ export function mergeRunMessages(messages: Message[], liveRunId: string | (strin
 export class WorkbenchError extends Error { constructor(message: string, public status = 0) { super(message); this.name = "WorkbenchError"; } }
 const base = (import.meta.env.VITE_API_BASE_URL || "/api").replace(/\/$/, "");
 const segment = encodeURIComponent;
+const REQUEST_TIMEOUT_MS = 600_000;
 
 function messageFor(status: number, detail: unknown) {
   if (status === 401) return "登录状态已失效，请重新登录。";
@@ -57,7 +58,7 @@ export function workbenchApi(token: string, lifetime?: AbortSignal) {
     const signals = [lifetime, signal].filter(Boolean) as AbortSignal[];
     const abort = () => controller.abort();
     signals.forEach((s) => { if (s.aborted) abort(); s.addEventListener("abort", abort, { once: true }); });
-    const timeout = window.setTimeout(() => controller.abort(), options.body instanceof FormData ? 180000 : 30000);
+    const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
       const headers = new Headers(options.headers);
       headers.set("Authorization", `Bearer ${token}`);

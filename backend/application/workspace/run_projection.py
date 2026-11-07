@@ -1,6 +1,7 @@
 """Persist the public task view independently of browser subscriptions."""
 
 from backend.application.workspace.conversations import WorkspaceError
+from backend.application.maritime.citations import strip_internal_markers
 from backend.contracts.modules.loop import RunInput
 
 
@@ -13,6 +14,7 @@ class RunProjection:
         if self.workspace is None or not run.account_id:
             return
         text, sequence = self.events.visible(run.run_id)
+        text = strip_internal_markers(text)
         if sequence and (run.first_event_at is None or run.first_delta_at is None):
             items = self.events.stream_events_since(run_id=run.run_id)
             if items:
@@ -36,7 +38,8 @@ class RunProjection:
                 account_id=run.account_id,
                 conversation_id=run.conversation_id or run.session_id,
                 run_id=run.run_id, question=value.text, status=run.status,
-                answer=run.output, partial_output=run.partial_output,
+                answer=strip_internal_markers(run.output),
+                partial_output=strip_internal_markers(run.partial_output),
                 revision=run.revision, client_request_id=run.client_request_id,
                 retry_of_run_id=run.retry_of_run_id,
                 payload=value.model_dump(mode="json"), material_ids=value.material_ids,

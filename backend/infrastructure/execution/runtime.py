@@ -18,6 +18,7 @@ from backend.infrastructure.search.maritime_corpus import connection
 
 ROOT = Path(__file__).resolve().parents[2] / ".runtime" / "execution"
 WORKER = Path(__file__).with_name("worker.py").read_text(encoding="utf-8")
+EXECUTION_TIMEOUT_SECONDS = 600
 
 # Office previews are rendered inside the reviewed execution image.  The
 # worker deliberately receives the artifact through stdin and writes a
@@ -286,7 +287,7 @@ class DockerRuntime:
             raise RuntimeError("preview_html_invalid")
         return out
 
-    async def command(self, args, data=None, timeout=30, limit=65536):
+    async def command(self, args, data=None, timeout=EXECUTION_TIMEOUT_SECONDS, limit=65536):
         if not self.docker:
             raise RuntimeError("sandbox_unavailable")
         process = await asyncio.create_subprocess_exec(
@@ -486,7 +487,7 @@ class DockerRuntime:
                         }
                     code, out, err = await self.command(
                         ["exec", name, "bash", "--noprofile", "--norc", "-c", command],
-                        timeout=30,
+                        timeout=EXECUTION_TIMEOUT_SECONDS,
                     )
                     diagnostic = {}
                     if code:
@@ -588,7 +589,7 @@ def execution_tools(runtime):
             ["path", "old_text", "new_text", "expected_sha256"],
         ),
         "bash": (
-            "在当前任务Linux容器执行命令，30秒超时；无网络、无宿主挂载。可运行Python、openpyxl、python-docx。先读取真实材料，写脚本、运行并检查输出，出错须修复；禁止把容器文件路径当下载链接。工作区/workspace，容量64MiB。",
+            "在当前任务Linux容器执行命令，600秒超时；无网络、无宿主挂载。可运行Python、openpyxl、python-docx。先读取真实材料，写脚本、运行并检查输出，出错须修复；禁止把容器文件路径当下载链接。工作区/workspace，容量64MiB。",
             {"command": {"type": "string", "maxLength": 20000}},
             ["command"],
         ),
@@ -642,7 +643,7 @@ def execution_tools(runtime):
                 result = {
                     "ok": False,
                     "error": "execution_timeout_workspace_destroyed",
-                    "message": "运行超过30秒，容器及其子进程已停止；交付快照不受影响。",
+                    "message": "运行超过600秒，容器及其子进程已停止；交付快照不受影响。",
                 }
             except (RuntimeError, OSError, ValueError, json.JSONDecodeError):
                 raise PortError(

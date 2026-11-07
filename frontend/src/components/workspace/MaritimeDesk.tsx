@@ -34,6 +34,12 @@ const labelFor = {
 const errorText = (e: unknown) =>
   e instanceof Error ? e.message : "操作未完成，请重试。";
 
+function publicLocator(source: CorpusSource) {
+  if (source.kind === "cases") return "";
+  if (Array.isArray(source.locator)) return source.locator.filter(Boolean).join(" · ");
+  return source.locator || "法规原文";
+}
+
 export default function MaritimeDesk({
   page,
   token,
@@ -415,26 +421,27 @@ function Research({ api, onError }: Props) {
           </div>
           {result.items.map((item) => (
             <article className="md-result" key={item.id}>
-              <h2>{item.title}</h2>
-              {kind === "laws" && typeof item.locator === "string" && (
-                <p className="md-footnote">{item.locator}</p>
-              )}
-              <p className="md-excerpt">
-                {(item.excerpt || item.text).slice(0, 550)}
-                {(item.excerpt || item.text).length > 550 ? "…" : ""}
-              </p>
+              <span className={"md-result-kind " + (kind === "laws" ? "is-law" : "is-case")}>
+                {kind === "laws" ? "法规" : "案例"}
+              </span>
+              <div className="md-result-copy">
+                <h2>{item.title}</h2>
+                {publicLocator(item) && (
+                  <p className="md-result-locator">{publicLocator(item)}</p>
+                )}
+              </div>
               <button
-                className="ws-text-button"
+                className="ws-text-button md-result-open"
                 onClick={() => setSource(item)}
               >
-                查看全文
+                查看原文
                 <ArrowUpRight size={15} />
               </button>
             </article>
           ))}
           {!result.items.length && (
             <div className="md-empty">
-              本次未检索到匹配片段。可更换关键词；未命中不代表不存在相关规则或案例。
+              本次没有匹配结果。可更换关键词。
             </div>
           )}
         </>

@@ -17,6 +17,7 @@ from backend.application.accounts.service import (
     AccountPrincipal,
     AccountService,
 )
+from backend.application.maritime.citations import strip_internal_markers
 from backend.application.workspace.conversations import WorkspaceError, WorkspaceService
 from backend.application.workspace.materials import (
     MaterialService,
@@ -133,6 +134,33 @@ def _json_line(value: dict) -> bytes:
     return (json.dumps(value, ensure_ascii=False, separators=(",", ":")) + "\n").encode(
         "utf-8"
     )
+
+
+_PUBLIC_RUN_ERROR = "本次处理没有完成，已保留当前内容。你可以继续处理，或重新开始。"
+
+
+def _public_error(error):
+    """Keep scheduler/model diagnostics behind the workbench boundary."""
+
+    if error is None:
+        return None
+    code = getattr(error, "code", None)
+    message = {
+        "cancelled": "已停止，已保留当前内容。",
+        "timeout": "处理时间较长，已保留当前内容。你可以继续处理，或重新开始。",
+        "missing_input": "还需要一项补充信息才能继续。",
+    }.get(code, _PUBLIC_RUN_ERROR)
+    return {"message": message, "retryable": bool(getattr(error, "retryable", False))}
+
+
+def _public_error_message(code):
+    """Project persisted run errors without exposing internal error codes."""
+
+    return {
+        "cancelled": "已停止，已保留当前内容。",
+        "timeout": "处理时间较长，已保留当前内容。你可以继续处理，或重新开始。",
+        "missing_input": "还需要一项补充信息才能继续。",
+    }.get(code, _PUBLIC_RUN_ERROR)
 
 
 def create_app(
@@ -497,9 +525,9 @@ def create_app(
             payload=WorkbenchRunPayload.model_validate(payload),
             pending_request_ids=list(run.pending_request_ids),
             answers=dict(run.answers),
-            output=run.output,
-            partial_output=run.partial_output,
-            error=run.error,
+            output=strip_internal_markers(run.output),
+            partial_output=strip_internal_markers(run.partial_output),
+            error=_public_error(run.error),
             retry_of_run_id=run.retry_of_run_id,
             completed_units=run.completed_units,
             total_units=run.total_units,
@@ -788,21 +816,12 @@ def create_app(
                     status=run.status,
                 )
             )
-            visible_answer = run.answer or run.partial_output
-            error_text = run.error
-            if error_text and run.error_code:
-                error_text = f"{error_text}（错误码：{run.error_code}）"
-            if error_text and run.progress_json:
-                try:
-                    progress = json.loads(run.progress_json)
-                except (TypeError, ValueError):
-                    progress = {}
-                completed_units = progress.get("completed_units")
-                total_units = progress.get("total_units")
-                if completed_units is not None and total_units is not None:
-                    error_text = (
-                        f"{error_text} 已完成 {completed_units}/{total_units}。"
-                    )
+            visible_answer = strip_internal_markers(run.answer or run.partial_output)
+            error_text = (
+                _public_error_message(run.error_code)
+                if run.error
+                else None
+            )
             if visible_answer or error_text:
                 messages.append(
                     WorkspaceMessageView(
@@ -812,7 +831,7 @@ def create_app(
                         created_at=run.completed_at or run.created_at,
                         run_id=run.run_id,
                         status=run.status,
-                        error_code=run.error_code,
+                        error_code=None,
                     )
                 )
         return WorkspaceConversationDetailResponse(
@@ -1266,12 +1285,10 @@ def create_app(
                             "run_id": event.run_id,
                             "sequence": event.sequence,
                             "type": event.type,
-                            "text": event.text,
+                            "text": strip_internal_markers(event.text),
                             "stage": event.stage,
                             "label": event.label,
-                            "error": event.error.model_dump(mode="json")
-                            if event.error
-                            else None,
+                            "error": _public_error(event.error),
                             "run": workbench_run_view(event.run).model_dump(mode="json")
                             if event.run
                             else None,
