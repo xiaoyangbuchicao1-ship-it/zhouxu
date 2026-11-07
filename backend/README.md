@@ -4,7 +4,7 @@
 
 - application/accounts、workspace：账户认证、对话和材料的权限与持久化。
 - harness：可恢复运行、流式事件、停止/继续、检查点与上下文管理。
-- application/maritime：七项面向用户的业务规范、案件/成员/事项/版本/审计，以及按明确输入调用的精确金额和真实引用校验。
+- application/maritime：八项面向用户的业务规范、案件/成员/事项/版本/审计，以及按明确输入调用的精确金额和真实引用校验。
 - infrastructure/search/maritime_corpus.py：只读在线 BM25 与同源本地全文索引；内容寻址引用快照。
 - interfaces/api/maritime.py：账户隔离的业务接口，技能和案件快照必须经服务端解析。
 

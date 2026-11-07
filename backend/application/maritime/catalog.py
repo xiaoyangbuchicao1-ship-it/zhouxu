@@ -17,9 +17,9 @@ IDS = (
     "contract-review",
     "case-assessment",
     "evidence-review",
-    "claim-calculation",
     "document-drafting",
     "case-management",
+    "claim-calculation",
 )
 
 

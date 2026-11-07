@@ -23,7 +23,6 @@ import {
   type CorpusSource,
 } from "@/lib/maritime-api";
 import { Modal, Loading } from "./Primitives";
-import { Markdown } from "./Conversation";
 import "./maritime.css";
 
 export type OfficePage = "skills" | "research" | "cases";
@@ -138,8 +137,6 @@ function Skills({
     }
   }
   const rows = (query.data?.skills || []).filter(
-    (s) => s.id !== "claim-calculation",
-  ).filter(
     (s) =>
       filter === "all" ||
       (filter === "mine"
@@ -153,7 +150,7 @@ function Skills({
           <span className="md-eyebrow">你的专业方法，可以成为下一项能力</span>
           <h1>把海事经验，写成技能。</h1>
           <p>
-            从可用的工作方法出发，查看方法、开始任务，或编写属于你的工作规范。
+            选择一种处理方式开始，或创建一套属于自己的工作方式。
           </p>
         </div>
         <button className="ws-primary-button" onClick={() => edit(null)}>
@@ -206,15 +203,14 @@ function Skills({
                 </div>
                 <p>{s.summary}</p>
                 <div className="md-skill-actions">
-                  <button
-                    className="ws-text-button"
-                    onClick={() => {
-                      setSelected(s);
-                      setEditing(false);
-                    }}
-                  >
-                    查看工作方法
-                  </button>
+                  {s.owner_id === accountId && (
+                    <button
+                      className="ws-text-button"
+                      onClick={() => edit(s)}
+                    >
+                      编辑
+                    </button>
+                  )}
                   <button
                     className="ws-text-button"
                     onClick={() =>
@@ -240,92 +236,6 @@ function Skills({
           )}
         </div>
       )}
-      <p className={`md-footnote md-skills-footnote ${!rows.length ? "is-empty" : ""}`}>
-        技能以文字工作规范运行，不执行上传代码。社区分享对其他注册用户可见，不代表舟序专业认证。
-      </p>
-      <Modal
-        open={!!selected && !editing}
-        onOpenChange={(open) => {
-          if (!open) setSelected(null);
-        }}
-        title={selected?.name || "技能方法"}
-        description={selected?.purpose || "查看这项技能的工作规范。"}
-      >
-        <div className="md-instructions">
-          {selected?.steps ? (
-            <>
-              <div className="md-method-deliverables">
-                {selected.deliverables?.map((d) => (
-                  <span key={d.key}>{d.name}</span>
-                ))}
-              </div>
-              <h3>从这些信息开始</h3>
-              <ul>
-                {selected.inputs?.map((v) => (
-                  <li key={v}>{v}</li>
-                ))}
-              </ul>
-              <ol className="md-method-steps">
-                {selected.steps.map(([title, body], i) => (
-                  <li key={title}>
-                    <span>{String(i + 1).padStart(2, "0")}</span>
-                    <div>
-                      <h3>{title}</h3>
-                      <p>{body}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-              <h3>交付时会检查</h3>
-              <ul>
-                {selected.checks?.map((v) => (
-                  <li key={v}>{v}</li>
-                ))}
-              </ul>
-              <h3>可以这样开始</h3>
-              <div className="md-method-examples">
-                {selected.examples?.map((example) => (
-                  <button
-                    key={example}
-                    onClick={() =>
-                      navigate(
-                        `/workspace?skill=${encodeURIComponent(selected.id)}`,
-                        { state: { skillStarter: example } },
-                      )
-                    }
-                  >
-                    {example}
-                    <ArrowUpRight size={15} />
-                  </button>
-                ))}
-              </div>
-              <details>
-                <summary>查看完整技能规范</summary>
-                <Markdown content={selected.instructions} />
-              </details>
-            </>
-          ) : (
-            <Markdown content={selected?.instructions || ""} />
-          )}
-        </div>
-        <div className="md-actions">
-          <button
-            className="ws-secondary-button"
-            onClick={() => edit(selected)}
-          >
-            {selected?.owner_id === accountId ? "编辑我的技能" : "复制并改编"}
-          </button>
-          <button
-            className="ws-primary-button"
-            onClick={() =>
-              navigate(`/workspace?skill=${encodeURIComponent(selected!.id)}`)
-            }
-          >
-            使用这项技能
-            <ArrowUpRight size={16} />
-          </button>
-        </div>
-      </Modal>
       <Modal
         open={editing}
         onOpenChange={(open) => {
@@ -335,7 +245,7 @@ function Skills({
           }
         }}
         title={selected?.owner_id === accountId ? "编辑技能" : "创建你的技能"}
-        description="写清什么时候用、怎样工作、交付什么，以及哪些结论需要复核。"
+        description="写清使用场景、处理步骤和交付结果。"
       >
         <p role={error ? "alert" : undefined} className="md-form-error">
           {error}

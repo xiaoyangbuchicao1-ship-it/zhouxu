@@ -73,6 +73,11 @@ const tasks = [
     prompt:
       "请根据以下案件信息梳理事项：\n\n请整理事实脉络、程序进展与待处理问题，不把待确认的日期或安排当作既定事实。",
   },
+  {
+    label: "索赔测算",
+    prompt:
+      "请帮我做一份基础索赔测算：\n\n项目、数量、单价或每天费用、币种：\n\n请按币种列出小计，并标出还缺的凭证或条件，不判断责任。",
+  },
 ];
 
 function SourceCitation({href,children}:{href:string;children:ReactNode}) {
@@ -194,7 +199,7 @@ export default function Conversation({
   const navigate = useNavigate();
   const location = useLocation();
   const selectedSkillId = new URLSearchParams(location.search).get("skill");
-  const builtins = ["law-research","case-research","contract-review","case-assessment","evidence-review","document-drafting","case-management"];
+  const builtins = ["law-research","case-research","contract-review","case-assessment","evidence-review","document-drafting","case-management","claim-calculation"];
   const selectedTask = selectedSkillId ? tasks[builtins.indexOf(selectedSkillId)]?.label || "自定义技能" : undefined;
   const reader = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);

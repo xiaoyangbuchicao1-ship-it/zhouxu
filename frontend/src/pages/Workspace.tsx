@@ -103,9 +103,12 @@ function Desk({ session }: { session: AuthSession }) {
 
   useEffect(() => {
     if (!modeTransition) return;
-    const timer = window.setTimeout(() => setModeTransition(null), 280);
+    const timer = window.setTimeout(
+      () => setModeTransition(null),
+      reduced ? 0 : 620,
+    );
     return () => window.clearTimeout(timer);
-  }, [modeTransition]);
+  }, [modeTransition, reduced]);
 
   function changeTaskMode(next: TaskMode) {
     if (id || ws.busy || ws.taskMode === next) return;
@@ -210,10 +213,11 @@ function Desk({ session }: { session: AuthSession }) {
   const invalidPath =
     !library && !officePage && !id && !/^\/workspace\/?$/.test(location.pathname);
   if (invalidPath) return <Navigate to="/workspace" replace />;
+  const ModeIcon = modeTransition === "work" ? BriefcaseBusiness : MessageCircle;
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="workspace">
+      <div className={`workspace ${modeTransition ? "is-mode-transitioning" : ""}`}>
         <a className="ws-skip-link" href="#workspace-main">
           跳到主要内容
         </a>
@@ -518,6 +522,44 @@ function Desk({ session }: { session: AuthSession }) {
               <IconButton label="关闭提示" onClick={() => ws.setNotice("")}>
                 <X size={16} />
               </IconButton>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {modeTransition && (
+            <motion.div
+              className={`ws-mode-refresh is-${modeTransition}`}
+              role="status"
+              aria-live="polite"
+              data-testid="mode-refresh"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduced ? 0 : 0.16, ease: "easeOut" }}
+            >
+              <div className="ws-mode-refresh-sheen" aria-hidden="true" />
+              <motion.div
+                className="ws-mode-refresh-card"
+                initial={{ opacity: 0, y: 10, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                transition={{
+                  duration: reduced ? 0 : 0.36,
+                  delay: reduced ? 0 : 0.06,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+              >
+                <span className="ws-mode-refresh-icon" aria-hidden="true">
+                  <ModeIcon size={18} />
+                </span>
+                <div className="ws-mode-refresh-copy">
+                  <strong>正在切换到{modeTransition === "work" ? "工作" : "聊天"}模式</strong>
+                  <span>为这段新对话准备独立空间</span>
+                </div>
+                <span className="ws-mode-refresh-meter" aria-hidden="true">
+                  <span />
+                </span>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
