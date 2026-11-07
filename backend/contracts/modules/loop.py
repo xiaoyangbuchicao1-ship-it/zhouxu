@@ -9,14 +9,18 @@ from backend.contracts.modules.memory import MemoryRecall
 from backend.contracts.modules.perception import ContextAssembly, ContextItem
 from backend.contracts.schemas.core import Contract, Error
 
-
 ThinkingMode = Literal["none", "low", "high"]
+# Public, stable model choices. Provider-specific IDs never cross the browser
+# boundary; the server maps these choices to the configured deployment.
+ModelChoice = Literal["deepseek-v4", "gpt"]
 
 
 class RunInput(Contract):
     text: str
     # A Run owns its mode; None only supports older checkpoints/CLI inputs.
     thinking_mode: ThinkingMode | None = None
+    # ``None`` keeps older checkpoints readable and means the default choice.
+    model_id: ModelChoice | None = None
     facts: dict[str, Any] = Field(default_factory=dict)
     constraints: list[str] = Field(default_factory=list)
     materials: list[MaterialInput] = Field(default_factory=list)

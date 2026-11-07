@@ -2,6 +2,7 @@
 **/.env
 **/.env.*
 !**/.env.example
+文档.txt
 **/.venv/
 **/node_modules/
 **/__pycache__/

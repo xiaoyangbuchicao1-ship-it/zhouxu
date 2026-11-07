@@ -16,7 +16,7 @@ from backend.contracts.harness.lifecycle import (
     RunEnvelope,
     SessionSnapshot,
 )
-from backend.contracts.modules.loop import RunInput, ThinkingMode
+from backend.contracts.modules.loop import ModelChoice, RunInput, ThinkingMode
 from backend.contracts.modules.materials import StoredMaterialRef
 from backend.contracts.schemas.core import Contract
 
@@ -32,6 +32,7 @@ class WorkbenchRunPayload(Contract):
 
     text: str = Field(min_length=1)
     thinking_mode: ThinkingMode | None = None
+    model_id: ModelChoice | None = None
     facts: dict[str, Any] = Field(default_factory=dict)
     constraints: list[str] = Field(default_factory=list)
     material_ids: list[str] = Field(default_factory=list)
@@ -45,6 +46,7 @@ class WorkbenchSubmitRunRequest(Contract):
     # Queue and steer validate that text at the route boundary.
     text: str = ""
     thinking_mode: ThinkingMode | None = None
+    model_id: ModelChoice | None = None
     facts: dict[str, Any] = Field(default_factory=dict)
     constraints: list[str] = Field(default_factory=list)
     material_ids: list[str] = Field(default_factory=list)
@@ -103,9 +105,20 @@ class WorkbenchRunControlRequest(Contract):
     conversation_id: str = Field(min_length=1)
 
 
+class WorkspaceModelOption(Contract):
+    id: ModelChoice
+    label: str
+    available: bool = False
+
+
+class WorkspaceModelListResponse(Contract):
+    models: list[WorkspaceModelOption]
+
+
 class WorkbenchSteerRequest(Contract):
     conversation_id: str = Field(min_length=1)
     text: str = Field(min_length=1)
+    model_id: ModelChoice | None = None
     facts: dict[str, Any] = Field(default_factory=dict)
     constraints: list[str] = Field(default_factory=list)
     material_ids: list[str] = Field(default_factory=list)

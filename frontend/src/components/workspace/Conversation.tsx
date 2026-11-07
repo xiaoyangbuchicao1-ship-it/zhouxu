@@ -11,7 +11,6 @@ import {
   Paperclip,
   Library,
   FileText,
-  X,
   Square,
   Copy,
   Check,
@@ -20,6 +19,7 @@ import {
   Scale,
   ScanText,
   BookOpen,
+  Bot,
   MoreHorizontal,
   RefreshCw,
   Download,
@@ -30,9 +30,7 @@ import { mergeRunMessages } from "@/lib/workbench-api";
 import { IconButton, Menu, MenuItem, Loading, LoadError, Modal } from "./Primitives";
 
 import { RunProgress } from "./RunProgress";
-import { ActivityIndicator } from "./ActivityIndicator";
 import { WorkPackages } from './WorkPackages';
-import { MaterialCards, MaterialDescription } from "./MaterialCards";
 import { useStreamingText } from "@/hooks/use-streaming-text";
 
 type Workspace = ReturnType<typeof useWorkspace>;
@@ -201,6 +199,12 @@ export default function Conversation({
   const selectedSkillId = new URLSearchParams(location.search).get("skill");
   const builtins = ["law-research","case-research","contract-review","case-assessment","evidence-review","document-drafting","case-management","claim-calculation"];
   const selectedTask = selectedSkillId ? tasks[builtins.indexOf(selectedSkillId)]?.label || "自定义技能" : undefined;
+  const modelOptions = ws.models.data?.models?.length
+    ? ws.models.data.models
+    : [
+        { id: "deepseek-v4" as const, label: "DeepSeek v4", available: true },
+        { id: "gpt" as const, label: "GPT", available: false },
+      ];
   const reader = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -213,9 +217,11 @@ export default function Conversation({
   const turn = ws.turn?.conversationId === id ? ws.turn : null;
   const receiving = ws.turn?.state === "receiving";
   const empty = !detail?.messages.length && !turn;
-  const materials = ws.draftMaterials;
-  const uploads = ws.uploads.filter((u) => u.conversationId === id);
-  const uploading = uploads.some((u) => !u.error);
+  const uploading = ws.uploads.some(
+    (upload) => upload.conversationId === id && !upload.error,
+  );
+  const selectedModel =
+    modelOptions.find((option) => option.id === ws.modelChoice) || modelOptions[0];
   const scrollLatest = useCallback(
     (smooth = false) => {
       const el = reader.current;
@@ -363,7 +369,6 @@ export default function Conversation({
                 message.role === "user" ? (
                   <article className="ws-question" key={message.id}>
                     <div>{message.content}</div>
-                    <MaterialCards materials={message.materials} />
                     {message.updates?.map((text, index) => <div className="ws-user-update" key={index}><small>补充要求</small><p>{text}</p></div>)}
                   </article>
                 ) : (
@@ -380,7 +385,6 @@ export default function Conversation({
                 <Fragment key={card.runId}>
                   <article className="ws-question">
                     <div>{card.question}</div>
-                    <MaterialCards materials={card.materials} />
                     {card.updates?.map((text, index) => <div className="ws-user-update" key={index}><small>补充要求</small><p>{text}</p></div>)}
                   </article>
                   <article
@@ -468,76 +472,6 @@ export default function Conversation({
           >
             {selectedTask&&<div className="md-selected-skill"><BookOpen size={14}/>本次任务使用：{selectedTask}<Link to="/workspace/skills">查看 / 更换技能</Link></div>}
             {new URLSearchParams(location.search).has("case")&&<div className="md-selected-skill"><FileText size={14}/>本次发送将附上有权访问的案件记录快照<Link to="/workspace/cases">查看案件</Link></div>}
-            <AnimatePresence initial={false}>
-              {(materials.length > 0 || uploads.length > 0) && (
-                <motion.div
-                  className="ws-attachment-list"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.18 }}
-                >
-                  {materials.map((m) => (
-                    <motion.div
-                      layout
-                      key={m.id}
-                      className={`ws-attachment ${m.issue ? "has-issue" : ""}`}
-                    >
-                      <FileText size={17} />
-                      <div>
-                        <strong title={m.filename}>{m.filename}</strong>
-                        <span title={m.issue || undefined}>
-                          <MaterialDescription material={m} />{m.issue ? ` · ${m.issue}` : ""}
-                        </span>
-                      </div>
-                      <IconButton
-                        label={`移除 ${m.filename}`}
-                        disabled={false}
-                        onClick={() =>
-                          void ws.removeDraftMaterial(m)
-                        }
-                      >
-                        <X size={14} />
-                      </IconButton>
-                    </motion.div>
-                  ))}
-                  {uploads.map((u) => (
-                    <motion.div
-                      layout
-                      key={u.key}
-                      className={`ws-attachment ${u.error ? "has-issue" : ""}`}
-                    >
-                      {u.error ? (
-                        <FileText size={17} />
-                      ) : (
-                        <ActivityIndicator size={17} />
-                      )}
-                      <div>
-                        <strong>{u.file.name}</strong>
-                        <span>{u.error || "正在上传…"}</span>
-                      </div>
-                      {u.error && (
-                        <>
-                          <button
-                            type="button"
-                            className="ws-text-button"
-                            onClick={() => void ws.uploadOne(u)}
-                          >
-                            重试
-                          </button>
-                          <IconButton
-                            label={`移除 ${u.file.name}`}
-                            onClick={() => ws.dismissUpload(u.key)}
-                          >
-                            <X size={14} />
-                          </IconButton>
-                        </>
-                      )}
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
             <label className="ws-sr-only" htmlFor="workspace-question">
               你的问题
             </label>
@@ -584,15 +518,38 @@ export default function Conversation({
                     从资料库选择
                   </MenuItem>
                 </Menu>
-                <span className="ws-composer-hint">
-                  {detail?.linked_resources.length ? (
-                    <button type="button" onClick={openMaterials}>
-                      {detail.linked_resources.length} 份已选资料
+                <Menu
+                  align="start"
+                  trigger={
+                    <button
+                      type="button"
+                      className="ws-model-trigger"
+                      disabled={receiving || ws.busy}
+                      aria-label={`选择模型：${selectedModel.label}`}
+                    >
+                      <span className="ws-model-trigger-icon" aria-hidden="true">
+                        <Bot size={14} />
+                      </span>
+                      <span className="ws-model-trigger-label">{selectedModel.label}</span>
+                      <ChevronDown size={14} aria-hidden="true" />
                     </button>
-                  ) : (
-                    "仅当前对话使用"
-                  )}
-                </span>
+                  }
+                >
+                  {modelOptions.map((option) => (
+                    <MenuItem
+                      key={option.id}
+                      disabled={!option.available || receiving || ws.busy}
+                      onSelect={() =>
+                        ws.setModelChoice(option.id as "deepseek-v4" | "gpt")
+                      }
+                    >
+                      <span className="ws-model-menu-option">
+                        <span>{option.label}</span>
+                        {ws.modelChoice === option.id && <Check size={14} aria-hidden="true" />}
+                      </span>
+                    </MenuItem>
+                  ))}
+                </Menu>
               </div>
               {receiving && (
                 <button

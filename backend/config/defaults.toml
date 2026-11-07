@@ -41,6 +41,25 @@ call_timeout_seconds = 120.0
 output_tokens = 32768
 call_timeout_seconds = 180.0
 
+# Browser-facing model choices. Provider credentials stay outside the
+# frontend; the GPT deployment reads the user-provided relay file at runtime.
+[model_deployments."deepseek-v4"]
+provider = "deepseek"
+endpoint = "https://api.deepseek.com/chat/completions"
+allowed_hosts = ["api.deepseek.com"]
+name = "deepseek-flash"
+credential_file = "../.env"
+credential_names = ["DEEPSEEK_API_KEY", "DEEPSEEK_KEY", "OPENAI_API_KEY", "API_KEY"]
+label = "DeepSeek v4"
+
+[model_deployments.gpt]
+provider = "relay"
+# The relay document supplies the final base URL and model ID.
+name = "gpt-6.1-sol"
+credential_file = "../文档.txt"
+effort = "low"
+label = "GPT"
+
 [context_policy]
 low_ratio = 0.60
 target_ratio = 0.65

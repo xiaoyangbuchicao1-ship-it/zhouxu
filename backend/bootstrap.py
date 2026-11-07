@@ -143,13 +143,20 @@ async def open_rag(
 
 
 @asynccontextmanager
-async def open_harnesses(*, settings: Settings, events: EventSink, modes: tuple[str, ...]):
+async def open_harnesses(
+    *,
+    settings: Settings,
+    events: EventSink,
+    modes: tuple[str, ...],
+    model_choices: tuple[str, ...] | None = None,
+    model_errors: dict | None = None,
+):
     """Application lifetime: warm the encoder once, then serve multiple runs.
 
     Startup performs no retrieval. Only an action requested by the model queries
     the corpus. Tests may still inject a Module via build_harness(rag=...).
     """
-    from backend.infrastructure.model.factory import open_model
+    from backend.infrastructure.model.factory import open_model, select_model_settings
 
     async with AsyncExitStack() as stack:
         rag = None
@@ -178,22 +185,36 @@ async def open_harnesses(*, settings: Settings, events: EventSink, modes: tuple[
             for run_id in list(execution.worlds):
                 await execution.destroy(run_id)
         stack.push_async_callback(close_execution)
-        for mode in dict.fromkeys(modes):
-            if mode not in settings.model.modes:
-                raise ValueError("unsupported_thinking_mode")
-            selected = settings.model_copy(deep=True)
-            selected.model.thinking_mode = mode
-            model = await stack.enter_async_context(
-                open_model(settings=selected, events=events, role="main")
-            )
-            harnesses[mode] = build_harness(
-                model=model,
-                settings=selected,
-                events=events,
-                streams=events if hasattr(events, "emit_stream") else None,
-                rag=rag,
-                tools=maritime_tools(selected, execution),
-            )
+        # Keep each provider independently available. A missing DeepSeek key
+        # must not make a correctly configured relay unusable (and vice versa).
+        choices = model_choices or tuple(settings.model_deployments) or ("deepseek-v4",)
+        for model_id in choices:
+            for mode in dict.fromkeys(modes):
+                if mode not in settings.model.modes:
+                    raise ValueError("unsupported_thinking_mode")
+                try:
+                    selected = select_model_settings(settings, model_id)
+                    selected.model.thinking_mode = mode
+                    model = await stack.enter_async_context(
+                        open_model(settings=selected, events=events, role="main")
+                    )
+                except PortError as exc:
+                    if model_errors is not None:
+                        model_errors[f"{model_id}:{mode}"] = exc.error
+                    break
+                harness = build_harness(
+                    model=model,
+                    settings=selected,
+                    events=events,
+                    streams=events if hasattr(events, "emit_stream") else None,
+                    rag=rag,
+                    tools=maritime_tools(selected, execution),
+                )
+                harnesses[f"{model_id}:{mode}"] = harness
+                # Preserve the mode-only keys used by older CLI/test callers;
+                # new Runs always select the provider-qualified key.
+                if model_id == "deepseek-v4":
+                    harnesses[mode] = harness
         yield harnesses
 
 
@@ -213,7 +234,16 @@ async def open_harness(*, settings: Settings, events: EventSink):
     Each mode has its own model client, budget and protocol continuation cache.
     All workbench modes share one resident retrieval service/encoder.
     """
+    errors: dict = {}
     async with open_harnesses(
-        settings=settings, events=events, modes=(settings.model.thinking_mode,)
+        settings=settings,
+        events=events,
+        modes=(settings.model.thinking_mode,),
+        model_choices=("deepseek-v4",),
+        model_errors=errors,
     ) as harnesses:
-        yield harnesses[settings.model.thinking_mode]
+        key = f"deepseek-v4:{settings.model.thinking_mode}"
+        if key not in harnesses:
+            error = errors.get(key) or settings.error("credential_missing")
+            raise PortError(error)
+        yield harnesses[key]

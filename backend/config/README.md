@@ -10,7 +10,7 @@
 
 材料导航参数在materials：navigation_preview_chars=1200为整个Run共享的初始预览额度；read_chars=12000为模型未指定读取量时的默认上界；search_max_results=16、search_excerpt_chars=240、search_result_chars=6000约束搜索返回，仍受本次工具分配额度收窄。模型可请求更小范围，不能突破统一预算。搜索/读取工具说明、导航提示和摘要边界说明均来自defaults.toml。有材料绑定时提供两个工具，内容足够时不强制调用。摘要模型只在真实压力下使用，不能把较新未纳入摘要的结果误报为缺失。
 
-主模型固定DeepSeek Flash，通过model.thinking_mode选择none/low/high；不再提供speed/balanced/quality供应商组合。旧model_routing传入工厂会明确拒绝，历史对比脚本不再是生产选择入口。主模型决定方式由model.decision_protocol选择text/explicit（可替换）；默认explicit并使用auto工具选择，同时允许原生最终正文。review保持原JSON合同且关闭思考。
+工作台提供两个稳定的公开模型选择：DeepSeek v4 和 GPT。前者映射到 DeepSeek Flash，后者读取受保护的 Responses 中转配置；provider、真实模型 ID、密钥和端点都留在后端，不能由浏览器提交任意值。每个 Run 保存公开选择，继续、重试和恢复沿用原选择。每个选择仍通过model.thinking_mode选择none/low/high；不再提供speed/balanced/quality供应商组合。旧model_routing传入工厂会明确拒绝，历史对比脚本不再是生产选择入口。主模型决定方式由model.decision_protocol选择text/explicit（可替换）；默认explicit并使用auto工具选择，同时允许原生最终正文。review保持原JSON合同且关闭思考。
 model.delivery_tool/delivery_description和prompts.decision_protocol定义交付控制名称、说明与协议提示。
 控制工具计入原统一预算，不实际调用外部服务；compaction仍使用自由摘要正文。
 配置修改需重建常驻Harness，未实现热切换。thinking=enabled时使用low/high effort；none发送disabled并省略effort。不得发送thinking+tool_choice=required。compaction独立关闭思考，使用摘要额度，不继承主模型的大输出预留。

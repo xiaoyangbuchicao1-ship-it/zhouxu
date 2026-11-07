@@ -15,6 +15,7 @@ from backend.contracts.model_context import (
     DeploymentLimits,
     ModelCapabilities,
 )
+from backend.contracts.modules.loop import ModelChoice
 from backend.contracts.schemas.core import Error, PortError
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
@@ -40,7 +41,7 @@ class GenerationMode(BaseModel):
 
 
 class ModelSettings(BaseModel):
-    provider: Literal["deepseek"] = "deepseek"
+    provider: Literal["deepseek", "relay"] = "deepseek"
     endpoint: str
     allowed_hosts: list[str]
     name: str
@@ -63,6 +64,24 @@ class ModelSettings(BaseModel):
     @property
     def generation_mode(self) -> GenerationMode:
         return self.modes[self.thinking_mode]
+
+
+class ModelDeployment(BaseModel):
+    """Provider connection data for one user-facing model choice.
+
+    Secrets are deliberately absent. A deployment may point at a protected
+    local file; the model factory reads that file only when opening the
+    corresponding provider.
+    """
+
+    provider: Literal["deepseek", "relay"]
+    endpoint: str = ""
+    allowed_hosts: list[str] = Field(default_factory=list)
+    name: str
+    credential_file: str
+    credential_names: list[str] = Field(default_factory=list)
+    effort: str = "low"
+    label: str
 
 
 class ProgressSettings(BaseModel):
@@ -190,6 +209,9 @@ class Settings(BaseModel):
     context_policy: ContextPolicy = Field(default_factory=ContextPolicy)
     model_capabilities: dict[str, ModelCapabilities] = Field(default_factory=dict)
     deployment_limits: dict[str, DeploymentLimits] = Field(default_factory=dict)
+    model_deployments: dict[ModelChoice, ModelDeployment] = Field(
+        default_factory=dict
+    )
     model_routing: ModelRoutingSettings | None = None
     progress: ProgressSettings = ProgressSettings()
     materials: MaterialSettings

@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useLocation } from "react-router-dom";
 import { saveSession } from "@/lib/auth-session";
 import type { AuthSession } from "@/lib/auth";
-import { workbenchApi, WorkbenchError, acceptStreamSequence, type Activity, type Material, type RunEnvelope, type RunStatus, type TaskMode } from "@/lib/workbench-api";
+import { workbenchApi, WorkbenchError, acceptStreamSequence, type Activity, type Material, type ModelChoice, type RunEnvelope, type RunStatus, type TaskMode } from "@/lib/workbench-api";
 
 export interface PendingTurn { conversationId: string; runId?: string; question: string; answer: string; materials: Material[]; updates: string[]; activities: Activity[]; state: "receiving" | "waiting" | "completed" | "failed" | "stopped" | "interrupted"; status: RunStatus; revision: number; error?: string; inputRequest?: { requestId: string; question: string }; }
 export interface Upload { key: string; conversationId: string; file: File; error?: string; }
@@ -23,6 +23,7 @@ export function useWorkspace(session: AuthSession, id?: string) {
   const [notice, setNotice] = useState("");
   const initialMode = new URLSearchParams(location.search).get("mode") === "work" ? "work" : "chat";
   const [taskMode, setTaskModeState] = useState<TaskMode>(initialMode);
+  const [modelChoice, setModelChoice] = useState<ModelChoice>("deepseek-v4");
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [attachments, setAttachments] = useState<Record<string, Material[]>>(() => {
     try { return JSON.parse(sessionStorage.getItem(attachmentKey) || "{}"); } catch { return {}; }
@@ -40,6 +41,13 @@ export function useWorkspace(session: AuthSession, id?: string) {
   const projects = useQuery({ queryKey: [...scope, "projects"], queryFn: () => api.projects(), retry: false });
   const history = useQuery({ queryKey: [...scope, "history"], queryFn: ({ signal }) => api.conversations(signal), retry: false });
   const resources = useQuery({ queryKey: [...scope, "resources"], queryFn: ({ signal }) => api.resources(signal), retry: false });
+  const models = useQuery({ queryKey: [...scope, "models"], queryFn: ({ signal }) => api.models(signal), retry: false });
+  useEffect(() => {
+    const available = models.data?.models.find((option) => option.available);
+    if (available && !models.data?.models.some((option) => option.id === modelChoice && option.available)) {
+      setModelChoice(available.id);
+    }
+  }, [modelChoice, models.data]);
   const detail = useQuery({ queryKey: [...scope, "chat", id], queryFn: ({ signal }) => api.detail(id!, signal), enabled: Boolean(id), retry: false });
   const conversationMode = detail.data?.conversation.task_mode;
   useEffect(() => {
@@ -195,13 +203,13 @@ export function useWorkspace(session: AuthSession, id?: string) {
       let run: RunEnvelope;
       const requestMode = detail.data?.conversation.task_mode || taskMode;
       if (mode === "steer" && turn?.runId && turn.status === "running") {
-        run = (await api.steer(turn.runId, conversationId, question, [], sent.map(m => m.id), skillId, caseId, requestMode)).run;
+        run = (await api.steer(turn.runId, conversationId, question, [], sent.map(m => m.id), skillId, caseId, requestMode, modelChoice)).run;
         controllers.current[run.run_id]?.abort(); delete controllers.current[run.run_id];
       } else if (turn?.state === "waiting" && turn.runId && turn.inputRequest) {
         run = (await api.resume(turn.runId, conversationId, turn.inputRequest.requestId, question, sent.map(m => m.id))).run;
       } else {
         const key = crypto.randomUUID();
-        const submit = () => api.submit(conversationId, question, [], lifetime.signal, key, undefined, sent.map(m => m.id), skillId, caseId, requestMode);
+        const submit = () => api.submit(conversationId, question, [], lifetime.signal, key, undefined, sent.map(m => m.id), skillId, caseId, requestMode, modelChoice);
         try { run = (await submit()).run; }
         catch (e) { if (e instanceof WorkbenchError && e.status === 0 && !lifetime.signal.aborted) run = (await submit()).run; else throw e; }
       }
@@ -245,7 +253,7 @@ export function useWorkspace(session: AuthSession, id?: string) {
   async function retryTurn(runId = turn?.runId) {
     if (!id || !runId || submitLock.current) return;
     submitLock.current = true;
-    try { const source = (await api.run(runId, id)).run; if (source.status === "waiting_user") { const stopped = await api.stop(runId, id); await applyRun(id, stopped.run); } const selectedSkill = typeof source.payload.facts.skill_id === "string" ? source.payload.facts.skill_id : undefined; const requestMode = detail.data?.conversation.task_mode || (source.payload.facts.task_mode === "work" ? "work" : "chat"); const { run } = await api.submit(id, source.payload.text, source.payload.material_ids, lifetime.signal, crypto.randomUUID(), runId, source.payload.attached_material_ids, selectedSkill, typeof source.payload.facts.case_id === "string" ? source.payload.facts.case_id : undefined, requestMode); await applyRun(id, run); observe(id, run.run_id); await refresh(); }
+    try { const source = (await api.run(runId, id)).run; if (source.status === "waiting_user") { const stopped = await api.stop(runId, id); await applyRun(id, stopped.run); } const selectedSkill = typeof source.payload.facts.skill_id === "string" ? source.payload.facts.skill_id : undefined; const requestMode = detail.data?.conversation.task_mode || (source.payload.facts.task_mode === "work" ? "work" : "chat"); const selectedModel = source.payload.model_id || modelChoice; const { run } = await api.submit(id, source.payload.text, source.payload.material_ids, lifetime.signal, crypto.randomUUID(), runId, source.payload.attached_material_ids, selectedSkill, typeof source.payload.facts.case_id === "string" ? source.payload.facts.case_id : undefined, requestMode, selectedModel); await applyRun(id, run); observe(id, run.run_id); await refresh(); }
     catch (e) { report(e); } finally { submitLock.current = false; }
   }
   async function cancel(interrupt = false) {
@@ -258,5 +266,5 @@ export function useWorkspace(session: AuthSession, id?: string) {
     await client.invalidateQueries({ queryKey: [...scope, "chat", id] });
     setCards(current => { if (current[runId]?.status !== "completed") return current; const next = { ...current }; delete next[runId]; return next; });
   }, [client, id, scope]);
-  return { taskMode, setTaskMode, visibleRuns: currentCards, finishPresentation, api, scope, notice, setNotice, busy: turn?.state === "receiving", projects, history, resources, detail, act, refresh, report, projectFilter, setProjectFilter, draft, setDraft, draftMaterials, turn, queuedRuns, send, reloadTurn, retryTurn, continueRun, stop: () => cancel(), interrupt: () => cancel(true), steer: () => send("steer"), ensureConversation, uploads, uploadFiles, uploadOne, stageMaterial, removeDraftMaterial, dismissUpload: (key: string) => setUploads(current => current.filter(u => u.key !== key)) };
+  return { taskMode, setTaskMode, modelChoice, setModelChoice, models, visibleRuns: currentCards, finishPresentation, api, scope, notice, setNotice, busy: turn?.state === "receiving", projects, history, resources, detail, act, refresh, report, projectFilter, setProjectFilter, draft, setDraft, draftMaterials, turn, queuedRuns, send, reloadTurn, retryTurn, continueRun, stop: () => cancel(), interrupt: () => cancel(true), steer: () => send("steer"), ensureConversation, uploads, uploadFiles, uploadOne, stageMaterial, removeDraftMaterial, dismissUpload: (key: string) => setUploads(current => current.filter(u => u.key !== key)) };
 }

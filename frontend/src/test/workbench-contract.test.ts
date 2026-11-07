@@ -41,4 +41,22 @@ describe("Workbench stream contract", () => {
       expect(received.map((event) => event.sequence)).toEqual([1, 2, 3, 4, 5]);
     } finally { vi.unstubAllGlobals(); }
   });
+  it("keeps model labels public while sending only the stable choice id", async () => {
+    const calls: { url: string; body?: string }[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      calls.push({ url: String(input), body: typeof init?.body === "string" ? init.body : undefined });
+      const payload = String(input).endsWith("/workspace/models")
+        ? { models: [{ id: "deepseek-v4", label: "DeepSeek v4", available: true }, { id: "gpt", label: "GPT", available: true }] }
+        : { run: { run_id: "run-1", conversation_id: "chat-1", status: "queued", revision: 1, payload: { text: "q", facts: {}, constraints: [], material_ids: [], model_id: "gpt" }, pending_request_ids: [], answers: {} } };
+      return new Response(JSON.stringify(payload), { status: 202, headers: { "Content-Type": "application/json" } });
+    }));
+    try {
+      const api = workbenchApi("offline-unit-test");
+      const models = await api.models();
+      expect(models.models.map((item) => item.label)).toEqual(["DeepSeek v4", "GPT"]);
+      await api.submit("chat-1", "q", [], undefined, "request-1", undefined, [], undefined, undefined, "chat", "gpt");
+      const body = JSON.parse(calls[1].body || "{}");
+      expect(body.model_id).toBe("gpt");
+    } finally { vi.unstubAllGlobals(); }
+  });
 });

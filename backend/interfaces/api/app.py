@@ -70,6 +70,8 @@ from backend.interfaces.api.contracts import (
     WorkspaceMaterialListResponse,
     WorkspaceMaterialView,
     WorkspaceMessageView,
+    WorkspaceModelListResponse,
+    WorkspaceModelOption,
     WorkspacePassageListResponse,
     WorkspacePassageView,
     WorkspaceProjectListResponse,
@@ -182,21 +184,42 @@ def create_app(
         app.state.project_run = RunProjection(active_workspace_service, events)
         async with AsyncExitStack() as stack:
             stack.enter_context(run_store.owner())
+            model_errors: dict = {}
             try:
                 harnesses = await stack.enter_async_context(
-                    open_harnesses(settings=settings, events=events, modes=("none", "low", "high"))
+                    open_harnesses(
+                        settings=settings,
+                        events=events,
+                        modes=("none", "low", "high"),
+                        model_choices=("deepseek-v4", "gpt"),
+                        model_errors=model_errors,
+                    )
                 )
-                harness = harnesses[settings.model.thinking_mode]
+                default_key = f"deepseek-v4:{settings.model.thinking_mode}"
+                if default_key not in harnesses:
+                    default_key = next(iter(harnesses), "")
+                harness = harnesses.get(default_key)
                 from backend.harness.lifecycle.executor import HarnessRunExecutor
 
-                app.state.control_service = HarnessControlService(
-                    HarnessRunExecutor(
-                        harness, material_service=active_material_service,
-                        history_service=active_workspace_service, harnesses=harnesses,
-                    ),
-                    store=run_store,
-                )
-                app.state.runtime_ready = True
+                if harness is None:
+                    first_error = next(iter(model_errors.values()), settings.error("credential_missing"))
+                    app.state.control_service = HarnessControlService(
+                        UnavailableRunExecutor(first_error), store=run_store
+                    )
+                    app.state.runtime_ready = False
+                else:
+                    app.state.control_service = HarnessControlService(
+                        HarnessRunExecutor(
+                            harness,
+                            material_service=active_material_service,
+                            history_service=active_workspace_service,
+                            harnesses=harnesses,
+                            unavailable_models=model_errors,
+                            default_model_id=default_key.split(":", 1)[0],
+                        ),
+                        store=run_store,
+                    )
+                    app.state.runtime_ready = True
             except PortError as exc:
                 # Startup remains inspectable even when local model credentials,
                 # the encoder, or the retrieval service are not configured.
@@ -204,6 +227,17 @@ def create_app(
                     UnavailableRunExecutor(exc.error)
                 )
                 app.state.runtime_ready = False
+            app.state.model_errors = model_errors
+            executor = getattr(
+                getattr(getattr(app.state, "control_service", None), "scheduler", None),
+                "_executor",
+                None,
+            )
+            available_keys = getattr(executor, "_harnesses", {})
+            app.state.model_available = {
+                choice: any(key.startswith(choice + ":") for key in available_keys)
+                for choice in ("deepseek-v4", "gpt")
+            }
             app.state.event_hub = events
             app.state.control_service.scheduler.on_change = app.state.project_run
             await app.state.control_service.scheduler.recover()
@@ -225,6 +259,8 @@ def create_app(
     app.state.account_service = account_service
     app.state.material_service = material_service
     app.state.workspace_service = workspace_service
+    app.state.model_errors = {}
+    app.state.model_available = {"deepseek-v4": False, "gpt": False}
     if supplied_service is not None:
         app.state.control_service = supplied_service
         app.state.event_hub = EventHub()
@@ -785,6 +821,27 @@ def create_app(
             materials=[material_view(item) for item in materials],
         )
 
+    @app.get("/workspace/models", response_model=WorkspaceModelListResponse)
+    async def workspace_models(
+        request: Request,
+        authorization: str | None = Header(default=None),
+    ):
+        require_account(request, authorization)
+        available = getattr(
+            request.app.state,
+            "model_available",
+            {"deepseek-v4": False, "gpt": False},
+        )
+        labels = {"deepseek-v4": "DeepSeek v4", "gpt": "GPT"}
+        return WorkspaceModelListResponse(
+            models=[
+                WorkspaceModelOption(
+                    id=choice, label=labels[choice], available=bool(available.get(choice))
+                )
+                for choice in ("deepseek-v4", "gpt")
+            ]
+        )
+
     # Workbench is the only public Run surface for the current frontend. The
     # legacy Harness routes below remain compatibility adapters and continue to
     # use their internal session_id contract.
@@ -860,6 +917,7 @@ def create_app(
                         run_id=body.target_run_id,
                         payload=RunInput(
                             text=body.text,
+                            model_id=body.model_id,
                             facts=request.app.state.resolve_maritime_skill(request, principal.id, bound_facts),
                             constraints=body.constraints,
                             material_ids=steer_material_ids,
@@ -913,6 +971,7 @@ def create_app(
                 payload=RunInput(
                     text=body.text,
                     thinking_mode=body.thinking_mode or settings.model.thinking_mode,
+                    model_id=body.model_id or "deepseek-v4",
                     facts=request.app.state.resolve_maritime_skill(request, principal.id, bound_facts),
                     constraints=body.constraints,
                     material_ids=material_ids,
@@ -1101,6 +1160,7 @@ def create_app(
                 run_id=run_id,
                 payload=RunInput(
                     text=body.text,
+                    model_id=getattr(body, "model_id", None),
                     facts=request.app.state.resolve_maritime_skill(request, principal.id, bound_facts),
                     constraints=body.constraints,
                     material_ids=ids,
