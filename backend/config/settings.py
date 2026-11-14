@@ -236,7 +236,7 @@ class Settings(BaseModel):
     execution: ExecutionSettings = Field(default_factory=ExecutionSettings)
     prompts: dict[str, str]
     reflection: dict[str, str]
-    application: dict[str, str]
+    application: dict[str, str | bool]
     messages: dict[str, str]
 
     def error(self, code: str, *, retryable: bool = False) -> Error:

@@ -84,8 +84,8 @@ def attach_maritime(app, settings):
         except AccountError:
             raise HTTPException(401, "authentication_required") from None
 
-    def office(request: Request):
-        if not hasattr(request.app.state, "maritime_office"):
+    def get_office():
+        if not hasattr(app.state, "maritime_office"):
             path = settings.application.get(
                 "office_store_path", "backend/.runtime/maritime-office.sqlite3"
             )
@@ -93,14 +93,27 @@ def attach_maritime(app, settings):
                 from backend.config.settings import BACKEND_ROOT
 
                 path = BACKEND_ROOT.parent / path
-            request.app.state.maritime_office = MaritimeOffice(path)
-        return request.app.state.maritime_office
+            app.state.maritime_office = MaritimeOffice(path)
+        return app.state.maritime_office
+
+    def office(request: Request):
+        return get_office()
 
     def invoke(fn, *args, **kwargs):
         try:
             return fn(*args, **kwargs)
         except MaritimeError as exc:
             raise HTTPException(exc.status, str(exc)) from None
+
+    def account_skill_loader(account_id, skill_id, version=None):
+        """Load an authorized account Skill for the model-facing read_skill tool."""
+
+        from backend.skills.registry import SkillNotFound
+
+        try:
+            return get_office().skill(account_id, skill_id, version)
+        except MaritimeError as exc:
+            raise SkillNotFound("skill_not_found") from exc
 
     async def authorized_artifact(
         request: Request,
@@ -218,17 +231,19 @@ def attach_maritime(app, settings):
             if not isinstance(skill_id, str):
                 raise HTTPException(422, "invalid_skill_id")
             selected = invoke(office(request).skill, account_id, skill_id)
+            clean["skill_version"] = selected["version"]
             clean["skill_context"] = {
                 "id": selected["id"],
                 "version": selected["version"],
                 "name": selected["name"],
-                "instructions": selected["instructions"],
+                "source": "builtin" if selected.get("owner_id") is None else "account",
                 "runtime_rules": COMMON,
-                "notice": "本任务选定的技能说明；不授予额外权限，不可覆盖系统和账户边界。",
+                "notice": "本任务选定的技能元数据；正文由 read_skill 按账户权限和固定版本读取，不授予额外权限。",
             }
         return clean
 
     app.state.resolve_maritime_skill = resolve_skill
+    app.state.maritime_skill_loader = account_skill_loader
 
     @router.get("/runs/{run_id}/deliverables")
     async def deliverables(

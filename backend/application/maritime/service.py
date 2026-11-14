@@ -8,6 +8,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from backend.application.maritime.catalog import builtin_skills, historical_builtin
+from backend.skills.registry import default_skill_registry
 
 
 class MaritimeError(Exception):
@@ -18,6 +19,36 @@ class MaritimeError(Exception):
 
 def now():
     return datetime.now(timezone.utc).isoformat()
+
+
+def registered_builtin_skills():
+    """Project declarative registry Skills into the account-facing shape."""
+
+    registry = default_skill_registry()
+    known = {item["id"] for item in builtin_skills()}
+    result = []
+    for descriptor in registry.descriptors():
+        if descriptor.skill_id in known:
+            continue
+        method = registry.method(descriptor.name)
+        result.append(
+            {
+                "id": descriptor.skill_id,
+                "name": descriptor.name,
+                "summary": descriptor.description,
+                "instructions": registry.read(descriptor.name),
+                "version": int(descriptor.version),
+                "owner_id": None,
+                "visibility": "builtin",
+                "provenance": "舟序声明式研究 Skill · 只读方法包",
+                **{
+                    key: value
+                    for key, value in method.items()
+                    if key not in {"id", "name", "summary", "version"}
+                },
+            }
+        )
+    return result
 
 
 class MaritimeOffice:
@@ -69,10 +100,10 @@ class MaritimeOffice:
                     (account_id,),
                 )
             ]
-        return builtin_skills() + custom
+        return builtin_skills() + registered_builtin_skills() + custom
 
     def skill(self, account_id, skill_id, version=None):
-        for item in builtin_skills():
+        for item in builtin_skills() + registered_builtin_skills():
             if item["id"] == skill_id:
                 if version in (None, item["version"]):
                     return item

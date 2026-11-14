@@ -1,6 +1,8 @@
 """Composition root: the only place that connects concrete modules to the runtime."""
 
+from collections.abc import Callable
 from contextlib import AsyncExitStack, asynccontextmanager
+from typing import Any
 
 from backend.config.settings import Settings
 from backend.contracts.modules.loop import ToolSpec
@@ -36,6 +38,7 @@ def build_harness(
     rag: Module | None = None,
     model_context: ModelContextPort | None = None,
     execution_tools: ExecutionProvider | None = None,
+    account_skill_loader: Callable[[str, str, int | None], dict[str, Any]] | None = None,
 ) -> Harness:
     context_model = model_context or model
     if not isinstance(context_model, ModelContextPort):
@@ -79,11 +82,13 @@ def build_harness(
     from backend.infrastructure.tools.maritime import ClaimTool, CorpusTool
 
     maritime_corpus = MaritimeCorpus()
-    for maritime_tool in (
-        CorpusTool(maritime_corpus),
+    maritime_tools = [
         ClaimTool(),
         WorkPackageTool(configured_store(settings), maritime_corpus),
-    ):
+    ]
+    if settings.application.get("expose_legacy_corpus_tool", False):
+        maritime_tools.insert(0, CorpusTool(maritime_corpus))
+    for maritime_tool in maritime_tools:
         if maritime_tool.spec.name in registered:
             raise ValueError("duplicate_tool_registration")
         registered[maritime_tool.spec.name] = (
@@ -96,7 +101,11 @@ def build_harness(
     from backend.infrastructure.tools.skills import SkillReadTool
     from backend.skills.registry import default_skill_registry
 
-    skill_tool = SkillReadTool(default_skill_registry(), settings)
+    skill_tool = SkillReadTool(
+        default_skill_registry(),
+        settings,
+        account_skill_loader=account_skill_loader,
+    )
     if skill_tool.spec.name in registered:
         raise ValueError("duplicate_tool_registration")
     registered[skill_tool.spec.name] = (skill_tool.spec, skill_tool)
@@ -177,7 +186,11 @@ async def open_rag(
 
 @asynccontextmanager
 async def open_harnesses(
-    *, settings: Settings, events: EventSink, modes: tuple[str, ...]
+    *,
+    settings: Settings,
+    events: EventSink,
+    modes: tuple[str, ...],
+    account_skill_loader: Callable[[str, str, int | None], dict[str, Any]] | None = None,
 ):
     """Application lifetime: warm the encoder once, then serve multiple runs.
 
@@ -267,6 +280,7 @@ async def open_harnesses(
                 rag=rag,
                 tools=_case_tools(settings, case_service),
                 execution_tools=execution_tools,
+                account_skill_loader=account_skill_loader,
             )
         yield harnesses
 

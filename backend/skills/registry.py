@@ -121,6 +121,11 @@ class SkillRegistry:
     def descriptors(self) -> tuple[SkillDescriptor, ...]:
         return tuple(self._catalog.values())
 
+    def contains(self, name: str) -> bool:
+        """Return whether ``name`` belongs to the built-in catalog."""
+
+        return name in self._catalog
+
     def descriptor(self, name: str) -> SkillDescriptor:
         value = self._catalog.get(name)
         if value is None:

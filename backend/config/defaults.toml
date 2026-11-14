@@ -335,6 +335,10 @@ title = "舟序最小 Harness"
 health_path = "/healthz"
 cli_description = "本地运行最小 Harness；当前不提供用户会话 API。"
 run_store_path = "backend/.runtime/runs.json"
+# Legacy compatibility only.  Production uses dynamic_rag_search and the
+# dedicated case tools; old corpus calls stay available only when explicitly
+# enabled for a migration or recovery run.
+expose_legacy_corpus_tool = false
 
 [messages]
 case_source_mismatch = "案例来源版本或正文校验未通过，请重新定位来源。"

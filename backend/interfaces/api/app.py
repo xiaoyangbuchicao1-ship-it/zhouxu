@@ -205,7 +205,14 @@ def create_app(
             stack.enter_context(run_store.owner())
             try:
                 harnesses = await stack.enter_async_context(
-                    open_harnesses(settings=settings, events=events, modes=("none", "low", "high"))
+                    open_harnesses(
+                        settings=settings,
+                        events=events,
+                        modes=("none", "low", "high"),
+                        account_skill_loader=getattr(
+                            app.state, "maritime_skill_loader", None
+                        ),
+                    )
                 )
                 harness = harnesses[settings.model.thinking_mode]
                 from backend.harness.lifecycle.executor import HarnessRunExecutor

@@ -49,4 +49,4 @@ description: 通用海事法律问答的证据与检索流程。凡是用户询�
 ## 需要读取的参考文件
 
 - 需要确定资料来源、版本和前端引用字段时，读取 `references/source-policy.md`。
-- 需要扩展或修改本 Skill 时，先更新 `evals/evals.json`，再用真实工具回执和来源卡验收。
+- 需要扩展或修改本 Skill 时，先更新 `datasets/skills/maritime-legal-research.json`，再用真实工具回执和来源卡验收。评测集属于离线验收资料，生产代码不得加载参考答案或 gold。
