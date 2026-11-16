@@ -1,82 +1,111 @@
-# 开发与云端部署
+# 舟序部署合同
 
-推荐开发与云端沿用 Ubuntu LTS。当前应用以单个 FastAPI 进程、SQLite、文件目录和同机 OpenSearch 部署；数据与模型独立于 Git 准备。
+## 结论
 
-## 环境和持久盘
+当前采用一份源码、一个 Compose 项目、三个容器：
 
-准备 Python 3.11、uv、Node.js 20.19+ 或 22.12+、npm。Ubuntu 24.04 的默认 Python 不满足项目版本约束，应另外安装 3.11。不要从 Windows 复制虚拟环境和 node_modules。
-
-建议应用根目录 `/srv/zhouxu`，把以下数据放在持久磁盘：
-
-- `data/relational/`：业务 SQLite；`backend/.runtime/`：RunStore 与进程锁。
-- `data/files/`：材料原件、解析缓存和会话文件。
-- `data/cases/`：匹配配置的案例快照。
-- `opensearch/corpus/`、`opensearch/import/`：法规正文、登记表与向量。
-- `opensearch/vector_db_data/`：OpenSearch 数据；BGE-M3 本地模型另按配置准备。
-
-模型凭证默认通过后端配置读取进程环境或本地 `.env`；OpenSearch 凭证文件默认在 `opensearch/opensearch_delivery/dev/.env`。根据服务器路径检查 `backend/config/defaults.toml` 的模型、数据和凭证路径。凭证不进入 Git、前端 VITE 配置或镜像。
-
-## 依赖和任务执行
-
-在应用根目录：
-
-```sh
-uv sync --project backend --extra rag --extra materials --locked
-npm --prefix frontend ci
-npm --prefix frontend run typecheck
-npm --prefix frontend run build
+```text
+zhouxu-web  ->  zhouxu-api  ->  opensearch
 ```
 
-Docker 任务环境使用版本化源码重建：
+Windows 本机开发可以直接运行 Python/Node；另一台 Windows、Linux 和 ECS 统一使用 Docker Compose。WSL2 只作为 Docker Desktop 的底层 Linux 环境，不再维护一套 WSL 原生舟序依赖。
 
-```sh
-docker build -t zhouxu-task-runtime:0.2 deploy/task-runtime
+## 为什么这样拆
+
+- `zhouxu-web` 只放构建好的前端静态文件和 Nginx 代理，浏览器只访问它的端口。
+- `zhouxu-api` 包含 FastAPI、文档工具和 CPU PyTorch，镜像内部自带 Linux 依赖。
+- `opensearch` 使用官方 OpenSearch 镜像，数据通过 bind mount 保存到项目外/项目持久目录。
+
+应用镜像可以替换，OpenSearch 数据目录不随镜像重建。法条库和案例库不需要两个 OpenSearch 服务：它们是同一集群里的两个索引和两个查询别名。
+
+## Compose 文件和端口
+
+正式入口是 [`deploy/app/compose.yaml`](../deploy/app/compose.yaml)。默认只有 Web 端口发布到宿主机：
+
+| 宿主机 | 容器 | 用途 |
+|---:|---:|---|
+| `127.0.0.1:8080` | `zhouxu-web:80` | 浏览器访问或本机 Nginx 代理 |
+| 仅 Compose 网络 | `zhouxu-api:8010` | Nginx 内部代理 |
+| 仅 Compose 网络 | `opensearch:9200` | API 和初始化容器内部访问 |
+
+OpenSearch 不对公网发布。ECS 的 80/443、FRP 和 Cloudflare 隧道属于外层网络入口，不应把 9200 暴露出去。
+
+## 配置文件
+
+从 [`deploy/app/.env.example`](../deploy/app/.env.example) 复制出同目录 `.env`，只在部署机器填写：
+
+```text
+OPENSEARCH_INITIAL_ADMIN_PASSWORD  OpenSearch 管理员密码
+DEEPSEEK_API_KEY                   后端模型凭证
+ZHOUXU_API_IMAGE / ZHOUXU_WEB_IMAGE  本地构建或镜像仓库地址
+ZHOUXU_WEB_PORT                    默认 8080
 ```
 
-这里的镜像只承担任务中的文件和命令执行，FastAPI 与前端依照各自部署方式运行。Provider 管理容器的网络、只读根文件系统、资源和会话工作区挂载。
+`.env` 被 Compose 作为容器环境文件，并以只读方式挂载到 `/app/opensearch/opensearch_delivery/dev/.env`。这是为了让初始化脚本、OpenSearch 发布脚本和后端读取同一份密码；不会把密码写入镜像。
 
-云机无 Docker 时安装 Bash、LibreOffice Writer/Calc、Poppler、中文字体，并确保服务进程 PATH 包含应用虚拟环境中的 Python。应用的 materials extra 提供 python-docx 等文档库：
+镜像包含 CPU PyTorch，但不包含约 6.8GB 的 BGE-M3 权重。因而“容器健康、页面可打开、索引初始化成功”不等于“向量检索已经可用”。完整 RAG 交付还要决定模型资产的方式：宿主机只读挂载最省镜像体积，打进镜像最便于单机复制但会显著增大镜像，首次联网下载最省交付文件但启动/首次查询依赖外网。当前 Compose 先完成应用与索引闭环，未默认选择其中一种。
 
-```sh
-sudo apt-get update
-sudo apt-get install -y bash libreoffice-writer libreoffice-calc poppler-utils fonts-noto-cjk
-export ZHOUXU_EXECUTION_PROVIDER=native
+## Windows Docker Desktop
+
+项目源码方式：
+
+```powershell
+Copy-Item deploy\app\.env.example deploy\app\.env
+notepad deploy\app\.env
+docker compose --env-file deploy\app\.env -f deploy\app\compose.yaml config --quiet
+docker compose --env-file deploy\app\.env -f deploy\app\compose.yaml up -d --build
 ```
 
-环境覆盖作用于默认配置；显式传入的 TOML 应直接设置 `execution.provider="native"`。Native 命令以应用服务账号运行，适合受控专用云机。为互不信任用户开放任意代码执行前，应在现有 Provider 合同下接入独立沙箱并验证隔离。
+访问 `http://127.0.0.1:8080/`。如果 8080 已被占用，把 `.env` 的 `ZHOUXU_WEB_PORT` 改为 18080。`zhouxu-init` 是一次性初始化容器，正常完成后显示 `Exited (0)`；`zhouxu-api` 和 `zhouxu-web` 应保持 `healthy/running`。
 
-## OpenSearch 与数据发布
+使用镜像仓库：
 
-本地 Docker 使用 [dev/compose.yaml](../opensearch/opensearch_delivery/dev/compose.yaml)；无 Docker 云机使用 [native/README.md](../opensearch/opensearch_delivery/native/README.md)。两者保持 OpenSearch 2.19、HTTPS 回环端口 19200 和相同的检索别名。
-
-部署源码、索引定义、导入与发布校验工具均纳入 Git。语料和向量需单独复制到上述持久目录。应用启动不创建索引、不导入数据、不切换别名。
-
-法规依次执行 validate → import → verify → acceptance → activate；发布工具及固定部署查询见 [OpenSearch 说明](../opensearch/opensearch_delivery/README.md)。当前数据包为 93,858 个法规块；以所部署包的清单校验为准。
-
-案例快照当前为 `case_eb1be2c7fa1cd1fb`，825 案、3,156 块。配置匹配快照后，从应用根目录显式发布：
-
-```sh
-uv run --project backend --extra rag --locked python -m backend.infrastructure.corpus.import_cases
+```powershell
+docker login <registry>
+docker compose --env-file deploy\app\.env -f deploy\app\compose.yaml pull
+docker compose --env-file deploy\app\.env -f deploy\app\compose.yaml up -d
 ```
 
-详细来源、校验与升级边界见[案例库说明](../backend/infrastructure/corpus/README.md)。升级先排空或暂停活动任务，再配套切换快照、索引和配置并重启；保留可回滚的数据与索引。
+停止但保留数据：
 
-## 应用服务与前端托管
-
-以专用低权限账号、应用根目录为工作目录运行单个 worker：
-
-```sh
-uv run --project backend --extra rag --extra materials --locked uvicorn backend.interfaces.api.app:create_app --factory --host 127.0.0.1 --port 8010 --workers 1
+```powershell
+docker compose --env-file deploy\app\.env -f deploy\app\compose.yaml down
 ```
 
-系统服务应使用虚拟环境的绝对路径与固定工作目录，给予业务 SQLite、RunStore、材料和工作区必要权限。应用账号不拥有 OpenSearch 数据目录。当前 RunStore 不支持多个 Uvicorn worker 或多个应用实例共享运行库。
+不要使用 `down -v`，也不要删除 `opensearch/vector_db_data/opensearch`。
 
-将 `frontend/dist/` 交给 Nginx 等 Web 服务托管，配置 HTTPS、SPA 回退到 index.html，将 `/api/` 去掉前缀后反向代理到 `http://127.0.0.1:8010/`。事件流关闭代理缓冲，并给予足够读取时限。Vite 开发服务器和 preview 仅用于本地验证。
+## Linux/ECS
 
-当前仓库提供任务镜像与 OpenSearch 部署资产；应用 systemd 服务、反向代理、域名和 TLS 按实际云环境配置，尚无整套一键上线编排。
+安装 Docker Engine 和 Compose plugin 后，将项目放到持久磁盘，例如 `/srv/zhouxu`，复制并填写 `.env`：
 
-## 开放服务前的实际检查
+```bash
+cd /srv/zhouxu
+chmod +x start/linux/*.sh
+./start/linux/start.sh
+```
 
-确认 `/healthz`、注册登录、账户权限和材料上传正常；用真实 work 会话完成“生成中文 Word → PDF 预览 → 下载 → 继续修改”。检查停止、进程重启恢复和事件流断线续接。Native 部署也应实际验证中文文档转换。
+这个脚本只执行 `docker compose up -d --build`，不会在主机上安装 Python、Node、CUDA 或创建 `.venv-linux`。镜像仓库部署则直接执行 `pull` 和 `up -d`。首次使用 bind mount 数据目录时，确认 OpenSearch 容器用户（通常 UID 1000）可写：
 
-为 SQLite、RunStore、原件、案例包、配置和索引安排一致的备份与恢复。不要热复制 OpenSearch 数据目录；跨机器迁移使用输入重建或 snapshot/restore。单节点、零副本和开发证书不提供生产高可用。
+```bash
+chown -R 1000:1000 opensearch/vector_db_data/opensearch
+```
+
+公网访问应由 ECS Nginx/FRP/Cloudflare 隧道转到 `8080` 或 Nginx 的 80/443；不要把 Compose 的 OpenSearch 端口公开。
+
+## 数据与迁移
+
+源码和运行数据分开：
+
+```text
+data/                                  账户、材料、案例快照、SQLite
+opensearch/corpus/                     法条语料
+opensearch/import/                     法条向量和导入清单
+opensearch/opensearch_delivery/        索引定义和导入工具
+opensearch/vector_db_data/opensearch/  OpenSearch 运行快照（可选）
+```
+
+有运行快照时，初始化容器会校验两个别名和文档数，匹配后跳过导入；没有运行快照时，它会从条文和案例输入重建。任何条数或别名不匹配都直接失败，不伪造“空库启动成功”。
+
+复制 `opensearch/vector_db_data/opensearch/` 时必须沿用创建该数据目录时的 OpenSearch 管理员密码；如果密码未知，删除/省略运行快照并从输入数据重新导入，再设置新密码。
+
+不要把 `.venv-*`、`node_modules-*`、`.env`、模型权重、SQLite 运行文件和 OpenSearch 数据目录上传 GitHub。源码构建依赖 `uv.lock`、`package-lock.json` 和 Dockerfile，可在新机器重新生成镜像。

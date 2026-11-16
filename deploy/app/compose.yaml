@@ -1,0 +1,112 @@
+name: zhouxu
+
+services:
+  opensearch:
+    image: opensearchproject/opensearch:${OPENSEARCH_VERSION:-2.19.0}
+    container_name: zhouxu-opensearch
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      # Keep the old cluster name as the default so an existing 2.19 data
+      # directory can be mounted without an unnecessary data migration.
+      cluster.name: ${OPENSEARCH_CLUSTER_NAME:-maritime-law-dev}
+      bootstrap.memory_lock: "true"
+      OPENSEARCH_JAVA_OPTS: ${OPENSEARCH_JAVA_OPTS:--Xms2g -Xmx2g}
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD:?Set OPENSEARCH_INITIAL_ADMIN_PASSWORD in deploy/app/.env}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - ${ZHOUXU_OPENSEARCH_DATA_DIR:-../../opensearch/vector_db_data/opensearch}:/usr/share/opensearch/data
+    expose:
+      - "9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -kfsS -u admin:$${OPENSEARCH_INITIAL_ADMIN_PASSWORD} https://127.0.0.1:9200/_cluster/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+
+  zhouxu-init:
+    image: ${ZHOUXU_API_IMAGE:-zhouxu-api:local}
+    build:
+      context: ../..
+      dockerfile: deploy/app/Dockerfile
+      target: api
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com}
+        PYPI_INDEX: ${PYPI_INDEX:-https://pypi.tuna.tsinghua.edu.cn/simple}
+    container_name: zhouxu-init
+    restart: "no"
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    env_file:
+      - ${ZHOUXU_RUNTIME_ENV_FILE:-.env}
+    environment:
+      ZHOUXU_OPENSEARCH_URL: https://opensearch:9200
+      ZHOUXU_OPENSEARCH_INSECURE: "1"
+    volumes:
+      - ${ZHOUXU_DATA_DIR:-../../data}:/app/data:ro
+      - ${ZHOUXU_OPENSEARCH_DIR:-../../opensearch}:/app/opensearch:ro
+      # The init script and the existing index publisher both read this path.
+      # Keep the one deployment env file as the only password source.
+      - type: bind
+        source: ${ZHOUXU_RUNTIME_ENV_FILE:-.env}
+        target: /app/opensearch/opensearch_delivery/dev/.env
+        read_only: true
+    command: ["python", "-B", "/app/start/common/ensure_indexes.py", "--project-root", "/app", "--url", "https://opensearch:9200", "--allow-remote", "--timeout", "600"]
+
+  zhouxu-api:
+    image: ${ZHOUXU_API_IMAGE:-zhouxu-api:local}
+    build:
+      context: ../..
+      dockerfile: deploy/app/Dockerfile
+      target: api
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com}
+        PYPI_INDEX: ${PYPI_INDEX:-https://pypi.tuna.tsinghua.edu.cn/simple}
+    container_name: zhouxu-api
+    restart: unless-stopped
+    depends_on:
+      zhouxu-init:
+        condition: service_completed_successfully
+    env_file:
+      - ${ZHOUXU_RUNTIME_ENV_FILE:-.env}
+    environment:
+      ZHOUXU_OPENSEARCH_URL: https://opensearch:9200
+      ZHOUXU_OPENSEARCH_INSECURE: "1"
+    volumes:
+      - ${ZHOUXU_DATA_DIR:-../../data}:/app/data
+      - ${ZHOUXU_OPENSEARCH_DIR:-../../opensearch}:/app/opensearch:ro
+      - type: bind
+        source: ${ZHOUXU_RUNTIME_ENV_FILE:-.env}
+        target: /app/opensearch/opensearch_delivery/dev/.env
+        read_only: true
+    expose:
+      - "8010"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8010/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  zhouxu-web:
+    image: ${ZHOUXU_WEB_IMAGE:-zhouxu-web:local}
+    build:
+      context: ../..
+      dockerfile: deploy/app/Dockerfile
+      target: web
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com}
+    container_name: zhouxu-web
+    restart: unless-stopped
+    depends_on:
+      zhouxu-api:
+        condition: service_healthy
+    ports:
+      # Keep the app behind ECS Nginx/FRP; only the local host may reach it.
+      - "127.0.0.1:${ZHOUXU_WEB_PORT:-8080}:80"

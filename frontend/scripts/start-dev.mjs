@@ -7,12 +7,14 @@ import path from "node:path";
 
 const frontendRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = path.resolve(frontendRoot, "..");
-const backendPython = path.join(
-  workspaceRoot,
-  "backend",
-  ".venv",
-  ...(process.platform === "win32" ? ["Scripts", "python.exe"] : ["bin", "python"]),
-);
+const backendPython = process.env.ZHOUXU_BACKEND_PYTHON
+  ? path.resolve(process.env.ZHOUXU_BACKEND_PYTHON)
+  : path.join(
+      workspaceRoot,
+      "backend",
+      process.platform === "win32" ? ".venv-windows" : ".venv-linux",
+      ...(process.platform === "win32" ? ["Scripts", "python.exe"] : ["bin", "python"]),
+    );
 const backendPort = Number(process.env.ZHOUXU_API_PORT || 8010);
 const frontendPort = Number(process.env.ZHOUXU_WEB_PORT || 4173);
 const healthUrl = `http://127.0.0.1:${backendPort}/healthz`;
@@ -85,7 +87,8 @@ try {
   }
   if (!reusedBackend) {
     if (!existsSync(backendPython)) {
-      throw new Error("后端环境尚未安装。请先在项目根目录执行 uv sync --project backend --extra rag --extra materials --locked");
+      const environmentName = process.platform === "win32" ? "backend/.venv-windows" : "backend/.venv-linux";
+      throw new Error(`后端环境尚未安装：${environmentName}。请先运行对应平台的 start 脚本`);
     }
     ownsBackend = true;
     backend = spawn(

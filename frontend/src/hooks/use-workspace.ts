@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { saveSession } from "@/lib/auth-session";
+import { createClientRequestId } from "@/lib/client-request-id";
 import type { AuthSession } from "@/lib/auth";
 import { workbenchApi, WorkbenchError, acceptStreamSequence, type Activity, type Artifact, type ConversationMode, type Material, type RunEnvelope, type RunRecovery, type RunStatus, type Conversation, type ConversationDetail, type SourceReference, type TaskContextFacts } from "@/lib/workbench-api";
 
@@ -254,7 +255,7 @@ export function useWorkspace(session: AuthSession, id?: string, taskContext: Wor
       } else if (turn?.state === "waiting" && turn.runId && turn.inputRequest) {
         run = (await api.resume(turn.runId, conversationId, turn.inputRequest.requestId, question, sent.map(m => m.id))).run;
       } else {
-        const key = crypto.randomUUID();
+        const key = createClientRequestId();
         const submit = () => api.submit(conversationId, question, [], lifetime.signal, key, undefined, sent.map(m => m.id), selectedMode, taskFacts);
         try { run = (await submit()).run; }
         catch (e) { if (e instanceof WorkbenchError && e.status === 0 && !lifetime.signal.aborted) run = (await submit()).run; else throw e; }
@@ -330,7 +331,7 @@ export function useWorkspace(session: AuthSession, id?: string, taskContext: Wor
     const valid = files.filter(f => f.size > 0 && f.size <= 30 * 1024 * 1024);
     if (!valid.length) { setNotice("请选择非空且不超过 30 MB 的文件。"); return; }
     setPreparing(true);
-    try { const conversationId = await ensureConversation(); const entries = valid.map(file => ({ key: crypto.randomUUID(), conversationId, file })); setUploads(current => [...current, ...entries]); for (const entry of entries) await uploadOne(entry); }
+    try { const conversationId = await ensureConversation(); const entries = valid.map(file => ({ key: createClientRequestId(), conversationId, file })); setUploads(current => [...current, ...entries]); for (const entry of entries) await uploadOne(entry); }
     catch (e) { report(e); } finally { setPreparing(false); }
   }
   async function removeDraftMaterial(material: Material) {
@@ -345,7 +346,7 @@ export function useWorkspace(session: AuthSession, id?: string, taskContext: Wor
   async function retryTurn(runId = turn?.runId) {
     if (!id || !runId || submitLock.current) return;
     submitLock.current = true;
-    try { const source = (await api.run(runId, id)).run; if (source.status === "waiting_user") { const stopped = await api.stop(runId, id); await applyRun(id, stopped.run); } const retryFacts: TaskContextFacts = { skill_id: typeof source.payload.facts.skill_id === "string" ? source.payload.facts.skill_id : taskFacts.skill_id, case_id: typeof source.payload.facts.case_id === "string" ? source.payload.facts.case_id : taskFacts.case_id }; const { run } = await api.submit(id, source.payload.text, source.payload.material_ids, lifetime.signal, crypto.randomUUID(), runId, source.payload.attached_material_ids, source.payload.thinking_mode, retryFacts); await applyRun(id, run); observe(id, run.run_id); await refresh(); }
+    try { const source = (await api.run(runId, id)).run; if (source.status === "waiting_user") { const stopped = await api.stop(runId, id); await applyRun(id, stopped.run); } const retryFacts: TaskContextFacts = { skill_id: typeof source.payload.facts.skill_id === "string" ? source.payload.facts.skill_id : taskFacts.skill_id, case_id: typeof source.payload.facts.case_id === "string" ? source.payload.facts.case_id : taskFacts.case_id }; const { run } = await api.submit(id, source.payload.text, source.payload.material_ids, lifetime.signal, createClientRequestId(), runId, source.payload.attached_material_ids, source.payload.thinking_mode, retryFacts); await applyRun(id, run); observe(id, run.run_id); await refresh(); }
     catch (e) { report(e); } finally { submitLock.current = false; }
   }
   async function cancel(interrupt = false) {

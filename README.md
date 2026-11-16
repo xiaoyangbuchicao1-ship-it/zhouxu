@@ -13,7 +13,7 @@
 | 智能体 | 自研 Harness、DeepSeek Flash，none / low / high 三档 |
 | 检索 | OpenSearch 2.19、BGE-M3、BM25 与向量混合检索 |
 | 存储 | SQLite 业务库与 RunStore；本地持久文件目录 |
-| 任务执行 | 共享文件工具，Docker / Linux Native 两种运行环境 |
+| 任务执行 | 共享文件工具；应用通过 Docker Compose 统一运行 |
 
 ```text
 backend/
@@ -35,25 +35,39 @@ docs/                当前架构、接口与部署说明
 
 `data/`、语料、向量、模型权重、运行目录和密钥留在本机或持久磁盘，独立于 Git 源码准备。测试执行代码、评分脚本和历史测试报告已从源码基线移除，测试集保存在 `datasets/`。
 
-## 本地开发
+## 本地开发与部署
 
-推荐 Ubuntu 24.04 LTS；Windows 可以使用 WSL2，也支持直接开发。Windows 与 Linux 的 `.venv`、`node_modules` 需要分别安装。Ubuntu 24.04 默认 Python 版本不满足本项目约束，需要单独准备 Python 3.11。
+本机开发推荐 Windows 原生启动；Linux/ECS 和另一台 Windows 电脑推荐 Docker Desktop + WSL2，通过同一份 Compose 运行三个容器。容器内部自带 Python、Node、Nginx 和 CPU PyTorch，宿主机不需要创建 Linux 虚拟环境。
 
-需要 uv、Python 3.11、Node.js 20.19+ 或 22.12+、npm。在项目根目录运行：
+Windows 原生开发需要 uv、Python 3.11、Node.js 20.19+ 或 22.12+、npm。启动入口会把依赖分别放入 `backend/.venv-windows` 与 `frontend/node_modules-windows`：
 
-```sh
-uv sync --project backend --extra rag --extra materials --locked
-npm --prefix frontend ci
-npm --prefix frontend run dev:all
+```powershell
+.\start\windows\start.cmd
 ```
 
-前端 `http://127.0.0.1:4173`，后端 `http://127.0.0.1:8010`。启动脚本等待后端健康检查，退出时回收本次启动的进程。
+前端 `http://127.0.0.1:4173`，后端 `http://127.0.0.1:8010`。这条路径适合写代码和快速调试。
+
+Compose 部署：
+
+```powershell
+Copy-Item deploy\app\.env.example deploy\app\.env
+notepad deploy\app\.env
+docker compose --env-file deploy\app\.env -f deploy\app\compose.yaml up -d --build
+```
+
+另一台只安装 Docker Desktop 的 Windows 电脑可直接运行：
+
+```powershell
+.\start\windows\start-compose.cmd
+```
+
+浏览器访问 `http://127.0.0.1:8080/`。Linux/ECS 也运行同一份 Compose；`start/linux/start.sh` 只是这个 Compose 命令的薄封装，不再安装 `.venv-linux`。
 
 完整功能还需准备：
 
 1. DeepSeek 凭证：按 `backend/config/defaults.toml` 的配置提供环境变量或本地凭证文件。
 2. 匹配的 BGE-M3 模型、法规语料、案例快照与 OpenSearch 索引，见[部署说明](docs/deployment.md)。
-3. 任务运行时：默认 Docker，构建方式如下；Linux 专用部署可设置 `ZHOUXU_EXECUTION_PROVIDER=native` 并安装文档工具。
+3. 任务运行时：默认 Docker，构建方式如下。
 
 ```sh
 docker build -t zhouxu-task-runtime:0.2 deploy/task-runtime
@@ -79,7 +93,7 @@ npm --prefix frontend run build
 | 原始材料与解析结果 | `data/files/` |
 | 会话生成文件 | `data/files/generated/run-workspaces/<账户>/<会话>/` |
 
-当前 RunStore 用文件锁限定一个服务进程；部署先使用单个 Uvicorn worker。Native 命令以服务账号运行，面向互不信任用户的任意代码执行还需要独立沙箱。云端上线需要 HTTPS、流式反向代理、持久盘和数据备份，详见[部署说明](docs/deployment.md)。
+当前 RunStore 用文件锁限定一个服务进程；Compose 部署先使用单个 Uvicorn worker。任务容器以受限运行时执行，面向互不信任用户的任意代码执行仍需要独立沙箱。云端上线需要 HTTPS、流式反向代理、持久盘和数据备份，详见[部署说明](docs/deployment.md)。
 
 ## 维护入口
 

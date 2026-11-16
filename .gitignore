@@ -38,7 +38,9 @@ opensearch/opensearch_delivery/dev/*
 **/.ai_tmp/
 **/.ai-tmp/
 .venv/
+**/.venv-*/
 node_modules/
+**/node_modules-*/
 dist/
 *.db
 *.db-*
@@ -56,3 +58,11 @@ __pycache__/
 
 # Public configuration template contains no credentials.
 !frontend/.env.example
+!deploy/app/.env.example
+
+# Local transfer bundles are redundant once the feature is merged into the source tree.
+handoff/
+
+# Machine-specific infrastructure notes and obsolete local launch scratchpad.
+docs/ecs-frp-公网转发配置步骤.txt
+start/hunma_start.txt

@@ -1,6 +1,7 @@
 """Read-only application adapter; reuse the delivered query/fusion functions."""
 
 import asyncio
+import os
 import re
 import ssl
 from pathlib import Path
@@ -55,7 +56,9 @@ class OpenSearchRetriever:
             password = SecretStr(value)
         verify = ssl.create_default_context(cafile=cfg.ca_file)
         if cfg.local_dev_certificate:
-            if url.host not in {"localhost", "127.0.0.1", "::1"}:
+            if url.host not in {"localhost", "127.0.0.1", "::1"} and os.environ.get(
+                "ZHOUXU_OPENSEARCH_INSECURE", ""
+            ).strip() != "1":
                 raise PortError(settings.error("rag_configuration"))
             verify.check_hostname = False
             verify.verify_mode = ssl.CERT_NONE

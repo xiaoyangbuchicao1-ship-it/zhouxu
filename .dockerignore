@@ -1,0 +1,28 @@
+# Docker reads this file from the build context root. The Compose context is
+# the project root, not deploy/app/.
+.git
+.gitignore
+.ai-tmp
+**/.ai-tmp
+**/.runtime
+**/__pycache__
+**/.venv
+**/.venv-*
+frontend/node_modules
+frontend/node_modules-*
+**/node_modules
+**/node_modules-*
+backend/.venv-windows
+backend/.venv-linux
+frontend/dist
+data
+opensearch_1
+opensearch/vector_db_data
+opensearch/corpus
+opensearch/import
+*.db
+*.sqlite
+*.sqlite3
+*.log
+*.env
+!deploy/app/.env.example

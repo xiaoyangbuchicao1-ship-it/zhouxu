@@ -1,4 +1,5 @@
 import type { ThinkingMode } from "./thinking-modes";
+import { createClientRequestId } from "./client-request-id";
 /* The HTTP adapter validates the versioned Workbench contract at the boundary. */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type RunStatus =
@@ -112,7 +113,7 @@ export function workbenchApi(token: string, lifetime?: AbortSignal) {
     uploadMaterial: async (id: string, file: File) => material((await request<any>(`${conversationPath(id)}/materials`, { method: "POST", body: (() => { const f = new FormData(); f.append("file", file, file.name); return f; })() })).material),
     removeMaterial: (id: string, materialId: string) => request<void>(`${conversationPath(id)}/materials/${segment(materialId)}`, { method: "DELETE" }),
     link: (id: string, resourceId: string, remove = false) => request<void>(`${conversationPath(id)}/materials/${segment(resourceId)}`, { method: remove ? "DELETE" : "PUT" }),
-    submit: (id: string, text: string, materialIds: string[] = [], signal?: AbortSignal, clientRequestId: string = crypto.randomUUID(), retryOfRunId?: string, attachedIds: string[] = [], thinkingMode?: ThinkingMode | null, facts: TaskContextFacts = {}) => request<RunCommandResponse>(`${conversationPath(id)}/runs`, { method: "POST", body: JSON.stringify({ conversation_id: id, client_request_id: clientRequestId, text, facts, constraints: [], material_ids: materialIds, attached_material_ids: attachedIds, retry_of_run_id: retryOfRunId, thinking_mode: thinkingMode ?? undefined }) }, signal),
+    submit: (id: string, text: string, materialIds: string[] = [], signal?: AbortSignal, clientRequestId: string = createClientRequestId(), retryOfRunId?: string, attachedIds: string[] = [], thinkingMode?: ThinkingMode | null, facts: TaskContextFacts = {}) => request<RunCommandResponse>(`${conversationPath(id)}/runs`, { method: "POST", body: JSON.stringify({ conversation_id: id, client_request_id: clientRequestId, text, facts, constraints: [], material_ids: materialIds, attached_material_ids: attachedIds, retry_of_run_id: retryOfRunId, thinking_mode: thinkingMode ?? undefined }) }, signal),
     run: (runId: string, conversationId: string, signal?: AbortSignal) => request<RunCommandResponse>(`${runPath(runId)}?conversation_id=${segment(conversationId)}`, {}, signal),
     artifactUrl: (runId: string, conversationId: string, artifactId: string) => `${base}${runPath(runId)}/artifacts/${segment(artifactId)}?conversation_id=${segment(conversationId)}`,
     async downloadArtifact(runId: string, conversationId: string, artifactId: string, signal?: AbortSignal): Promise<Blob> {

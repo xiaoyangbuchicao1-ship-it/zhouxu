@@ -4,7 +4,7 @@ from collections.abc import Callable
 from contextlib import AsyncExitStack, asynccontextmanager
 from typing import Any
 
-from backend.config.settings import Settings
+from backend.config.settings import Settings, load_key
 from backend.contracts.modules.loop import ToolSpec
 from backend.contracts.ports import (
     ContextualToolExecutor,
@@ -39,6 +39,7 @@ def build_harness(
     model_context: ModelContextPort | None = None,
     execution_tools: ExecutionProvider | None = None,
     account_skill_loader: Callable[[str, str, int | None], dict[str, Any]] | None = None,
+    web_client=None,
 ) -> Harness:
     context_model = model_context or model
     if not isinstance(context_model, ModelContextPort):
@@ -71,6 +72,19 @@ def build_harness(
         material_search_tool.spec,
         material_search_tool,
     )
+    if settings.web.enabled:
+        from backend.infrastructure.search.deepseek_web import DeepSeekWebClient
+        from backend.infrastructure.tools.web_read import WebReadTool
+        from backend.infrastructure.tools.web_search import WebSearchTool
+
+        active_web_client = web_client or DeepSeekWebClient(settings, load_key(settings))
+        for web_tool in (
+            WebSearchTool(active_web_client, settings),
+            WebReadTool(active_web_client, settings),
+        ):
+            if web_tool.spec.name in registered:
+                raise ValueError("duplicate_tool_registration")
+            registered[web_tool.spec.name] = (web_tool.spec, web_tool)
     # Maritime research is an additive set of read-only business tools.  The
     # corpus adapter is shared by search and later citation projection, while
     # the existing Harness remains the sole dispatcher.
@@ -200,6 +214,11 @@ async def open_harnesses(
     from backend.infrastructure.model.factory import open_model
 
     async with AsyncExitStack() as stack:
+        web_client = None
+        if settings.web.enabled:
+            from backend.infrastructure.search.deepseek_web import DeepSeekWebClient
+
+            web_client = DeepSeekWebClient(settings, load_key(settings))
         execution_tools = None
         if settings.execution.enabled:
             if settings.execution.provider == "native":
@@ -281,6 +300,7 @@ async def open_harnesses(
                 tools=_case_tools(settings, case_service),
                 execution_tools=execution_tools,
                 account_skill_loader=account_skill_loader,
+                web_client=web_client,
             )
         yield harnesses
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import re
 import tomllib
+import urllib.parse
 from io import StringIO
 from pathlib import Path
 from typing import Literal
@@ -199,6 +200,28 @@ class CaseSettings(BaseModel):
     read_description: str = ""
 
 
+class DeepSeekWebSettings(BaseModel):
+    """Configuration for the direct Search and Fetch API adapter."""
+
+    # Production defaults.toml enables this explicitly.  Keeping the model
+    # default off preserves lightweight test/config fixtures that predate the
+    # web-tool section.
+    enabled: bool = False
+    endpoint: str = "https://api.deepseek.com/v1/tools"
+    allowed_hosts: list[str] = Field(default_factory=lambda: ["api.deepseek.com"])
+    timeout_seconds: float = Field(default=30.0, gt=0)
+    user_agent: str = "ZhouXu-WebTools/0.1"
+    max_search_results: int = Field(default=10, ge=1, le=50)
+    max_query_chars: int = Field(default=128, ge=1, le=128)
+    max_ori_question_chars: int = Field(default=128, ge=1, le=128)
+    max_url_chars: int = Field(default=8192, ge=8, le=8192)
+    max_content_chars: int = Field(default=20000, ge=256)
+    result_budget_chars: int = Field(default=24000, ge=512)
+    max_calls_per_run: int = Field(default=4, ge=0)
+    search_description: str = ""
+    read_description: str = ""
+
+
 class ExecutionSettings(BaseModel):
     """Resource limits and provider selection for work-mode execution."""
 
@@ -233,6 +256,7 @@ class Settings(BaseModel):
     rag: RagSettings
     rag_tool: RagToolSettings
     cases: CaseSettings = Field(default_factory=CaseSettings)
+    web: DeepSeekWebSettings = Field(default_factory=DeepSeekWebSettings)
     execution: ExecutionSettings = Field(default_factory=ExecutionSettings)
     prompts: dict[str, str]
     reflection: dict[str, str]
@@ -252,6 +276,20 @@ def load_settings(path: Path | None = None) -> Settings:
     provider = os.environ.get("ZHOUXU_EXECUTION_PROVIDER", "").strip().lower()
     if path is None and provider:
         data.setdefault("execution", {})["provider"] = provider
+    opensearch_url = os.environ.get("ZHOUXU_OPENSEARCH_URL", "").strip()
+    if path is None and opensearch_url:
+        parsed = urllib.parse.urlparse(opensearch_url)
+        if parsed.scheme != "https" or not parsed.hostname or parsed.path not in ("", "/"):
+            raise ValueError("ZHOUXU_OPENSEARCH_URL must be an HTTPS origin")
+        rag = data.setdefault("rag", {})
+        rag["endpoint"] = opensearch_url.rstrip("/")
+        rag["allowed_hosts"] = [parsed.hostname]
+        rag["local_dev_certificate"] = os.environ.get(
+            "ZHOUXU_OPENSEARCH_INSECURE", ""
+        ).strip() == "1"
+        credential_file = os.environ.get("ZHOUXU_OPENSEARCH_CREDENTIAL_FILE", "").strip()
+        if credential_file:
+            rag["credential_file"] = credential_file
     with (BACKEND_ROOT / "config" / "model_capabilities.toml").open("rb") as stream:
         profiles = tomllib.load(stream)
     data.setdefault("model_capabilities", profiles["models"])

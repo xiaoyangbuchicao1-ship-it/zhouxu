@@ -4,7 +4,7 @@
 
 ## 本地运行
 
-需要 Node.js 20.19+ 或 22.12+、npm，以及当前系统安装的 `backend/.venv`。Windows 与 Ubuntu/WSL 使用同一启动命令；脚本自动选择 `Scripts/python.exe` 或 `bin/python`。项目根目录的安装与统一启动见 [README](../README.md)。
+本机 Windows 开发需要 Node.js 20.19+ 或 22.12+、npm；启动脚本使用 `frontend/node_modules-windows`。Linux/ECS 和另一台 Windows 电脑通过 Docker Compose 在容器内安装和运行 Node/Nginx，不需要主机的 `node_modules`。项目根目录的安装与启动见 [README](../README.md)。
 
 ```powershell
 npm ci

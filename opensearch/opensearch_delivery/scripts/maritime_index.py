@@ -9,6 +9,7 @@ from datetime import date, datetime
 from difflib import SequenceMatcher
 import hashlib
 import json
+import os
 from pathlib import Path, PurePosixPath
 import re
 import ssl
@@ -113,7 +114,9 @@ class Client:
         self.url = url.rstrip("/")
         if ca_file:
             self.context = ssl.create_default_context(cafile=ca_file)
-        elif parsed.hostname in ("localhost", "127.0.0.1", "::1"):
+        elif parsed.hostname in ("localhost", "127.0.0.1", "::1") or os.environ.get(
+            "ZHOUXU_OPENSEARCH_INSECURE", ""
+        ).strip() == "1":
             self.context = ssl._create_unverified_context()  # Existing local demo certificate only.
         else:
             self.context = ssl.create_default_context()

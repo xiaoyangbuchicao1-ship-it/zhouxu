@@ -4,12 +4,19 @@ Python 3.11、FastAPI、Pydantic v2、httpx、SQLAlchemy 与自研 Harness。提
 
 ## 启动
 
-从项目根目录运行：
+本机 Windows 开发从项目根目录运行：
 
-```sh
-uv sync --project backend --extra rag --extra materials --locked
-uv run --project backend --extra rag --extra materials --locked uvicorn backend.interfaces.api.app:create_app --factory --host 127.0.0.1 --port 8010 --workers 1
+```powershell
+.\start\windows\start.cmd
 ```
+
+Linux/ECS 不在主机创建 Python 环境，使用项目 Compose：
+
+```bash
+./start/linux/start.sh
+```
+
+这个脚本只启动 `deploy/app/compose.yaml`。Windows 的原生开发环境在 `backend/.venv-windows`；不要复制虚拟环境到另一台机器。
 
 统一前后端启动见[项目说明](../README.md)。CLI 为 `python -m backend "问题"`，会调用真实模型；可用 `--config <完整 TOML 路径>` 指定配置。默认参数、提示词和文案在 `config/defaults.toml`，修改后重建 Harness 或重启服务。
 
@@ -57,4 +64,4 @@ uv lock --project backend --check --offline
 uv run --project backend --locked ruff check --no-cache backend
 ```
 
-基础版本按用户要求移除旧测试执行器与结果；验收输入保存在[测试集](../datasets/README.md)。检查与真实业务验收分开。继续维护前读取 [AGENTS.md](AGENTS.md)。
+基础版本按用户要求移除旧测试执行器与结果；验收输入保存在[测试集](../datasets/README.md)。检查与真实业务验收分开。继续维护前先阅读上面的维护资料和目标模块说明。
