@@ -189,6 +189,10 @@ class AdminAccountUpdateRequest(Contract):
     used_tokens: int | None = Field(default=None, ge=0)
 
 
+class AdminPasswordResetRequest(Contract):
+    password: str = Field(min_length=1)
+
+
 class AuthSessionView(Contract):
     account: AccountView
     session: dict[str, str]

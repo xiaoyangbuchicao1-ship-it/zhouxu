@@ -49,6 +49,7 @@ from backend.interfaces.api.contracts import (
     AccountView,
     AdminAccountListResponse,
     AdminAccountUpdateRequest,
+    AdminPasswordResetRequest,
     AuthCredentialsRequest,
     AuthSessionView,
     CreateConversationRequest,
@@ -560,6 +561,44 @@ def create_app(
             used_tokens=updated.used_tokens,
             remaining_tokens=updated.remaining_tokens,
         )
+
+    @app.post("/admin/users/{account_id}/password", status_code=204)
+    async def admin_reset_password(
+        account_id: str,
+        body: AdminPasswordResetRequest,
+        request: Request,
+        authorization: str | None = Header(default=None),
+    ):
+        principal = require_admin(request, authorization)
+        if account_id == principal.id:
+            raise HTTPException(status_code=400, detail="cannot_modify_self")
+        auth = accounts(request)
+        if auth is None:
+            raise HTTPException(status_code=503, detail="unavailable")
+        try:
+            auth.reset_password(account_id=account_id, password=body.password)
+        except AccountError as exc:
+            status_code = 404 if exc.code == "account_not_found" else 400
+            raise HTTPException(status_code=status_code, detail=exc.code) from None
+        return None
+
+    @app.delete("/admin/users/{account_id}", status_code=204)
+    async def admin_delete_user(
+        account_id: str,
+        request: Request,
+        authorization: str | None = Header(default=None),
+    ):
+        principal = require_admin(request, authorization)
+        if account_id == principal.id:
+            raise HTTPException(status_code=400, detail="cannot_modify_self")
+        auth = accounts(request)
+        if auth is None:
+            raise HTTPException(status_code=503, detail="unavailable")
+        try:
+            auth.delete_account(account_id=account_id)
+        except AccountError as exc:
+            raise HTTPException(status_code=404, detail=exc.code) from None
+        return None
 
     def conversation_view(
         conversation, run_count: int = 0

@@ -55,3 +55,16 @@ export async function updateAdminUser(
     body: JSON.stringify(changes),
   });
 }
+
+export async function resetAdminUserPassword(token: string, accountId: string, password: string) {
+  await request<null>(token, `/admin/users/${encodeURIComponent(accountId)}/password`, {
+    method: "POST",
+    body: JSON.stringify({ password }),
+  });
+}
+
+export async function deleteAdminUser(token: string, accountId: string) {
+  await request<null>(token, `/admin/users/${encodeURIComponent(accountId)}`, {
+    method: "DELETE",
+  });
+}

@@ -1,8 +1,8 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { ArrowLeft, Check, LoaderCircle, RefreshCw, Search, Shield, SlidersHorizontal, UserRound, X } from "lucide-react";
+import { ArrowLeft, Check, KeyRound, LoaderCircle, RefreshCw, Search, Shield, SlidersHorizontal, Trash2, UserRound, X } from "lucide-react";
 import { useAuthSession } from "@/lib/auth-session";
-import { AdminApiError, listAdminUsers, updateAdminUser, type AdminAccount } from "@/lib/admin-api";
+import { AdminApiError, deleteAdminUser, listAdminUsers, resetAdminUserPassword, updateAdminUser, type AdminAccount } from "@/lib/admin-api";
 import "./admin-users.css";
 
 const number = new Intl.NumberFormat("zh-CN");
@@ -34,6 +34,8 @@ export default function AdminUsers() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<AdminAccount | null>(null);
+  const [passwordUser, setPasswordUser] = useState<AdminAccount | null>(null);
+  const [newPassword, setNewPassword] = useState("");
   const [quota, setQuota] = useState("");
   const [used, setUsed] = useState("");
 
@@ -81,6 +83,12 @@ export default function AdminUsers() {
     setError("");
   }
 
+  function openPasswordEditor(user: AdminAccount) {
+    setPasswordUser(user);
+    setNewPassword("");
+    setError("");
+  }
+
   async function toggleStatus(user: AdminAccount) {
     setSaving(true);
     setError("");
@@ -114,6 +122,39 @@ export default function AdminUsers() {
     } finally { setSaving(false); }
   }
 
+  async function savePassword(event: FormEvent) {
+    event.preventDefault();
+    if (!passwordUser) return;
+    if (newPassword.length < 12) {
+      setError("新密码至少需要 12 个字符。 ");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      await resetAdminUserPassword(session.session.token, passwordUser.id, newPassword);
+      setPasswordUser(null);
+      setNewPassword("");
+    } catch (value) {
+      const apiError = value as AdminApiError;
+      setError(apiError.code === "cannot_modify_self" ? "不能重置当前管理员账户的密码。" : "密码重置失败，请稍后重试。 ");
+    } finally { setSaving(false); }
+  }
+
+  async function removeUser(user: AdminAccount) {
+    if (!window.confirm(`确定注销“${user.display_name || user.email}”吗？该账户及其工作区数据将永久删除。`)) return;
+    setSaving(true);
+    setError("");
+    try {
+      await deleteAdminUser(session.session.token, user.id);
+      setUsers(items => items.filter(item => item.id !== user.id));
+      setTotal(value => Math.max(0, value - 1));
+    } catch (value) {
+      const apiError = value as AdminApiError;
+      setError(apiError.code === "cannot_modify_self" ? "不能注销当前管理员账户。" : "注销失败，请稍后重试。 ");
+    } finally { setSaving(false); }
+  }
+
   return (
     <main className="admin-page">
       <header className="admin-header">
@@ -136,14 +177,15 @@ export default function AdminUsers() {
           <label className="admin-filter"><SlidersHorizontal size={16} /><span>状态</span><select value={status} onChange={event => setStatus(event.target.value)}><option value="all">全部用户</option><option value="active">活跃</option><option value="suspended">已停用</option></select></label>
         </div>
 
-        {error && <div className="admin-alert" role="alert">{error}</div>}
+         {error && <div className="admin-alert" role="alert">{error}</div>}
         <section className="admin-table-card" aria-label="用户列表">
-          {loading ? <div className="admin-empty"><LoaderCircle className="admin-spin" size={24} /><span>正在读取账户数据…</span></div> : users.length === 0 ? <div className="admin-empty"><UserRound size={24} /><span>没有符合条件的账户</span></div> : <div className="admin-table-wrap"><table><thead><tr><th>用户</th><th>状态</th><th>额度与使用</th><th>角色</th><th aria-label="操作" /></tr></thead><tbody>{users.map(user => <tr key={user.id}><td><div className="admin-user"><span className="admin-avatar">{(user.display_name || user.email).slice(0, 1).toUpperCase()}</span><span><strong>{user.display_name || "未设置称呼"}</strong><small>{user.email}</small></span></div></td><td><span className={`admin-status ${user.status}`}><i />{user.status === "active" ? "活跃" : "已停用"}</span></td><td><UsageBar user={user} /></td><td><span className={`admin-role ${user.role}`}><span>{user.role === "admin" ? "管理员" : "普通用户"}</span></span></td><td><div className="admin-row-actions"><button onClick={() => openEditor(user)} disabled={saving}>管理额度</button><button className="admin-status-action" onClick={() => void toggleStatus(user)} disabled={saving}>{user.status === "active" ? "停用" : "启用"}</button></div></td></tr>)}</tbody></table></div>}
+          {loading ? <div className="admin-empty"><LoaderCircle className="admin-spin" size={24} /><span>正在读取账户数据…</span></div> : users.length === 0 ? <div className="admin-empty"><UserRound size={24} /><span>没有符合条件的账户</span></div> : <div className="admin-table-wrap"><table><thead><tr><th>用户</th><th>状态</th><th>额度与使用</th><th>角色</th><th aria-label="操作" /></tr></thead><tbody>{users.map(user => <tr key={user.id}><td><div className="admin-user"><span className="admin-avatar">{(user.display_name || user.email).slice(0, 1).toUpperCase()}</span><span><strong>{user.display_name || "未设置称呼"}</strong><small>{user.email}</small></span></div></td><td><span className={`admin-status ${user.status}`}><i />{user.status === "active" ? "活跃" : "已停用"}</span></td><td><UsageBar user={user} /></td><td><span className={`admin-role ${user.role}`}><span>{user.role === "admin" ? "管理员" : "普通用户"}</span></span></td><td><div className="admin-row-actions"><button onClick={() => openEditor(user)} disabled={saving}>管理额度</button><button onClick={() => openPasswordEditor(user)} disabled={saving}><KeyRound size={13} />重置密码</button><button className="admin-status-action" onClick={() => void toggleStatus(user)} disabled={saving}>{user.status === "active" ? "停用" : "启用"}</button><button className="admin-danger-action" onClick={() => void removeUser(user)} disabled={saving}><Trash2 size={13} />注销</button></div></td></tr>)}</tbody></table></div>}
         </section>
-        <p className="admin-footnote">用量来自模型服务返回的 token 统计；额度调整会立即影响管理台显示。</p>
+         <p className="admin-footnote">管理员可调整额度、重置密码、停用或注销用户；注销会永久删除账户及其工作区数据。</p>
       </section>
 
       {editing && <div className="admin-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setEditing(null); }}><section className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-modal-title"><div className="admin-modal-header"><div><p className="admin-eyebrow">ACCOUNT CONTROL</p><h2 id="admin-modal-title">管理额度</h2><p>{editing.display_name || editing.email}</p></div><button className="admin-close" onClick={() => setEditing(null)} aria-label="关闭"><X size={18} /></button></div><form onSubmit={saveEditor}><label>总额度（tokens）<input type="number" min="0" step="1" value={quota} onChange={event => setQuota(event.target.value)} /></label><label>已使用额度（tokens）<input type="number" min="0" step="1" value={used} onChange={event => setUsed(event.target.value)} /></label><div className="admin-modal-summary"><span>调整后剩余</span><strong>{formatTokens(Math.max(0, Number(quota || 0) - Number(used || 0)))} tokens</strong></div><div className="admin-modal-actions"><button type="button" onClick={() => setEditing(null)}>取消</button><button type="submit" className="admin-primary" disabled={saving}>{saving ? <LoaderCircle className="admin-spin" size={16} /> : <Check size={16} />}保存调整</button></div></form></section></div>}
+      {passwordUser && <div className="admin-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setPasswordUser(null); }}><section className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-password-title"><div className="admin-modal-header"><div><p className="admin-eyebrow">ACCOUNT SECURITY</p><h2 id="admin-password-title">重置密码</h2><p>{passwordUser.display_name || passwordUser.email}</p></div><button className="admin-close" onClick={() => setPasswordUser(null)} aria-label="关闭"><X size={18} /></button></div><form onSubmit={savePassword}><label>新密码<input type="password" minLength={12} autoComplete="new-password" value={newPassword} onChange={event => setNewPassword(event.target.value)} placeholder="至少 12 个字符" /></label><p className="admin-modal-hint">保存后，该用户的现有登录会话将全部失效。</p><div className="admin-modal-actions"><button type="button" onClick={() => setPasswordUser(null)}>取消</button><button type="submit" className="admin-primary" disabled={saving}>{saving ? <LoaderCircle className="admin-spin" size={16} /> : <KeyRound size={16} />}保存新密码</button></div></form></section></div>}
     </main>
   );
 }

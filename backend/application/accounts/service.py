@@ -244,6 +244,43 @@ class AccountService:
         finally:
             session.close()
 
+    def reset_password(self, *, account_id: str, password: str) -> None:
+        """Replace a user's password and revoke their active sessions."""
+
+        self._validate_password(password)
+        session = self.database.session()
+        try:
+            account = session.get(AccountModel, account_id)
+            if account is None:
+                raise AccountError("account_not_found")
+            now = self._now()
+            account.password_hash = self.passwords.hash(password)
+            account.updated_at = now
+            session.execute(
+                update(SessionModel)
+                .where(
+                    SessionModel.account_id == account_id,
+                    SessionModel.revoked_at.is_(None),
+                )
+                .values(revoked_at=now)
+            )
+            session.commit()
+        finally:
+            session.close()
+
+    def delete_account(self, *, account_id: str) -> None:
+        """Permanently remove an account and its account-owned records."""
+
+        session = self.database.session()
+        try:
+            account = session.get(AccountModel, account_id)
+            if account is None:
+                raise AccountError("account_not_found")
+            session.delete(account)
+            session.commit()
+        finally:
+            session.close()
+
     def _create_session(self, session, account: AccountModel, now: datetime) -> AuthResult:
         token = secrets.token_urlsafe(self.auth_settings.token_bytes)
         auth_session = SessionModel(
