@@ -38,6 +38,7 @@ export default function AdminUsers() {
   const [newPassword, setNewPassword] = useState("");
   const [quota, setQuota] = useState("");
   const [used, setUsed] = useState("");
+  const [role, setRole] = useState<"user" | "admin">("user");
 
   const load = useCallback(async () => {
     if (!session) return;
@@ -80,6 +81,7 @@ export default function AdminUsers() {
     setEditing(user);
     setQuota(String(user.quota_tokens));
     setUsed(String(user.used_tokens));
+    setRole(user.role === "admin" ? "admin" : "user");
     setError("");
   }
 
@@ -113,7 +115,7 @@ export default function AdminUsers() {
     setSaving(true);
     setError("");
     try {
-      const updated = await updateAdminUser(session.session.token, editing.id, { quota_tokens: nextQuota, used_tokens: nextUsed });
+      const updated = await updateAdminUser(session.session.token, editing.id, { quota_tokens: nextQuota, used_tokens: nextUsed, role });
       setUsers(items => items.map(item => item.id === updated.id ? updated : item));
       setEditing(null);
     } catch (value) {
@@ -184,7 +186,7 @@ export default function AdminUsers() {
          <p className="admin-footnote">管理员可调整额度、重置密码、停用或注销用户；注销会永久删除账户及其工作区数据。</p>
       </section>
 
-      {editing && <div className="admin-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setEditing(null); }}><section className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-modal-title"><div className="admin-modal-header"><div><p className="admin-eyebrow">ACCOUNT CONTROL</p><h2 id="admin-modal-title">管理额度</h2><p>{editing.display_name || editing.email}</p></div><button className="admin-close" onClick={() => setEditing(null)} aria-label="关闭"><X size={18} /></button></div><form onSubmit={saveEditor}><label>总额度（tokens）<input type="number" min="0" step="1" value={quota} onChange={event => setQuota(event.target.value)} /></label><label>已使用额度（tokens）<input type="number" min="0" step="1" value={used} onChange={event => setUsed(event.target.value)} /></label><div className="admin-modal-summary"><span>调整后剩余</span><strong>{formatTokens(Math.max(0, Number(quota || 0) - Number(used || 0)))} tokens</strong></div><div className="admin-modal-actions"><button type="button" onClick={() => setEditing(null)}>取消</button><button type="submit" className="admin-primary" disabled={saving}>{saving ? <LoaderCircle className="admin-spin" size={16} /> : <Check size={16} />}保存调整</button></div></form></section></div>}
+      {editing && <div className="admin-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setEditing(null); }}><section className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-modal-title"><div className="admin-modal-header"><div><p className="admin-eyebrow">ACCOUNT CONTROL</p><h2 id="admin-modal-title">管理账户</h2><p>{editing.display_name || editing.email}</p></div><button className="admin-close" onClick={() => setEditing(null)} aria-label="关闭"><X size={18} /></button></div><form onSubmit={saveEditor}><label>账户角色<select value={role} onChange={event => setRole(event.target.value as "user" | "admin")}><option value="user">普通用户</option><option value="admin">管理员</option></select></label><label>总额度（tokens）<input type="number" min="0" step="1" value={quota} onChange={event => setQuota(event.target.value)} /></label><label>已使用额度（tokens）<input type="number" min="0" step="1" value={used} onChange={event => setUsed(event.target.value)} /></label><div className="admin-modal-summary"><span>调整后剩余</span><strong>{formatTokens(Math.max(0, Number(quota || 0) - Number(used || 0)))} tokens</strong></div><div className="admin-modal-actions"><button type="button" onClick={() => setEditing(null)}>取消</button><button type="submit" className="admin-primary" disabled={saving}>{saving ? <LoaderCircle className="admin-spin" size={16} /> : <Check size={16} />}保存调整</button></div></form></section></div>}
       {passwordUser && <div className="admin-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setPasswordUser(null); }}><section className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-password-title"><div className="admin-modal-header"><div><p className="admin-eyebrow">ACCOUNT SECURITY</p><h2 id="admin-password-title">重置密码</h2><p>{passwordUser.display_name || passwordUser.email}</p></div><button className="admin-close" onClick={() => setPasswordUser(null)} aria-label="关闭"><X size={18} /></button></div><form onSubmit={savePassword}><label>新密码<input type="password" minLength={12} autoComplete="new-password" value={newPassword} onChange={event => setNewPassword(event.target.value)} placeholder="至少 12 个字符" /></label><p className="admin-modal-hint">保存后，该用户的现有登录会话将全部失效。</p><div className="admin-modal-actions"><button type="button" onClick={() => setPasswordUser(null)}>取消</button><button type="submit" className="admin-primary" disabled={saving}>{saving ? <LoaderCircle className="admin-spin" size={16} /> : <KeyRound size={16} />}保存新密码</button></div></form></section></div>}
     </main>
   );
