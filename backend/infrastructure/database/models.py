@@ -20,6 +20,9 @@ class AccountModel(Base):
     display_name: Mapped[str] = mapped_column(String(80), default="")
     password_hash: Mapped[str] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String(24), default="active")
+    role: Mapped[str] = mapped_column(String(24), default="user")
+    quota_tokens: Mapped[int] = mapped_column(Integer, default=100_000)
+    used_tokens: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 

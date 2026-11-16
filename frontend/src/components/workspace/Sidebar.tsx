@@ -17,6 +17,7 @@ import {
   Compass,
   MessageCircle,
   Search,
+  Shield,
 } from "lucide-react";
 import logo from "../../../zhou-xu-mark.png";
 import { IconButton, Menu, MenuItem, Loading, LoadError } from "./Primitives";
@@ -326,6 +327,10 @@ export default function Sidebar({
             <ArrowUpRight size={16} />
             账户信息
           </MenuItem>
+          {session.account.role === "admin" && <MenuItem onSelect={() => navigate("/admin/users")}>
+            <Shield size={16} />
+            用户管理
+          </MenuItem>}
           <MenuItem onSelect={logout}>
             <LogOut size={16} />
             退出登录

@@ -5,13 +5,15 @@ from backend.contracts.modules.loop import RunInput
 
 
 class RunProjection:
-    def __init__(self, workspace, events):
-        self.workspace, self.events = workspace, events
+    def __init__(self, workspace, events, usage_service=None):
+        self.workspace, self.events, self.usage_service = workspace, events, usage_service
         self._versions = {}
+        self._usage_applied: dict[str, int] = {}
 
     def __call__(self, run):
         if self.workspace is None or not run.account_id:
             return
+        self._record_usage(run)
         text, sequence = self.events.visible(run.run_id)
         if sequence and (run.first_event_at is None or run.first_delta_at is None):
             items = self.events.stream_events_since(run_id=run.run_id)
@@ -76,3 +78,23 @@ class RunProjection:
         except WorkspaceError:
             return  # Conversation was explicitly removed, never recreate it.
         self._versions[run.run_id] = key
+
+    def _record_usage(self, run) -> None:
+        if self.usage_service is None:
+            return
+        events = getattr(self.events, "events", ())
+        total = sum(
+            int(item.total_tokens or 0)
+            for item in events
+            if item.run_id == run.run_id
+            and item.module == "model"
+            and item.phase == "model"
+            and item.total_tokens is not None
+        )
+        previous = self._usage_applied.get(run.run_id, 0)
+        if total <= previous:
+            return
+        self.usage_service.record_usage(
+            account_id=run.account_id, tokens=total - previous
+        )
+        self._usage_applied[run.run_id] = total

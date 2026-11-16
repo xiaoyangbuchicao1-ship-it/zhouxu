@@ -170,6 +170,23 @@ class AccountView(Contract):
     id: str
     email: str
     display_name: str
+    status: str = "active"
+    role: str = "user"
+    quota_tokens: int = 0
+    used_tokens: int = 0
+    remaining_tokens: int = 0
+
+
+class AdminAccountListResponse(Contract):
+    accounts: list[AccountView]
+    total: int
+
+
+class AdminAccountUpdateRequest(Contract):
+    status: str | None = Field(default=None, pattern="^(active|suspended)$")
+    role: str | None = Field(default=None, pattern="^(user|admin)$")
+    quota_tokens: int | None = Field(default=None, ge=0)
+    used_tokens: int | None = Field(default=None, ge=0)
 
 
 class AuthSessionView(Contract):

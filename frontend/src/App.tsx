@@ -9,6 +9,7 @@ import AuthPage from "./pages/Auth";
 import { lazy, Suspense } from "react";
 
 const Workspace = lazy(() => import("./pages/Workspace"));
+const AdminUsers = lazy(() => import("./pages/AdminUsers"));
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/login" element={<AuthPage mode="login" />} />
           <Route path="/register" element={<AuthPage mode="register" />} />
           <Route path="/account" element={<AuthPage mode="account" />} />
+          <Route path="/admin/users" element={<Suspense fallback={<div role="status" style={{ minHeight: "100dvh", display: "grid", placeItems: "center", background: "#080c10", color: "#d7e0ea" }}>正在打开管理台…</div>}><AdminUsers /></Suspense>} />
           <Route path="/workspace/*" element={<Suspense fallback={<div role="status" style={{ minHeight: "100dvh", display: "grid", placeItems: "center", background: "#080c10", fontSize: 16 }}>正在打开工作台…</div>}><Workspace /></Suspense>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

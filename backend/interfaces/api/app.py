@@ -47,6 +47,8 @@ from backend.infrastructure.persistence.run_store import SQLiteRunStore
 from backend.infrastructure.sources import CorpusSourceRepository
 from backend.interfaces.api.contracts import (
     AccountView,
+    AdminAccountListResponse,
+    AdminAccountUpdateRequest,
     AuthCredentialsRequest,
     AuthSessionView,
     CreateConversationRequest,
@@ -187,7 +189,9 @@ def create_app(
         if supplied_service is not None:
             app.state.control_service = supplied_service
             app.state.event_hub = EventHub()
-            app.state.project_run = RunProjection(active_workspace_service, app.state.event_hub)
+            app.state.project_run = RunProjection(
+                active_workspace_service, app.state.event_hub, active_account_service
+            )
             supplied_service.scheduler.on_change = app.state.project_run
             await supplied_service.scheduler.recover()
             app.state.runtime_ready = True
@@ -200,7 +204,9 @@ def create_app(
         legacy_path = Path(settings.application.get("run_store_path", "backend/.runtime/runs.json"))
         run_store = SQLiteRunStore(legacy_path.with_suffix(".sqlite3"), legacy_path=legacy_path)
         events = EventHub(store=run_store)
-        app.state.project_run = RunProjection(active_workspace_service, events)
+        app.state.project_run = RunProjection(
+            active_workspace_service, events, active_account_service
+        )
         async with AsyncExitStack() as stack:
             stack.enter_context(run_store.owner())
             try:
@@ -341,6 +347,19 @@ def create_app(
             raise HTTPException(status_code=401, detail="authentication_required")
         return principal
 
+    def require_admin(
+        request: Request, authorization: str | None
+    ) -> AccountPrincipal:
+        principal = require_account(request, authorization)
+        auth = accounts(request)
+        if auth is None or not auth.is_admin(principal):
+            raise HTTPException(status_code=403, detail="admin_required")
+        return principal
+
+    def require_quota(principal: AccountPrincipal) -> None:
+        if principal.remaining_tokens <= 0:
+            raise HTTPException(status_code=402, detail="account_quota_exhausted")
+
     def require_conversation(
         request: Request,
         conversation_id: str,
@@ -389,7 +408,11 @@ def create_app(
         if principal is not None and run.account_id == principal.id:
             projection = getattr(request.app.state, "project_run", None)
             if projection is None:
-                projection = RunProjection(workspace(request), request.app.state.event_hub)
+                projection = RunProjection(
+                    workspace(request),
+                    request.app.state.event_hub,
+                    accounts(request),
+                )
             projection(run)
 
     @app.get(settings.application["health_path"])
@@ -402,6 +425,11 @@ def create_app(
                 id=result.account.id,
                 email=result.account.email,
                 display_name=result.account.display_name,
+                status=result.account.status,
+                role=result.account.role,
+                quota_tokens=result.account.quota_tokens,
+                used_tokens=result.account.used_tokens,
+                remaining_tokens=result.account.remaining_tokens,
             ),
             session={"token": result.token},
         )
@@ -440,7 +468,14 @@ def create_app(
         if principal is None:
             raise HTTPException(status_code=401, detail="authentication_required")
         return AccountView(
-            id=principal.id, email=principal.email, display_name=principal.display_name
+            id=principal.id,
+            email=principal.email,
+            display_name=principal.display_name,
+            status=principal.status,
+            role=principal.role,
+            quota_tokens=principal.quota_tokens,
+            used_tokens=principal.used_tokens,
+            remaining_tokens=principal.remaining_tokens,
         )
 
     @app.post("/auth/logout", status_code=204)
@@ -455,6 +490,76 @@ def create_app(
         except AccountError as exc:
             raise HTTPException(status_code=401, detail=exc.code) from None
         return None
+
+    @app.get("/admin/users", response_model=AdminAccountListResponse)
+    async def admin_users(
+        request: Request,
+        authorization: str | None = Header(default=None),
+        search: str = Query(default="", max_length=120),
+        status: str | None = Query(default=None, pattern="^(active|suspended)$"),
+        offset: int = Query(default=0, ge=0),
+        limit: int = Query(default=50, ge=1, le=200),
+    ):
+        require_admin(request, authorization)
+        auth = accounts(request)
+        if auth is None:
+            raise HTTPException(status_code=503, detail="unavailable")
+        users, total = auth.list_accounts(
+            search=search, status=status, offset=offset, limit=limit
+        )
+        return AdminAccountListResponse(
+            accounts=[
+                AccountView(
+                    id=item.id,
+                    email=item.email,
+                    display_name=item.display_name,
+                    status=item.status,
+                    role=item.role,
+                    quota_tokens=item.quota_tokens,
+                    used_tokens=item.used_tokens,
+                    remaining_tokens=item.remaining_tokens,
+                )
+                for item in users
+            ],
+            total=total,
+        )
+
+    @app.patch("/admin/users/{account_id}", response_model=AccountView)
+    async def admin_update_user(
+        account_id: str,
+        body: AdminAccountUpdateRequest,
+        request: Request,
+        authorization: str | None = Header(default=None),
+    ):
+        principal = require_admin(request, authorization)
+        if account_id == principal.id and (
+            body.status == "suspended" or body.role == "user"
+        ):
+            raise HTTPException(status_code=400, detail="cannot_modify_self")
+        auth = accounts(request)
+        if auth is None:
+            raise HTTPException(status_code=503, detail="unavailable")
+        try:
+            updated = auth.update_account(
+                account_id=account_id,
+                status=body.status,
+                role=body.role,
+                quota_tokens=body.quota_tokens,
+                used_tokens=body.used_tokens,
+            )
+        except AccountError as exc:
+            status_code = 404 if exc.code == "account_not_found" else 400
+            raise HTTPException(status_code=status_code, detail=exc.code) from None
+        return AccountView(
+            id=updated.id,
+            email=updated.email,
+            display_name=updated.display_name,
+            status=updated.status,
+            role=updated.role,
+            quota_tokens=updated.quota_tokens,
+            used_tokens=updated.used_tokens,
+            remaining_tokens=updated.remaining_tokens,
+        )
 
     def conversation_view(
         conversation, run_count: int = 0
@@ -898,6 +1003,7 @@ def create_app(
         authorization: str | None = Header(default=None),
     ):
         principal = require_conversation(request, conversation_id, authorization)
+        require_quota(principal)
         service_instance = workspace(request)
         conversation_mode = "chat"
         if service_instance is not None:

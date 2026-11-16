@@ -50,6 +50,7 @@ function messageFor(status: number, detail: unknown) {
   if (status === 401) return "登录状态已失效，请重新登录。";
   if (status === 404) return "这项内容已不存在，或无法访问。";
   if (status === 413) return "文件超过当前配置允许的大小。";
+  if (status === 402) return "当前账户额度已用尽，请联系管理员调整额度。";
   if (detail === "conversation_mode_immutable") return "会话模式创建后不能更改；如需另一种模式，请新建会话。";
   if (status === 409) return "当前运行状态不允许执行这个操作。";
   if (status >= 500) return "舟序服务暂时无法完成处理，请稍后重试。";

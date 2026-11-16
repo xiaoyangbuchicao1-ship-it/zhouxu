@@ -85,6 +85,20 @@ class Database:
                 connection.execute(
                     text("ALTER TABLE conversations ADD COLUMN mode VARCHAR(16) NOT NULL DEFAULT 'chat'")
                 )
+            if "accounts" in tables:
+                account_columns = {
+                    column["name"] for column in inspector.get_columns("accounts")
+                }
+                additions = {
+                    "role": "VARCHAR(24) NOT NULL DEFAULT 'user'",
+                    "quota_tokens": "INTEGER NOT NULL DEFAULT 100000",
+                    "used_tokens": "INTEGER NOT NULL DEFAULT 0",
+                }
+                for name, declaration in additions.items():
+                    if name not in account_columns:
+                        connection.execute(
+                            text(f"ALTER TABLE accounts ADD COLUMN {name} {declaration}")
+                        )
         self._migrate_conversation_project_fk(tables)
         if "conversation_runs" not in tables:
             return

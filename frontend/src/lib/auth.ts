@@ -7,7 +7,16 @@ export interface AuthCredentials {
 }
 
 export interface AuthSession {
-  account: { id: string; email: string; display_name: string };
+  account: {
+    id: string;
+    email: string;
+    display_name: string;
+    status?: string;
+    role?: string;
+    quota_tokens?: number;
+    used_tokens?: number;
+    remaining_tokens?: number;
+  };
   session: { token: string };
 }
 

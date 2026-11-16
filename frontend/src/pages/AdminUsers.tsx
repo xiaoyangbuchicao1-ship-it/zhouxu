@@ -1,0 +1,149 @@
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { ArrowLeft, Check, LoaderCircle, RefreshCw, Search, Shield, SlidersHorizontal, UserRound, X } from "lucide-react";
+import { useAuthSession } from "@/lib/auth-session";
+import { AdminApiError, listAdminUsers, updateAdminUser, type AdminAccount } from "@/lib/admin-api";
+import "./admin-users.css";
+
+const number = new Intl.NumberFormat("zh-CN");
+
+function formatTokens(value: number) {
+  return number.format(Math.max(0, value));
+}
+
+function UsageBar({ user }: { user: AdminAccount }) {
+  const percentage = user.quota_tokens > 0 ? Math.min(100, (user.used_tokens / user.quota_tokens) * 100) : 0;
+  return (
+    <div className="admin-usage-cell">
+      <div className="admin-usage-label"><span>{formatTokens(user.used_tokens)} 已使用</span><span>{formatTokens(user.remaining_tokens)} 剩余</span></div>
+      <div className="admin-progress" aria-label={`已使用 ${Math.round(percentage)}%`}><span style={{ width: `${percentage}%` }} /></div>
+      <small>额度 {formatTokens(user.quota_tokens)} tokens</small>
+    </div>
+  );
+}
+
+export default function AdminUsers() {
+  const session = useAuthSession();
+  const navigate = useNavigate();
+  const [users, setUsers] = useState<AdminAccount[]>([]);
+  const [total, setTotal] = useState(0);
+  const [query, setQuery] = useState("");
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [editing, setEditing] = useState<AdminAccount | null>(null);
+  const [quota, setQuota] = useState("");
+  const [used, setUsed] = useState("");
+
+  const load = useCallback(async () => {
+    if (!session) return;
+    setLoading(true);
+    setError("");
+    try {
+      const result = await listAdminUsers(session.session.token, { search, status });
+      setUsers(result.accounts);
+      setTotal(result.total);
+    } catch (value) {
+      const apiError = value as AdminApiError;
+      if (apiError.status === 401) {
+        navigate("/login", { replace: true, state: { notice: "登录状态已失效，请重新登录。" } });
+        return;
+      }
+      setError(apiError.code === "admin_required" ? "当前账户没有管理员权限。" : "用户数据暂时无法加载，请稍后重试。 ");
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate, search, session, status]);
+
+  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { document.title = "用户管理 · 舟序 Zhouxu"; return () => { document.title = "舟序 Zhouxu"; }; }, []);
+
+  const stats = useMemo(() => ({
+    active: users.filter(user => user.status === "active").length,
+    suspended: users.filter(user => user.status === "suspended").length,
+    used: users.reduce((sum, user) => sum + user.used_tokens, 0),
+    remaining: users.reduce((sum, user) => sum + user.remaining_tokens, 0),
+  }), [users]);
+
+  if (!session) return <Navigate to="/login" replace />;
+
+  function submitSearch(event: FormEvent) {
+    event.preventDefault();
+    setSearch(query.trim());
+  }
+
+  function openEditor(user: AdminAccount) {
+    setEditing(user);
+    setQuota(String(user.quota_tokens));
+    setUsed(String(user.used_tokens));
+    setError("");
+  }
+
+  async function toggleStatus(user: AdminAccount) {
+    setSaving(true);
+    setError("");
+    try {
+      const updated = await updateAdminUser(session.session.token, user.id, { status: user.status === "active" ? "suspended" : "active" });
+      setUsers(items => items.map(item => item.id === updated.id ? updated : item));
+    } catch (value) {
+      const apiError = value as AdminApiError;
+      setError(apiError.code === "cannot_modify_self" ? "不能停用当前管理员账户。" : "状态更新失败，请稍后重试。 ");
+    } finally { setSaving(false); }
+  }
+
+  async function saveEditor(event: FormEvent) {
+    event.preventDefault();
+    if (!editing) return;
+    const nextQuota = Number(quota);
+    const nextUsed = Number(used);
+    if (!Number.isInteger(nextQuota) || nextQuota < 0 || !Number.isInteger(nextUsed) || nextUsed < 0 || nextUsed > nextQuota) {
+      setError("请输入有效额度：已使用量不能大于总额度。 ");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      const updated = await updateAdminUser(session.session.token, editing.id, { quota_tokens: nextQuota, used_tokens: nextUsed });
+      setUsers(items => items.map(item => item.id === updated.id ? updated : item));
+      setEditing(null);
+    } catch (value) {
+      const apiError = value as AdminApiError;
+      setError(apiError.code === "quota_below_usage" ? "总额度不能低于已使用量。" : "额度更新失败，请稍后重试。 ");
+    } finally { setSaving(false); }
+  }
+
+  return (
+    <main className="admin-page">
+      <header className="admin-header">
+        <Link className="admin-brand" to="/workspace" aria-label="回到舟序工作台"><span className="admin-mark">舟</span><span><strong>Zhouxu</strong><small>舟序 · 管理控制台</small></span></Link>
+        <div className="admin-header-actions"><span className="admin-admin-badge"><Shield size={14} />管理员</span><Link className="admin-back" to="/workspace"><ArrowLeft size={15} />回到工作台</Link></div>
+      </header>
+
+      <section className="admin-shell">
+        <div className="admin-heading"><div><p className="admin-eyebrow">ADMINISTRATION / ACCOUNTS</p><h1>用户管理</h1><p>查看账户状态，调整 token 额度，掌握每位用户的使用情况。</p></div><button className="admin-refresh" onClick={() => void load()} disabled={loading || saving}><RefreshCw size={16} className={loading ? "admin-spin" : ""} />刷新数据</button></div>
+
+        <div className="admin-stats" aria-label="用户概览">
+          <article><span>账户总数</span><strong>{formatTokens(total)}</strong><small>当前筛选结果</small></article>
+          <article><span>活跃用户</span><strong>{formatTokens(stats.active)}</strong><small>本页账户</small></article>
+          <article><span>已使用额度</span><strong>{formatTokens(stats.used)}</strong><small>tokens · 本页</small></article>
+          <article><span>剩余额度</span><strong>{formatTokens(stats.remaining)}</strong><small>tokens · 本页</small></article>
+        </div>
+
+        <div className="admin-toolbar">
+          <form onSubmit={submitSearch} className="admin-search"><Search size={17} aria-hidden="true" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索邮箱或称呼" aria-label="搜索邮箱或称呼" /><button type="submit">搜索</button></form>
+          <label className="admin-filter"><SlidersHorizontal size={16} /><span>状态</span><select value={status} onChange={event => setStatus(event.target.value)}><option value="all">全部用户</option><option value="active">活跃</option><option value="suspended">已停用</option></select></label>
+        </div>
+
+        {error && <div className="admin-alert" role="alert">{error}</div>}
+        <section className="admin-table-card" aria-label="用户列表">
+          {loading ? <div className="admin-empty"><LoaderCircle className="admin-spin" size={24} /><span>正在读取账户数据…</span></div> : users.length === 0 ? <div className="admin-empty"><UserRound size={24} /><span>没有符合条件的账户</span></div> : <div className="admin-table-wrap"><table><thead><tr><th>用户</th><th>状态</th><th>额度与使用</th><th>角色</th><th aria-label="操作" /></tr></thead><tbody>{users.map(user => <tr key={user.id}><td><div className="admin-user"><span className="admin-avatar">{(user.display_name || user.email).slice(0, 1).toUpperCase()}</span><span><strong>{user.display_name || "未设置称呼"}</strong><small>{user.email}</small></span></div></td><td><span className={`admin-status ${user.status}`}><i />{user.status === "active" ? "活跃" : "已停用"}</span></td><td><UsageBar user={user} /></td><td><span className={`admin-role ${user.role}`}><span>{user.role === "admin" ? "管理员" : "普通用户"}</span></span></td><td><div className="admin-row-actions"><button onClick={() => openEditor(user)} disabled={saving}>管理额度</button><button className="admin-status-action" onClick={() => void toggleStatus(user)} disabled={saving}>{user.status === "active" ? "停用" : "启用"}</button></div></td></tr>)}</tbody></table></div>}
+        </section>
+        <p className="admin-footnote">用量来自模型服务返回的 token 统计；额度调整会立即影响管理台显示。</p>
+      </section>
+
+      {editing && <div className="admin-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setEditing(null); }}><section className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-modal-title"><div className="admin-modal-header"><div><p className="admin-eyebrow">ACCOUNT CONTROL</p><h2 id="admin-modal-title">管理额度</h2><p>{editing.display_name || editing.email}</p></div><button className="admin-close" onClick={() => setEditing(null)} aria-label="关闭"><X size={18} /></button></div><form onSubmit={saveEditor}><label>总额度（tokens）<input type="number" min="0" step="1" value={quota} onChange={event => setQuota(event.target.value)} /></label><label>已使用额度（tokens）<input type="number" min="0" step="1" value={used} onChange={event => setUsed(event.target.value)} /></label><div className="admin-modal-summary"><span>调整后剩余</span><strong>{formatTokens(Math.max(0, Number(quota || 0) - Number(used || 0)))} tokens</strong></div><div className="admin-modal-actions"><button type="button" onClick={() => setEditing(null)}>取消</button><button type="submit" className="admin-primary" disabled={saving}>{saving ? <LoaderCircle className="admin-spin" size={16} /> : <Check size={16} />}保存调整</button></div></form></section></div>}
+    </main>
+  );
+}

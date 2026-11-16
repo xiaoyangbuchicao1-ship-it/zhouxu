@@ -142,6 +142,10 @@ class DatabaseSettings(BaseModel):
 class AuthSettings(BaseModel):
     password_min_length: int = Field(default=12, ge=8)
     token_bytes: int = Field(default=32, ge=16, le=64)
+    # Comma-separated emails from ZHOUXU_ADMIN_EMAILS are promoted to admin
+    # access without putting credentials in source control.
+    admin_emails: list[str] = Field(default_factory=list)
+    default_quota_tokens: int = Field(default=100_000, ge=0)
 
 
 class RagSettings(BaseModel):
@@ -290,6 +294,20 @@ def load_settings(path: Path | None = None) -> Settings:
         credential_file = os.environ.get("ZHOUXU_OPENSEARCH_CREDENTIAL_FILE", "").strip()
         if credential_file:
             rag["credential_file"] = credential_file
+    if path is None:
+        admin_emails = os.environ.get("ZHOUXU_ADMIN_EMAILS", "").strip()
+        if admin_emails:
+            data.setdefault("auth", {})["admin_emails"] = [
+                item.strip().lower()
+                for item in admin_emails.split(",")
+                if item.strip()
+            ]
+        default_quota = os.environ.get("ZHOUXU_DEFAULT_QUOTA_TOKENS", "").strip()
+        if default_quota:
+            try:
+                data.setdefault("auth", {})["default_quota_tokens"] = int(default_quota)
+            except ValueError as exc:
+                raise ValueError("ZHOUXU_DEFAULT_QUOTA_TOKENS must be an integer") from exc
     with (BACKEND_ROOT / "config" / "model_capabilities.toml").open("rb") as stream:
         profiles = tomllib.load(stream)
     data.setdefault("model_capabilities", profiles["models"])
