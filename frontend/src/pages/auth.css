@@ -56,6 +56,11 @@
 .auth-switch-copy { margin-top: 22px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 9px; font-size: 14px; color: #a1adba; }
 .auth-switch-copy a { display: inline-flex; align-items: center; gap: 5px; color: #c2d7e9; transition: color .2s; }
 .auth-switch-copy a:hover { color: white; }
+.auth-admin-entry { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 15px; color: #8394a5; font-size: 12px; }
+.auth-admin-entry > svg { color: #91b0c9; }
+.auth-admin-entry a { display: inline-flex; align-items: center; gap: 4px; color: #aec9df; }
+.auth-admin-entry a:hover { color: white; }
+.auth-admin-eyebrow { margin-bottom: 10px; }
 .auth-panel-assurance { display: flex; justify-content: center; align-items: center; gap: 7px; margin-top: 28px; font-size: 12px; line-height: 1.8; color: #a0adba; }
 .auth-panel-assurance > svg { flex-shrink: 0; color: #a8c0d4; }
 .auth-page-footer { color: #a1b0bf; }

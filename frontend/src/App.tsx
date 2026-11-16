@@ -22,6 +22,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<AuthPage mode="login" />} />
+          <Route path="/admin/login" element={<AuthPage mode="login" admin />} />
           <Route path="/register" element={<AuthPage mode="register" />} />
           <Route path="/account" element={<AuthPage mode="account" />} />
           <Route path="/admin/users" element={<Suspense fallback={<div role="status" style={{ minHeight: "100dvh", display: "grid", placeItems: "center", background: "#080c10", color: "#d7e0ea" }}>正在打开管理台…</div>}><AdminUsers /></Suspense>} />

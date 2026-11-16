@@ -114,7 +114,7 @@ export async function verifySession(token: string, signal?: AbortSignal) {
   if (!data || typeof data !== "object" || typeof (data as { id?: unknown }).id !== "string") {
     throw new AuthApiError("invalid_response");
   }
-  return data;
+  return data as AuthSession["account"];
 }
 
 export async function revokeSession(token: string, signal?: AbortSignal) {

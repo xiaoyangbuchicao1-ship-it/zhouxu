@@ -6,11 +6,12 @@ import { authenticate, AuthApiError, revokeSession, validateCredentials, verifyS
 import { saveSession, useAuthSession } from "@/lib/auth-session";
 import "./auth.css";
 
-export default function AuthPage({ mode = "login" }: { mode?: AuthMode | "account" }) {
+export default function AuthPage({ mode = "login", admin = false }: { mode?: AuthMode | "account"; admin?: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
   const session = useAuthSession();
   const register = mode === "register";
+  const adminLogin = admin && mode === "login";
   const [email, setEmail] = useState(location.state?.email || "");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -31,7 +32,7 @@ export default function AuthPage({ mode = "login" }: { mode?: AuthMode | "accoun
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
     const previousTitle = document.title;
-    document.title = `${mode === "account" ? "我的账户" : register ? "注册" : "登录"} · 舟序 Zhouxu`;
+    document.title = `${adminLogin ? "管理员登录" : mode === "account" ? "我的账户" : register ? "注册" : "登录"} · 舟序 Zhouxu`;
     setPassword("");
     setReveal(false);
     setFieldErrors({});
@@ -40,7 +41,7 @@ export default function AuthPage({ mode = "login" }: { mode?: AuthMode | "accoun
     setBusy(false);
     redirectingRef.current = false;
     return () => { requestRef.current?.abort(); document.title = previousTitle; };
-  }, [mode, register]);
+  }, [adminLogin, mode, register]);
 
   useEffect(() => {
     if (!token) {
@@ -52,11 +53,17 @@ export default function AuthPage({ mode = "login" }: { mode?: AuthMode | "accoun
     const controller = new AbortController();
     setChecking(true);
     setVerified(false);
-    verifySession(token, controller.signal).then(() => {
+    verifySession(token, controller.signal).then((account) => {
       if (controller.signal.aborted) return;
       setVerified(true);
       setError(null);
-      if (mode !== "account") navigate("/workspace", { replace: true });
+      if (mode !== "account") {
+        if (adminLogin && account.role !== "admin") {
+          setError("当前账户没有管理员权限，请使用管理员账户登录。");
+          return;
+        }
+        navigate(adminLogin ? "/admin/users" : "/workspace", { replace: true });
+      }
     }).catch(error => {
       if (controller.signal.aborted) return;
       if (error instanceof AuthApiError && error.status === 401) {
@@ -68,7 +75,7 @@ export default function AuthPage({ mode = "login" }: { mode?: AuthMode | "accoun
       }
     }).finally(() => { if (!controller.signal.aborted) setChecking(false); });
     return () => controller.abort();
-  }, [token, mode, navigate, retry]);
+  }, [adminLogin, token, mode, navigate, retry]);
 
   useEffect(() => { if (error) alertRef.current?.focus(); }, [error]);
 
@@ -91,9 +98,13 @@ export default function AuthPage({ mode = "login" }: { mode?: AuthMode | "accoun
     try {
       const result = await authenticate(mode, values, controller.signal);
       if (controller.signal.aborted) return;
+      if (adminLogin && result.account.role !== "admin") {
+        setError("当前账户没有管理员权限，请使用管理员账户登录。");
+        return;
+      }
       saveSession(result);
       setPassword("");
-      navigate("/workspace", { replace: true, state: { created: register } });
+      navigate(adminLogin ? "/admin/users" : "/workspace", { replace: true, state: { created: register } });
     } catch (error) {
       if (!controller.signal.aborted) {
         setError(error instanceof Error ? error.message : "暂时无法连接，请稍后重试。");
@@ -173,8 +184,9 @@ export default function AuthPage({ mode = "login" }: { mode?: AuthMode | "accoun
                 <Link to="/register" aria-current={register ? "page" : undefined} aria-disabled={busy} onClick={e => { if (busy) e.preventDefault(); }}>注册</Link>
               </nav>
               <div className="auth-form-heading">
-                <h1 className="font-editorial">{register ? "从这里，开启舟序。" : "欢迎回到舟序。"}</h1>
-                <p className="auth-intro">{register ? "建立你的账户，让每一次研判有迹可循。" : "登录你的账户，接续每一次思考。"}</p>
+                {adminLogin && <p className="auth-eyebrow auth-admin-eyebrow">ADMIN CONSOLE</p>}
+                <h1 className="font-editorial">{adminLogin ? "进入管理员端。" : register ? "从这里，开启舟序。" : "欢迎回到舟序。"}</h1>
+                <p className="auth-intro">{adminLogin ? "管理用户状态与额度，掌握账户使用情况。" : register ? "建立你的账户，让每一次研判有迹可循。" : "登录你的账户，接续每一次思考。"}</p>
               </div>
               {location.state?.notice && <p className="auth-notice" role="status">{location.state.notice}</p>}
               <form ref={formRef} onSubmit={submit} noValidate aria-busy={busy}>
@@ -202,7 +214,8 @@ export default function AuthPage({ mode = "login" }: { mode?: AuthMode | "accoun
                   </button>
                 </fieldset>
               </form>
-              <p className="auth-switch-copy">{register ? "已有账户？" : "初次来到舟序？"}<Link to={register ? "/login" : "/register"} state={{ email }} aria-disabled={busy} onClick={e => { if (busy) e.preventDefault(); }}>{register ? "直接登录" : "创建一个账户"}<ArrowRight size={12} aria-hidden="true" /></Link></p>
+              <p className="auth-switch-copy">{register ? "已有账户？" : adminLogin ? "普通用户？" : "初次来到舟序？"}<Link to={register ? "/login" : adminLogin ? "/login" : "/register"} state={{ email }} aria-disabled={busy} onClick={e => { if (busy) e.preventDefault(); }}>{register ? "直接登录" : adminLogin ? "普通登录" : "创建一个账户"}<ArrowRight size={12} aria-hidden="true" /></Link></p>
+              {!register && !adminLogin && <p className="auth-admin-entry"><ShieldCheck size={14} aria-hidden="true" /><span>团队管理员</span><Link to="/admin/login">管理员入口<ArrowRight size={12} aria-hidden="true" /></Link></p>}
             </>
           )}
 
