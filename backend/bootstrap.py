@@ -251,6 +251,19 @@ async def open_harnesses(
                         return ModuleResponse(status="failed", error=self.error)
 
                 retrieval = UnavailableRetrieval(exc.error)
+            except ModuleNotFoundError:
+                # Optional retrieval dependencies (numpy/torch/transformers)
+                # are not required for local account and basic chat testing.
+                from backend.contracts.schemas.core import ModuleResponse
+
+                class UnavailableRetrieval:
+                    async def handle(self, request):
+                        return ModuleResponse(
+                            status="failed",
+                            error=settings.error("rag_configuration"),
+                        )
+
+                retrieval = UnavailableRetrieval()
         if settings.rag_tool.enabled:
             rag = retrieval
         if settings.cases.enabled:
