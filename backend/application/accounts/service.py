@@ -186,6 +186,18 @@ class AccountService:
         finally:
             session.close()
 
+    def get_account(self, account_id: str) -> AccountPrincipal:
+        """Return one account projection for admin log scoping."""
+
+        session = self.database.session()
+        try:
+            account = session.get(AccountModel, account_id)
+            if account is None:
+                raise AccountError("account_not_found")
+            return self._principal(account)
+        finally:
+            session.close()
+
     def update_account(
         self, *, account_id: str, status: str | None = None,
         quota_tokens: int | None = None, used_tokens: int | None = None,

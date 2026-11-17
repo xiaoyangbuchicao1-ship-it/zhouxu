@@ -94,7 +94,24 @@ class RunProjection:
         previous = self._usage_applied.get(run.run_id, 0)
         if total <= previous:
             return
-        self.usage_service.record_usage(
-            account_id=run.account_id, tokens=total - previous
-        )
+        if hasattr(self.usage_service, "record_usage_once"):
+            payload = run.payload if isinstance(run.payload, dict) else {}
+            facts = payload.get("facts") if isinstance(payload, dict) else {}
+            mode = facts.get("task_mode", "chat") if isinstance(facts, dict) else "chat"
+            self.usage_service.record_usage_once(
+                account_id=run.account_id,
+                run_id=run.run_id,
+                conversation_id=run.conversation_id or run.session_id,
+                model="deepseek",
+                mode=mode if mode in {"chat", "work"} else "chat",
+                status=run.status,
+                total_tokens=total,
+                created_at=run.created_at,
+                completed_at=run.completed_at,
+            )
+        else:
+            # Compatibility for injected services used by older tests.
+            self.usage_service.record_usage(
+                account_id=run.account_id, tokens=total - previous
+            )
         self._usage_applied[run.run_id] = total

@@ -193,6 +193,70 @@ class AdminPasswordResetRequest(Contract):
     password: str = Field(min_length=1)
 
 
+class AdminAuditLogView(Contract):
+    id: str
+    event_id: str
+    actor_account_id: str | None = None
+    actor_email: str | None = None
+    actor_role: str
+    target_account_id: str | None = None
+    target_email: str | None = None
+    category: str
+    action: str
+    success: bool
+    status_code: int
+    request_id: str | None = None
+    ip_address: str | None = None
+    user_agent: str | None = None
+    details: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime
+
+
+class AdminUsageLogView(Contract):
+    id: str
+    account_id: str
+    email: str | None = None
+    display_name: str | None = None
+    run_id: str
+    conversation_id: str | None = None
+    model: str
+    mode: str
+    status: str
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+    created_at: datetime
+    completed_at: datetime | None = None
+
+
+class AdminAuditLogListResponse(Contract):
+    items: list[AdminAuditLogView]
+    total: int
+
+
+class AdminUsageLogListResponse(Contract):
+    items: list[AdminUsageLogView]
+    total: int
+
+
+class AdminUserActivityView(Contract):
+    """A normalized timeline row for one user's account activity."""
+
+    id: str
+    kind: str
+    account_id: str
+    email: str | None = None
+    action: str
+    status: str
+    details: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime
+
+
+class AdminUserActivityListResponse(Contract):
+    items: list[AdminUserActivityView]
+    total: int
+
+
 class AuthSessionView(Contract):
     account: AccountView
     session: dict[str, str]

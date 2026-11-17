@@ -198,6 +198,48 @@ class ConversationRunModel(Base):
     conversation: Mapped[ConversationModel] = relationship(back_populates="runs")
 
 
+class UsageLogModel(Base):
+    """One durable usage record per account run."""
+
+    __tablename__ = "usage_logs"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    account_id: Mapped[str] = mapped_column(String(32), index=True)
+    run_id: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    conversation_id: Mapped[str | None] = mapped_column(String(32), index=True)
+    model: Mapped[str] = mapped_column(String(80), default="deepseek")
+    mode: Mapped[str] = mapped_column(String(16), default="chat")
+    status: Mapped[str] = mapped_column(String(24), default="completed")
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    total_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AuditLogModel(Base):
+    """Security and administrative events kept independently of usage cleanup."""
+
+    __tablename__ = "audit_logs"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    event_id: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    actor_account_id: Mapped[str | None] = mapped_column(String(32), index=True)
+    actor_email: Mapped[str | None] = mapped_column(String(320))
+    actor_role: Mapped[str] = mapped_column(String(24), default="anonymous")
+    target_account_id: Mapped[str | None] = mapped_column(String(32), index=True)
+    target_email: Mapped[str | None] = mapped_column(String(320))
+    category: Mapped[str] = mapped_column(String(24), index=True)
+    action: Mapped[str] = mapped_column(String(128), index=True)
+    success: Mapped[bool] = mapped_column(Boolean, default=True)
+    status_code: Mapped[int] = mapped_column(Integer, default=200)
+    request_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    ip_address: Mapped[str | None] = mapped_column(String(64))
+    user_agent: Mapped[str | None] = mapped_column(String(512))
+    details_json: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
 Index("ix_sessions_account_active", SessionModel.account_id, SessionModel.revoked_at)
 Index(
     "ix_harness_sessions_account_status",
@@ -216,3 +258,6 @@ Index(
     unique=True,
 )
 Index("ix_projects_account_order", ProjectModel.account_id, ProjectModel.updated_at)
+Index("ix_usage_logs_account_created", UsageLogModel.account_id, UsageLogModel.created_at)
+Index("ix_audit_logs_category_created", AuditLogModel.category, AuditLogModel.created_at)
+Index("ix_audit_logs_target_created", AuditLogModel.target_account_id, AuditLogModel.created_at)

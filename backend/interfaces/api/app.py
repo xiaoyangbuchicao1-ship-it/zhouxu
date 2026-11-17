@@ -13,6 +13,7 @@ from typing import AsyncIterator
 from fastapi import FastAPI, File, Header, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 
+from backend.application.accounts.logs import AccountLogService
 from backend.application.accounts.service import (
     AccountError,
     AccountPrincipal,
@@ -49,7 +50,13 @@ from backend.interfaces.api.contracts import (
     AccountView,
     AdminAccountListResponse,
     AdminAccountUpdateRequest,
+    AdminAuditLogListResponse,
+    AdminAuditLogView,
     AdminPasswordResetRequest,
+    AdminUsageLogListResponse,
+    AdminUsageLogView,
+    AdminUserActivityListResponse,
+    AdminUserActivityView,
     AuthCredentialsRequest,
     AuthSessionView,
     CreateConversationRequest,
@@ -184,6 +191,11 @@ def create_app(
         if active_workspace_service is None and active_account_service is not None:
             active_workspace_service = WorkspaceService(active_account_service.database)
         app.state.account_service = active_account_service
+        app.state.account_log_service = (
+            AccountLogService(active_account_service.database)
+            if active_account_service is not None
+            else None
+        )
         app.state.material_service = active_material_service
         app.state.workspace_service = active_workspace_service
         app.state.source_repository = CorpusSourceRepository(settings)
@@ -191,7 +203,8 @@ def create_app(
             app.state.control_service = supplied_service
             app.state.event_hub = EventHub()
             app.state.project_run = RunProjection(
-                active_workspace_service, app.state.event_hub, active_account_service
+                active_workspace_service, app.state.event_hub,
+                app.state.account_log_service,
             )
             supplied_service.scheduler.on_change = app.state.project_run
             await supplied_service.scheduler.recover()
@@ -206,7 +219,7 @@ def create_app(
         run_store = SQLiteRunStore(legacy_path.with_suffix(".sqlite3"), legacy_path=legacy_path)
         events = EventHub(store=run_store)
         app.state.project_run = RunProjection(
-            active_workspace_service, events, active_account_service
+            active_workspace_service, events, app.state.account_log_service
         )
         async with AsyncExitStack() as stack:
             stack.enter_context(run_store.owner())
@@ -258,6 +271,9 @@ def create_app(
     # execute lifespan hooks. Keep the health route safe in that mode.
     app.state.runtime_ready = supplied_service is not None
     app.state.account_service = account_service
+    app.state.account_log_service = (
+        AccountLogService(account_service.database) if account_service is not None else None
+    )
     app.state.material_service = material_service
     app.state.workspace_service = workspace_service
     app.state.source_repository = CorpusSourceRepository(settings)
@@ -278,6 +294,46 @@ def create_app(
 
     def accounts(request: Request) -> AccountService | None:
         return request.app.state.account_service
+
+    def logs(request: Request) -> AccountLogService | None:
+        service_instance = getattr(request.app.state, "account_log_service", None)
+        if service_instance is None:
+            auth = accounts(request)
+            if auth is not None:
+                service_instance = AccountLogService(auth.database)
+                request.app.state.account_log_service = service_instance
+        return service_instance
+
+    def audit_event(
+        request: Request,
+        *,
+        category: str,
+        action: str,
+        actor: AccountPrincipal | None = None,
+        target: AccountPrincipal | None = None,
+        success: bool = True,
+        status_code: int = 200,
+        details: dict | None = None,
+    ) -> None:
+        service_instance = logs(request)
+        if service_instance is None:
+            return
+        client = request.client
+        service_instance.record_audit(
+            category=category,
+            action=action,
+            actor_account_id=actor.id if actor else None,
+            actor_email=actor.email if actor else None,
+            actor_role=actor.role if actor else "anonymous",
+            target_account_id=target.id if target else None,
+            target_email=target.email if target else None,
+            success=success,
+            status_code=status_code,
+            request_id=request.headers.get("x-request-id"),
+            ip_address=client.host if client else None,
+            user_agent=request.headers.get("user-agent"),
+            details=details,
+        )
 
     def workspace(request: Request) -> WorkspaceService | None:
         return request.app.state.workspace_service
@@ -412,7 +468,7 @@ def create_app(
                 projection = RunProjection(
                     workspace(request),
                     request.app.state.event_hub,
-                    accounts(request),
+                    logs(request),
                 )
             projection(run)
 
@@ -441,15 +497,30 @@ def create_app(
         if auth is None:
             raise HTTPException(status_code=503, detail="unavailable")
         try:
-            return auth_view(
-                auth.register(
-                    email=body.email,
-                    password=body.password,
-                    display_name=body.display_name,
-                )
+            result = auth.register(
+                email=body.email,
+                password=body.password,
+                display_name=body.display_name,
             )
+            audit_event(
+                request,
+                category="auth",
+                action="account.register",
+                actor=result.account,
+                target=result.account,
+                details={"display_name_set": bool(result.account.display_name)},
+            )
+            return auth_view(result)
         except AccountError as exc:
             status = 409 if exc.code == "account_email_exists" else 400
+            audit_event(
+                request,
+                category="auth",
+                action="account.register",
+                success=False,
+                status_code=status,
+                details={"error": exc.code},
+            )
             raise HTTPException(status_code=status, detail=exc.code) from None
 
     @app.post("/auth/login", response_model=AuthSessionView)
@@ -458,9 +529,25 @@ def create_app(
         if auth is None:
             raise HTTPException(status_code=503, detail="unavailable")
         try:
-            return auth_view(auth.login(email=body.email, password=body.password))
+            result = auth.login(email=body.email, password=body.password)
+            audit_event(
+                request,
+                category="auth",
+                action="account.login",
+                actor=result.account,
+                target=result.account,
+            )
+            return auth_view(result)
         except AccountError as exc:
             status = 401 if exc.code == "authentication_failed" else 400
+            audit_event(
+                request,
+                category="auth",
+                action="account.login",
+                success=False,
+                status_code=status,
+                details={"error": exc.code},
+            )
             raise HTTPException(status_code=status, detail=exc.code) from None
 
     @app.get("/auth/me", response_model=AccountView)
@@ -486,10 +573,27 @@ def create_app(
         auth = accounts(request)
         if auth is None:
             return None
+        principal = current_account(request, authorization)
         try:
             auth.logout(bearer_token(authorization))
         except AccountError as exc:
+            audit_event(
+                request,
+                category="auth",
+                action="account.logout",
+                actor=principal,
+                success=False,
+                status_code=401,
+                details={"error": exc.code},
+            )
             raise HTTPException(status_code=401, detail=exc.code) from None
+        audit_event(
+            request,
+            category="auth",
+            action="account.logout",
+            actor=principal,
+            target=principal,
+        )
         return None
 
     @app.get("/admin/users", response_model=AdminAccountListResponse)
@@ -501,12 +605,19 @@ def create_app(
         offset: int = Query(default=0, ge=0),
         limit: int = Query(default=50, ge=1, le=200),
     ):
-        require_admin(request, authorization)
+        principal = require_admin(request, authorization)
         auth = accounts(request)
         if auth is None:
             raise HTTPException(status_code=503, detail="unavailable")
         users, total = auth.list_accounts(
             search=search, status=status, offset=offset, limit=limit
+        )
+        audit_event(
+            request,
+            category="admin",
+            action="user.list",
+            actor=principal,
+            details={"search": bool(search), "status": status or "all"},
         )
         return AdminAccountListResponse(
             accounts=[
@@ -523,6 +634,87 @@ def create_app(
                 for item in users
             ],
             total=total,
+        )
+
+    @app.get("/admin/logs/usage", response_model=AdminUsageLogListResponse)
+    async def admin_usage_logs(
+        request: Request,
+        authorization: str | None = Header(default=None),
+        search: str = Query(default="", max_length=120),
+        status: str | None = Query(default=None, max_length=24),
+        offset: int = Query(default=0, ge=0),
+        limit: int = Query(default=50, ge=1, le=200),
+    ):
+        principal = require_admin(request, authorization)
+        service_instance = logs(request)
+        if service_instance is None:
+            raise HTTPException(status_code=503, detail="unavailable")
+        rows, total = service_instance.list_usage(
+            search=search, status=status, offset=offset, limit=limit
+        )
+        audit_event(
+            request,
+            category="admin",
+            action="usage.list",
+            actor=principal,
+            details={"search": bool(search), "status": status or "all"},
+        )
+        return AdminUsageLogListResponse(
+            items=[AdminUsageLogView(**row) for row in rows], total=total
+        )
+
+    @app.get("/admin/logs/audit", response_model=AdminAuditLogListResponse)
+    async def admin_audit_logs(
+        request: Request,
+        authorization: str | None = Header(default=None),
+        category: str | None = Query(default=None, max_length=24),
+        search: str = Query(default="", max_length=120),
+        offset: int = Query(default=0, ge=0),
+        limit: int = Query(default=50, ge=1, le=200),
+    ):
+        require_admin(request, authorization)
+        service_instance = logs(request)
+        if service_instance is None:
+            raise HTTPException(status_code=503, detail="unavailable")
+        rows, total = service_instance.list_audit(
+            category=category, search=search, offset=offset, limit=limit
+        )
+        return AdminAuditLogListResponse(
+            items=[AdminAuditLogView(**row) for row in rows], total=total
+        )
+
+    @app.get(
+        "/admin/users/{account_id}/activity",
+        response_model=AdminUserActivityListResponse,
+    )
+    async def admin_user_activity(
+        account_id: str,
+        request: Request,
+        authorization: str | None = Header(default=None),
+        offset: int = Query(default=0, ge=0),
+        limit: int = Query(default=50, ge=1, le=200),
+    ):
+        principal = require_admin(request, authorization)
+        auth = accounts(request)
+        service_instance = logs(request)
+        if auth is None or service_instance is None:
+            raise HTTPException(status_code=503, detail="unavailable")
+        try:
+            account = auth.get_account(account_id)
+        except AccountError:
+            raise HTTPException(status_code=404, detail="account_not_found") from None
+        rows, total = service_instance.list_user_activity(
+            account_id=account_id, offset=offset, limit=limit
+        )
+        audit_event(
+            request,
+            category="admin",
+            action="user.activity.list",
+            actor=principal,
+            target=account,
+        )
+        return AdminUserActivityListResponse(
+            items=[AdminUserActivityView(**row) for row in rows], total=total
         )
 
     @app.patch("/admin/users/{account_id}", response_model=AccountView)
@@ -550,7 +742,29 @@ def create_app(
             )
         except AccountError as exc:
             status_code = 404 if exc.code == "account_not_found" else 400
+            audit_event(
+                request,
+                category="admin",
+                action="user.update",
+                actor=principal,
+                success=False,
+                status_code=status_code,
+                details={"account_id": account_id, "error": exc.code},
+            )
             raise HTTPException(status_code=status_code, detail=exc.code) from None
+        audit_event(
+            request,
+            category="admin",
+            action="user.update",
+            actor=principal,
+            target=updated,
+            details={
+                "status": body.status,
+                "role": body.role,
+                "quota_tokens_changed": body.quota_tokens is not None,
+                "used_tokens_changed": body.used_tokens is not None,
+            },
+        )
         return AccountView(
             id=updated.id,
             email=updated.email,
@@ -579,7 +793,23 @@ def create_app(
             auth.reset_password(account_id=account_id, password=body.password)
         except AccountError as exc:
             status_code = 404 if exc.code == "account_not_found" else 400
+            audit_event(
+                request,
+                category="admin",
+                action="user.password.reset",
+                actor=principal,
+                success=False,
+                status_code=status_code,
+                details={"account_id": account_id, "error": exc.code},
+            )
             raise HTTPException(status_code=status_code, detail=exc.code) from None
+        audit_event(
+            request,
+            category="admin",
+            action="user.password.reset",
+            actor=principal,
+            details={"account_id": account_id, "sessions_revoked": True},
+        )
         return None
 
     @app.delete("/admin/users/{account_id}", status_code=204)
@@ -597,7 +827,23 @@ def create_app(
         try:
             auth.delete_account(account_id=account_id)
         except AccountError as exc:
+            audit_event(
+                request,
+                category="admin",
+                action="user.delete",
+                actor=principal,
+                success=False,
+                status_code=404,
+                details={"account_id": account_id, "error": exc.code},
+            )
             raise HTTPException(status_code=404, detail=exc.code) from None
+        audit_event(
+            request,
+            category="admin",
+            action="user.delete",
+            actor=principal,
+            details={"account_id": account_id, "permanent": True},
+        )
         return None
 
     def conversation_view(

@@ -9,6 +9,53 @@ export interface AdminAccount {
   remaining_tokens: number;
 }
 
+export interface AdminUsageLog {
+  id: string;
+  account_id: string;
+  email?: string | null;
+  display_name?: string | null;
+  run_id: string;
+  conversation_id?: string | null;
+  model: string;
+  mode: string;
+  status: string;
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+  created_at: string;
+  completed_at?: string | null;
+}
+
+export interface AdminAuditLog {
+  id: string;
+  event_id: string;
+  actor_account_id?: string | null;
+  actor_email?: string | null;
+  actor_role: string;
+  target_account_id?: string | null;
+  target_email?: string | null;
+  category: string;
+  action: string;
+  success: boolean;
+  status_code: number;
+  request_id?: string | null;
+  ip_address?: string | null;
+  user_agent?: string | null;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface AdminUserActivity {
+  id: string;
+  kind: "audit" | "usage" | string;
+  account_id: string;
+  email?: string | null;
+  action: string;
+  status: string;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
 export class AdminApiError extends Error {
   constructor(public code: string, public status = 0) {
     super(code);
@@ -67,4 +114,25 @@ export async function deleteAdminUser(token: string, accountId: string) {
   await request<null>(token, `/admin/users/${encodeURIComponent(accountId)}`, {
     method: "DELETE",
   });
+}
+
+export async function listAdminUsageLogs(token: string, params: { search?: string; status?: string } = {}) {
+  const query = new URLSearchParams({ limit: "200" });
+  if (params.search) query.set("search", params.search);
+  if (params.status && params.status !== "all") query.set("status", params.status);
+  return request<{ items: AdminUsageLog[]; total: number }>(token, `/admin/logs/usage?${query.toString()}`);
+}
+
+export async function listAdminAuditLogs(token: string, params: { search?: string; category?: string } = {}) {
+  const query = new URLSearchParams({ limit: "200" });
+  if (params.search) query.set("search", params.search);
+  if (params.category && params.category !== "all") query.set("category", params.category);
+  return request<{ items: AdminAuditLog[]; total: number }>(token, `/admin/logs/audit?${query.toString()}`);
+}
+
+export async function listAdminUserActivity(token: string, accountId: string) {
+  return request<{ items: AdminUserActivity[]; total: number }>(
+    token,
+    `/admin/users/${encodeURIComponent(accountId)}/activity?limit=200`,
+  );
 }
