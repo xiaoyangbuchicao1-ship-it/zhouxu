@@ -304,6 +304,16 @@ def create_app(
                 request.app.state.account_log_service = service_instance
         return service_instance
 
+    def client_ip(request: Request) -> str | None:
+        """Return the socket peer address used for durable account metadata.
+
+        Reverse-proxy forwarding headers are intentionally ignored until a
+        trusted-proxy policy is configured; accepting arbitrary X-Forwarded-
+        For values would let clients spoof the address shown to admins.
+        """
+
+        return request.client.host if request.client else None
+
     def audit_event(
         request: Request,
         *,
@@ -318,7 +328,6 @@ def create_app(
         service_instance = logs(request)
         if service_instance is None:
             return
-        client = request.client
         service_instance.record_audit(
             category=category,
             action=action,
@@ -330,7 +339,7 @@ def create_app(
             success=success,
             status_code=status_code,
             request_id=request.headers.get("x-request-id"),
-            ip_address=client.host if client else None,
+            ip_address=client_ip(request),
             user_agent=request.headers.get("user-agent"),
             details=details,
         )
@@ -487,6 +496,8 @@ def create_app(
                 quota_tokens=result.account.quota_tokens,
                 used_tokens=result.account.used_tokens,
                 remaining_tokens=result.account.remaining_tokens,
+                last_login_ip=result.account.last_login_ip,
+                last_login_at=result.account.last_login_at,
             ),
             session={"token": result.token},
         )
@@ -501,6 +512,7 @@ def create_app(
                 email=body.email,
                 password=body.password,
                 display_name=body.display_name,
+                ip_address=client_ip(request),
             )
             audit_event(
                 request,
@@ -529,7 +541,11 @@ def create_app(
         if auth is None:
             raise HTTPException(status_code=503, detail="unavailable")
         try:
-            result = auth.login(email=body.email, password=body.password)
+            result = auth.login(
+                email=body.email,
+                password=body.password,
+                ip_address=client_ip(request),
+            )
             audit_event(
                 request,
                 category="auth",
@@ -564,6 +580,8 @@ def create_app(
             quota_tokens=principal.quota_tokens,
             used_tokens=principal.used_tokens,
             remaining_tokens=principal.remaining_tokens,
+            last_login_ip=principal.last_login_ip,
+            last_login_at=principal.last_login_at,
         )
 
     @app.post("/auth/logout", status_code=204)
@@ -630,6 +648,8 @@ def create_app(
                     quota_tokens=item.quota_tokens,
                     used_tokens=item.used_tokens,
                     remaining_tokens=item.remaining_tokens,
+                    last_login_ip=item.last_login_ip,
+                    last_login_at=item.last_login_at,
                 )
                 for item in users
             ],
@@ -774,6 +794,8 @@ def create_app(
             quota_tokens=updated.quota_tokens,
             used_tokens=updated.used_tokens,
             remaining_tokens=updated.remaining_tokens,
+            last_login_ip=updated.last_login_ip,
+            last_login_at=updated.last_login_at,
         )
 
     @app.post("/admin/users/{account_id}/password", status_code=204)

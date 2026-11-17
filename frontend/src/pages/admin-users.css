@@ -27,3 +27,4 @@
 .admin-cell-sub { display: block; margin-top: 4px; color: #6f8091; font-size: 10px; }
 .admin-table-card code { color: #93aabd; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 10px; }
 .admin-table-card td code { max-width: 340px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-ip { color: #9fb9cc !important; white-space: nowrap; }

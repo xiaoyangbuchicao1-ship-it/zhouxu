@@ -175,6 +175,8 @@ class AccountView(Contract):
     quota_tokens: int = 0
     used_tokens: int = 0
     remaining_tokens: int = 0
+    last_login_ip: str | None = None
+    last_login_at: datetime | None = None
 
 
 class AdminAccountListResponse(Contract):
@@ -248,6 +250,7 @@ class AdminUserActivityView(Contract):
     email: str | None = None
     action: str
     status: str
+    ip_address: str | None = None
     details: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime
 

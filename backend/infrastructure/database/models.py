@@ -23,6 +23,8 @@ class AccountModel(Base):
     role: Mapped[str] = mapped_column(String(24), default="user")
     quota_tokens: Mapped[int] = mapped_column(Integer, default=100_000)
     used_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    last_login_ip: Mapped[str | None] = mapped_column(String(64), index=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 

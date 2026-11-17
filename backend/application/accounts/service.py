@@ -41,6 +41,8 @@ class AccountPrincipal:
     status: str = "active"
     quota_tokens: int = 100_000
     used_tokens: int = 0
+    last_login_ip: str | None = None
+    last_login_at: datetime | None = None
 
     @property
     def remaining_tokens(self) -> int:
@@ -65,7 +67,10 @@ class AccountService:
         self.auth_settings = auth_settings
         self.passwords = PasswordHasher()
 
-    def register(self, *, email: str, password: str, display_name: str = "") -> AuthResult:
+    def register(
+        self, *, email: str, password: str, display_name: str = "",
+        ip_address: str | None = None,
+    ) -> AuthResult:
         normalized_email = self._normalize_email(email)
         self._validate_password(password)
         normalized_name = display_name.strip()
@@ -80,6 +85,8 @@ class AccountService:
             status="active",
             role="admin" if normalized_email in self._configured_admin_emails() else "user",
             quota_tokens=self.auth_settings.default_quota_tokens,
+            last_login_ip=(ip_address or "")[:64] or None,
+            last_login_at=now,
             created_at=now,
             updated_at=now,
         )
@@ -95,7 +102,7 @@ class AccountService:
         session.close()
         return result
 
-    def login(self, *, email: str, password: str) -> AuthResult:
+    def login(self, *, email: str, password: str, ip_address: str | None = None) -> AuthResult:
         normalized_email = self._normalize_email(email)
         session = self.database.session()
         try:
@@ -111,6 +118,9 @@ class AccountService:
             if not valid:
                 raise AccountError("authentication_failed")
             now = self._now()
+            account.last_login_ip = (ip_address or "")[:64] or None
+            account.last_login_at = now
+            account.updated_at = now
             result = self._create_session(session, account, now)
             session.commit()
             return result
@@ -332,6 +342,8 @@ class AccountService:
             status=account.status or "active",
             quota_tokens=account.quota_tokens or 0,
             used_tokens=account.used_tokens or 0,
+            last_login_ip=account.last_login_ip,
+            last_login_at=account.last_login_at,
         )
 
     def _configured_admin_emails(self) -> set[str]:

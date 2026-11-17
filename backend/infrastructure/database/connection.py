@@ -93,6 +93,8 @@ class Database:
                     "role": "VARCHAR(24) NOT NULL DEFAULT 'user'",
                     "quota_tokens": "INTEGER NOT NULL DEFAULT 100000",
                     "used_tokens": "INTEGER NOT NULL DEFAULT 0",
+                    "last_login_ip": "VARCHAR(64)",
+                    "last_login_at": "DATETIME",
                 }
                 for name, declaration in additions.items():
                     if name not in account_columns:

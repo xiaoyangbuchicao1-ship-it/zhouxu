@@ -7,6 +7,8 @@ export interface AdminAccount {
   quota_tokens: number;
   used_tokens: number;
   remaining_tokens: number;
+  last_login_ip?: string | null;
+  last_login_at?: string | null;
 }
 
 export interface AdminUsageLog {
@@ -52,6 +54,7 @@ export interface AdminUserActivity {
   email?: string | null;
   action: string;
   status: string;
+  ip_address?: string | null;
   details: Record<string, unknown>;
   created_at: string;
 }

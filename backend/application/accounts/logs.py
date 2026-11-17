@@ -220,6 +220,7 @@ class AccountLogService:
                     "email": row.target_email or row.actor_email,
                     "action": row.action,
                     "status": "success" if row.success else "failed",
+                    "ip_address": row.ip_address,
                     "details": row.details_json,
                     "created_at": row.created_at,
                 }
@@ -233,6 +234,7 @@ class AccountLogService:
                     "email": None,
                     "action": "run.usage",
                     "status": row.status,
+                    "ip_address": None,
                     "details": json.dumps(
                         {
                             "run_id": row.run_id,
